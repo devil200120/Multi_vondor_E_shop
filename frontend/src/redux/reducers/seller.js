@@ -18,6 +18,16 @@ export const sellerReducer = createReducer(initialState, {
     state.error = action.payload;
     state.isSeller = false;
   },
+
+  // logout seller
+  LogoutSellerSuccess: (state, action) => {
+    state.isSeller = false;
+    state.seller = null;
+    state.isLoading = false;
+  },
+  LogoutSellerFail: (state, action) => {
+    state.error = action.payload;
+  },
   // get all sellers ---admin
   getAllSellersRequest: (state) => {
     state.isLoading = true;

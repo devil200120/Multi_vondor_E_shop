@@ -43,6 +43,42 @@ export const loadSeller = () => async (dispatch) => {
   }
 };
 
+// logout user
+export const logoutUser = () => async (dispatch) => {
+  try {
+    const { data } = await axios.get(`${server}/user/logout`, {
+      withCredentials: true,
+    });
+    dispatch({
+      type: "LogoutUserSuccess",
+      payload: data.message,
+    });
+  } catch (error) {
+    dispatch({
+      type: "LogoutUserFail",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+// logout seller
+export const logoutSeller = () => async (dispatch) => {
+  try {
+    const { data } = await axios.get(`${server}/shop/logout`, {
+      withCredentials: true,
+    });
+    dispatch({
+      type: "LogoutSellerSuccess",
+      payload: data.message,
+    });
+  } catch (error) {
+    dispatch({
+      type: "LogoutSellerFail",
+      payload: error.response.data.message,
+    });
+  }
+};
+
 // User update information
 export const updateUserInformation =
   (name, email, phoneNumber, password) => async (dispatch) => {

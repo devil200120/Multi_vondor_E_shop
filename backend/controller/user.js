@@ -15,24 +15,33 @@ const router = express.Router();
 router.post("/create-user", upload.single("file"), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !password) {
+      return next(new ErrorHandler("Please provide all required fields", 400));
+    }
+
     const userEmail = await User.findOne({ email });
 
     if (userEmail) {
-      // if user already exits account is not create and file is deleted
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ message: "Error deleting file" });
-        }
-      });
-
-      return next(new ErrorHandler("User already exits", 400));
+      // if user already exits account is not created and file is deleted
+      if (req.file) {
+        const filename = req.file.filename;
+        const filePath = `uploads/${filename}`;
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
+      return next(new ErrorHandler("User already exists", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
+    let fileUrl = null;
+    if (req.file) {
+      const filename = req.file.filename;
+      fileUrl = path.join(filename);
+    }
 
     const user = {
       name: name,

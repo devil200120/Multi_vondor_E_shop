@@ -2,44 +2,195 @@
 @tailwind components;
 @tailwind utilities;
 
-/* fonts */
+/* Import Unacademy-style fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 * {
   scroll-behavior: smooth;
+  box-sizing: border-box;
 }
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background: #f6f6f5;
+  font-family: "Inter", "Roboto", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+    sans-serif;
+  background: #fafafa;
+  color: #1a1a1a;
   scroll-behavior: smooth;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Input and form styles */
 input,
-select {
+select,
+textarea {
   outline: none;
+  transition: all 0.2s ease-in-out;
 }
+
+input:focus,
+select:focus,
+textarea:focus {
+  ring: 2px;
+  ring-color: #008f66;
+  border-color: #008f66;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Button base styles */
+.btn-unacademy {
+  @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply btn-unacademy bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-unacademy hover:shadow-unacademy-md;
+}
+
+.btn-secondary {
+  @apply btn-unacademy bg-secondary-100 text-text-primary hover:bg-secondary-200 focus:ring-secondary-300 border border-secondary-200;
+}
+
+.btn-outline {
+  @apply btn-unacademy bg-transparent text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500;
+}
+
+/* Card styles */
+.card-unacademy {
+  @apply bg-white rounded-xl shadow-unacademy hover:shadow-unacademy-md transition-all duration-200 ease-in-out border border-secondary-200;
+}
+
+/* Input styles */
+.input-unacademy {
+  @apply w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 ease-in-out placeholder-text-muted;
+}
+
+/* Badge styles */
+.badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.badge-primary {
+  @apply badge bg-primary-100 text-primary-800;
+}
+
+.badge-success {
+  @apply badge bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply badge bg-yellow-100 text-yellow-800;
+}
+
+.badge-error {
+  @apply badge bg-red-100 text-red-800;
+}
+
+/* Heart icon animation */
 .batch_heart {
-  background: tomato;
-  width: 15px;
-  height: 15px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 100%;
+  border-radius: 50%;
   position: absolute;
-  right: -24%;
-  top: -9%;
+  right: -25%;
+  top: -10%;
   cursor: pointer;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
 }
-/* Chrome, Safari, Edge, Opera */
+
+.batch_heart:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove spinner buttons */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Loading animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Text selection */
+::selection {
+  background-color: rgba(0, 143, 102, 0.2);
+  color: #1a1a1a;
+}
+
+/* Focus visible for accessibility */
+.focus-visible {
+  outline: 2px solid #008f66;
+  outline-offset: 2px;
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Grid layouts */
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
