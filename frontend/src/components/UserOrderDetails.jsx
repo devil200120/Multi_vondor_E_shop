@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import styles from "../styles/styles";
 import { BsFillBagFill } from "react-icons/bs";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -9,6 +8,12 @@ import { RxCross1 } from "react-icons/rx";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { useDispatch, useSelector } from "react-redux";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
+import {
+  HiOutlineShoppingBag,
+  HiOutlineLocationMarker,
+  HiOutlineCreditCard,
+} from "react-icons/hi";
+import { FiPackage, FiArrowLeft, FiMessageCircle } from "react-icons/fi";
 
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
@@ -18,12 +23,15 @@ const UserOrderDetails = () => {
   const [comment, setComment] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [rating, setRating] = useState(1);
+  const navigate = useNavigate();
 
   const { id } = useParams();
 
   useEffect(() => {
-    dispatch(getAllOrdersOfUser(user._id));
-  }, [dispatch, user._id]);
+    if (user?._id) {
+      dispatch(getAllOrdersOfUser(user._id));
+    }
+  }, [dispatch, user]);
 
   const data = orders && orders.find((item) => item._id === id);
 
@@ -52,8 +60,8 @@ const UserOrderDetails = () => {
       setRating(null);
       setOpen(false);
     } catch (error) {
-      console.error(error); // Log the error to the console for debugging
-      toast.error("An error occurred. Please try again."); // Display a generic error message
+      console.error(error);
+      toast.error("An error occurred. Please try again.");
     }
   };
 
@@ -66,205 +74,339 @@ const UserOrderDetails = () => {
 
   // Refund
   const refundHandler = async () => {
-    await axios
-      .put(`${server}/order/order-refund/${id}`, {
-        status: "Processing refund",
-      })
-      .then((res) => {
-        toast.success(res.data.message);
-        dispatch(getAllOrdersOfUser(user._id));
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+    try {
+      const res = await axios.put(
+        `${server}/order/order-refund/${id}`,
+        {
+          status: "Processing refund",
+        },
+        { withCredentials: true }
+      );
+      toast.success(res.data.message);
+      dispatch(getAllOrdersOfUser(user._id));
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Refund request failed");
+    }
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FiPackage className="mx-auto text-6xl text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-600 mb-2">
+            Order Not Found
+          </h2>
+          <p className="text-gray-500">
+            The order you're looking for doesn't exist.
+          </p>
+          <button
+            onClick={() => navigate("/profile")}
+            className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FiArrowLeft className="mr-2" />
+            Back to Orders
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`py-4 min-h-screen ${styles.section}`}>
-      <div className="w=full flex items-center justify-between">
-        <div className="flex items-center">
-          <BsFillBagFill size={30} color="crimson" />
-          <h1 className="pl-2 text-[25px]">Order Details</h1>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => navigate("/profile")}
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+          >
+            <FiArrowLeft className="mr-2" />
+            Back to Orders
+          </button>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <HiOutlineShoppingBag className="text-2xl text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Order Details
+              </h1>
+              <p className="text-gray-600">
+                View and manage your order information
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Info Header */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                Order #{data._id.slice(-8).toUpperCase()}
+              </h2>
+              <p className="text-gray-500">
+                Placed on {formatDate(data.createdAt)}
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <div
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                ${data.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                  data.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
+                  data.status === 'Shipping' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'}
+              "
+              >
+                {data.status}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Order Items */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                Order Items
+              </h3>
+              <div className="space-y-4">
+                {data.cart.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start space-x-4 p-4 border border-gray-100 rounded-lg"
+                  >
+                    <img
+                      src={`${backend_url}/${item.images[0]}`}
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {item.name}
+                      </h4>
+                      <p className="text-gray-600 mt-1">
+                        US${item.discountPrice} × {item.qty}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 mt-2">
+                        US${(item.discountPrice * item.qty).toFixed(2)}
+                      </p>
+                    </div>
+                    {!item.isReviewed && data.status === "Delivered" && (
+                      <button
+                        onClick={() => {
+                          setOpen(true);
+                          setSelectedItem(item);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Write Review
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Total */}
+              <div className="border-t border-gray-200 pt-4 mt-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-medium text-gray-900">
+                    Total Amount
+                  </span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    US${data.totalPrice}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Summary Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Shipping Address */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <HiOutlineLocationMarker className="mr-2 text-blue-600" />
+                Shipping Address
+              </h3>
+              <div className="space-y-2 text-gray-600">
+                <p className="font-medium text-gray-900">
+                  {data.shippingAddress.address1}
+                </p>
+                {data.shippingAddress.address2 && (
+                  <p>{data.shippingAddress.address2}</p>
+                )}
+                <p>
+                  {data.shippingAddress.city}, {data.shippingAddress.country}
+                </p>
+                <p>{data.shippingAddress.zipCode}</p>
+                <p className="border-t pt-2 mt-2">{data.user?.phoneNumber}</p>
+              </div>
+            </div>
+
+            {/* Payment Info */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <HiOutlineCreditCard className="mr-2 text-blue-600" />
+                Payment Info
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span
+                    className={`font-medium ${
+                      data.paymentInfo?.status === "succeeded" ||
+                      data.paymentInfo?.status === "Succeeded"
+                        ? "text-green-600"
+                        : "text-orange-600"
+                    }`}
+                  >
+                    {data.paymentInfo?.status || "Not Paid"}
+                  </span>
+                </div>
+                {data.paymentInfo?.type && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Method:</span>
+                    <span className="font-medium text-gray-900">
+                      {data.paymentInfo.type}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Actions
+              </h3>
+              <div className="space-y-3">
+                <Link
+                  to={`/track/order/${data._id}`}
+                  className="w-full inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <FiPackage className="mr-2" />
+                  Track Order
+                </Link>
+
+                {data.status === "Delivered" && (
+                  <button
+                    onClick={refundHandler}
+                    className="w-full px-4 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    Request Refund
+                  </button>
+                )}
+
+                <Link
+                  to="/inbox"
+                  className="w-full inline-flex items-center justify-center px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <FiMessageCircle className="mr-2" />
+                  Send Message
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="w-full flex items-center justify-between pt-6">
-        <h5 className="text-[#00000084]">
-          order ID: <span>#{data?._id?.slice(0, 8)}</span>
-        </h5>
-        <h5 className="text-[#000000084]">
-          Placed On: <span>{data?.createdAt?.slice(0, 10)}</span>
-        </h5>
-      </div>
-
-      {/* Order Items */}
-      <br />
-      <br />
-      {data &&
-        data?.cart.map((item, index) => {
-          return (
-            <div className="w-full flex items-start mb-5">
-              <img
-                src={`${backend_url}/${item.images[0]}`}
-                alt="Product item order img"
-                className="w-[80x] h-[80px]"
-              />
-              <div className="w-full">
-                <h5 className="pl-3 text-[20px]">{item.name}</h5>
-                <h5 className="pl-3 text-[20px] text-[#00000091]">
-                  US${item.discountPrice} x {item.qty}
-                </h5>
-              </div>
-              {!item.isReviewed && data?.status === "Delivered" ? (
-                <div
-                  className={`${styles.button} text-[#fff]`}
-                  onClick={() => setOpen(true) || setSelectedItem(item)}
-                >
-                  write a review
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-
-      {/* Review Popup */}
+      {/* Review Modal */}
       {open && (
-        <div className="w-full  top-0 left-0 h-screen bg-[#0005] z-50 flex items-center justify-center">
-          <div className="w-[50%] h-min bg-[#fff] shadow rounded-md p-3 ">
-            <div className="w-full flex justify-end p-3">
-              <RxCross1
-                size={30}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Write a Review
+              </h2>
+              <button
                 onClick={() => setOpen(false)}
-                className="cursor-pointer"
-              />
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <RxCross1 size={20} className="text-gray-500" />
+              </button>
             </div>
-            <h2 className="text-[30px] font-[500] font-Poppins text-center">
-              Give a Review
-            </h2>
-            <br />
-            <div className="w-full flex">
-              <img
-                src={`${backend_url}/${selectedItem?.images[0]}`}
-                alt=""
-                className="w-[80px] h-[80px]"
-              />
-              <div>
-                <div className="pl-3 text-[20px]">{selectedItem?.name}</div>
-                <h4 className="pl-3 text-[20px]">
-                  US${selectedItem?.discountPrice} x {selectedItem?.qty}
-                </h4>
+
+            <div className="p-6">
+              {/* Product Info */}
+              <div className="flex items-center space-x-3 mb-6">
+                <img
+                  src={`${backend_url}/${selectedItem?.images[0]}`}
+                  alt={selectedItem?.name}
+                  className="w-16 h-16 object-cover rounded-lg"
+                />
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    {selectedItem?.name}
+                  </h3>
+                  <p className="text-gray-600">
+                    US${selectedItem?.discountPrice} × {selectedItem?.qty}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <br />
-            <br />
+              {/* Rating */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Rating <span className="text-red-500">*</span>
+                </label>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((i) =>
+                    rating >= i ? (
+                      <AiFillStar
+                        key={i}
+                        className="cursor-pointer text-yellow-400 hover:text-yellow-500"
+                        size={24}
+                        onClick={() => setRating(i)}
+                      />
+                    ) : (
+                      <AiOutlineStar
+                        key={i}
+                        className="cursor-pointer text-gray-300 hover:text-yellow-400"
+                        size={24}
+                        onClick={() => setRating(i)}
+                      />
+                    )
+                  )}
+                </div>
+              </div>
 
-            {/* Rating */}
-            <h5 className="pl-3 text-[20px] font-[500]">
-              Give a Rating <span className="text-red-500">*</span>
-            </h5>
-            <div className="flex w-fit ml-2 pt-1">
-              {[1, 2, 3, 4, 5].map((i) =>
-                rating >= i ? (
-                  <AiFillStar
-                    key={i}
-                    className="mr-1 cursor-pointer"
-                    color="rgb(246,186,0)"
-                    size={25}
-                    onClick={() => setRating(i)}
-                  />
-                ) : (
-                  <AiOutlineStar
-                    key={i}
-                    className="mr-1 cursor-pointer"
-                    color="rgb(246,186,0)"
-                    size={25}
-                    onClick={() => setRating(i)}
-                  />
-                )
-              )}
-            </div>
-            <br />
-            {/* Comment */}
-            <div className="w-full ml-3">
-              <label className="block text-[20px] font-[500]">
-                Write a Comment
-                <span className="ml-1 font-[400] text-[16px] text-[#00000052]">
-                  (Optional)
-                </span>
-              </label>
-              <textarea
-                name="comment"
-                id=""
-                cols="20"
-                rows="5"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="How was your product? write your expresion about it!"
-                className="mt-2 w-[95%] border p-2 outline-none"
-              ></textarea>
-            </div>
-            <div
-              className={`${styles.button} text-white text-[20px] ml-3`}
-              onClick={rating > 1 ? combinedHandler : null}
-            >
-              Submit
+              {/* Comment */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Comment <span className="text-gray-500">(Optional)</span>
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share your experience with this product..."
+                  rows={4}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                onClick={rating >= 1 ? combinedHandler : null}
+                disabled={rating < 1}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                Submit Review
+              </button>
             </div>
           </div>
         </div>
       )}
-
-      <div className="border-t w-full text-right">
-        <h5>
-          Total Price: <strong>US${data?.totalPrice}</strong>
-        </h5>
-      </div>
-      <br />
-      <br />
-
-      {/* Shipping Address */}
-
-      <div className="w-full 800px:flex items-center">
-        <div className="w-full 800px:w-[60%]">
-          <h4 className="pt-3 text-[20px] font-[600]">Shipping Address:</h4>
-
-          <h4 className="pt-3 text-[20px]">
-            {data?.shippingAddress.address1 +
-              " " +
-              data?.shippingAddress.address2}
-          </h4>
-          <h4 className="text-[20px]">{data?.shippingAddress.country}</h4>
-          <h4 className=" text-[20px]">{data?.shippingAddress.city}</h4>
-
-          <h4 className=" text-[20px]">{data?.user?.phoneNumber}</h4>
-        </div>
-
-        <div className="w-full 800px:w-[40%]">
-          <h4 className="pt-3 text-[20px]">Payment Info:</h4>
-          <h4>
-            Status:{" "}
-            {/* checks if the `status` property exists
-                     in the `paymentInfo` object within the `data` object. */}
-            {data?.paymentInfo?.status ? data?.paymentInfo?.status : "Not Paid"}
-          </h4>
-          <br />
-          {data?.status === "Delivered" && (
-            <div
-              className={`${styles.button} text-white`}
-              onClick={refundHandler}
-            >
-              Give a Refund
-            </div>
-          )}
-        </div>
-      </div>
-      <br />
-
-      <Link to="/">
-        <div className={`${styles.button} text-white`}>Send Message</div>
-      </Link>
-      <br />
-      <br />
     </div>
   );
 };

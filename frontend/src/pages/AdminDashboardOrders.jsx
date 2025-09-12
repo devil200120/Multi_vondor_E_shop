@@ -66,23 +66,29 @@ const AdminDashboardOrders = () => {
       });
     });
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <AdminHeader />
-      <div className="w-full flex">
-        <div className="flex items-start justify-between w-full">
-          <div className="w-[80px] 800px:w-[330px]">
-            <AdminSideBar active={2} />
-          </div>
+      <div className="flex">
+        <AdminSideBar active={2} />
+        <div className="flex-1 bg-gray-50 min-h-screen">
+          <div className="p-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                All Orders
+              </h1>
+              <p className="text-gray-600">Manage all platform orders</p>
+            </div>
 
-          <div className="w-full min-h-[45vh] pt-5 rounded flex justify-center">
-            <div className="w-[97%] flex justify-center">
-              <DataGrid
-                rows={row}
-                columns={columns}
-                pageSize={4}
-                disableSelectionOnClick
-                autoHeight
-              />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6">
+                <DataGrid
+                  rows={row}
+                  columns={columns}
+                  pageSize={10}
+                  disableSelectionOnClick
+                  autoHeight
+                />
+              </div>
             </div>
           </div>
         </div>

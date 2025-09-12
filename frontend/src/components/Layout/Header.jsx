@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
+import BrandingLogo from "../../Branding_logo.jpg";
 import { categoriesData } from "../../static/data";
 import {
   AiOutlineHeart,
@@ -79,16 +80,25 @@ const Header = ({ activeHeading }) => {
           <div className="flex items-center">
             <Link
               to="/"
-              className="hover:opacity-80 transition-opacity duration-200"
+              className="group hover:scale-105 transition-all duration-300 ease-in-out"
             >
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">E</span>
-                </div>
-                <span className="text-2xl font-bold text-text-primary">
-                  EShop
-                </span>
-              </div>
+              <img
+                src={BrandingLogo}
+                alt="Brand Logo"
+                className="h-20 w-auto object-contain transition-all duration-300"
+                style={{
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                  WebkitMaskImage: `url(${BrandingLogo})`,
+                  maskImage: `url(${BrandingLogo})`,
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  backgroundColor: "#1a202c",
+                }}
+              />
             </Link>
           </div>
 
@@ -266,12 +276,28 @@ const Header = ({ activeHeading }) => {
           </div>
 
           {/* Logo */}
-          <div>
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-500 rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
-              <span className="text-lg font-bold text-text-primary">EShop</span>
+          <div className="flex items-center">
+            <Link
+              to="/"
+              className="group hover:scale-105 transition-all duration-300 ease-in-out"
+            >
+              <img
+                src={BrandingLogo}
+                alt="Brand Logo"
+                className="h-16 w-auto object-contain transition-all duration-300"
+                style={{
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                  WebkitMaskImage: `url(${BrandingLogo})`,
+                  maskImage: `url(${BrandingLogo})`,
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  backgroundColor: "#1a202c",
+                }}
+              />
             </Link>
           </div>
 

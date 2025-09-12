@@ -21,6 +21,28 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: "Processing",
   },
+  statusHistory: [{
+    status: {
+      type: String,
+      required: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    note: {
+      type: String
+    }
+  }],
+  trackingNumber: {
+    type: String
+  },
+  courierPartner: {
+    type: String
+  },
+  estimatedDelivery: {
+    type: Date
+  },
   paymentInfo: {
     id: {
       type: String,
@@ -43,6 +65,18 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+});
+
+// Add initial status to history when order is created
+orderSchema.pre('save', function(next) {
+  if (this.isNew && this.statusHistory.length === 0) {
+    this.statusHistory.push({
+      status: this.status,
+      timestamp: this.createdAt,
+      note: 'Order placed successfully'
+    });
+  }
+  next();
 });
 
 module.exports = mongoose.model("Order", orderSchema);

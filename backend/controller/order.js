@@ -100,13 +100,32 @@ router.put(
       if (!order) {
         return next(new ErrorHandler("Order not found with this id", 400));
       }
+      
       if (req.body.status === "Transferred to delivery partner") {
         order.cart.forEach(async (o) => {
           await updateOrder(o._id, o.qty);
         });
       }
 
+      // Add status to history
+      order.statusHistory.push({
+        status: req.body.status,
+        timestamp: new Date(),
+        note: req.body.note || getStatusNote(req.body.status)
+      });
+
       order.status = req.body.status;
+
+      // Set tracking info if provided
+      if (req.body.trackingNumber) {
+        order.trackingNumber = req.body.trackingNumber;
+      }
+      if (req.body.courierPartner) {
+        order.courierPartner = req.body.courierPartner;
+      }
+      if (req.body.estimatedDelivery) {
+        order.estimatedDelivery = new Date(req.body.estimatedDelivery);
+      }
 
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
@@ -121,6 +140,18 @@ router.put(
         success: true,
         order,
       });
+
+      function getStatusNote(status) {
+        const notes = {
+          "Processing": "Your order is being prepared",
+          "Transferred to delivery partner": "Order picked up by delivery partner",
+          "Shipping": "Order is in transit",
+          "Received": "Order reached destination city",
+          "On the way": "Delivery executive is on the way",
+          "Delivered": "Order delivered successfully"
+        };
+        return notes[status] || "Status updated";
+      }
 
       async function updateOrder(id, qty) {
         const product = await Product.findById(id);
@@ -225,6 +256,54 @@ router.get(
       res.status(201).json({
         success: true,
         orders,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// check coordinates status --- for debugging
+router.get(
+  "/check-coordinates-status",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const totalOrders = await Order.countDocuments();
+      const ordersWithCoords = await Order.countDocuments({
+        'shippingAddress.latitude': { $exists: true, $ne: null },
+        'shippingAddress.longitude': { $exists: true, $ne: null }
+      });
+      const ordersWithoutCoords = totalOrders - ordersWithCoords;
+
+      // Get a sample order with coordinates
+      const sampleOrderWithCoords = await Order.findOne({
+        'shippingAddress.latitude': { $exists: true, $ne: null },
+        'shippingAddress.longitude': { $exists: true, $ne: null }
+      }).select('shippingAddress').limit(1);
+
+      // Get a sample order without coordinates
+      const sampleOrderWithoutCoords = await Order.findOne({
+        $or: [
+          { 'shippingAddress.latitude': { $exists: false } },
+          { 'shippingAddress.longitude': { $exists: false } },
+          { 'shippingAddress.latitude': null },
+          { 'shippingAddress.longitude': null }
+        ]
+      }).select('shippingAddress').limit(1);
+
+      res.status(200).json({
+        success: true,
+        stats: {
+          totalOrders,
+          ordersWithCoords,
+          ordersWithoutCoords,
+          percentage: totalOrders > 0 ? ((ordersWithCoords / totalOrders) * 100).toFixed(2) : 0
+        },
+        samples: {
+          withCoordinates: sampleOrderWithCoords?.shippingAddress || null,
+          withoutCoordinates: sampleOrderWithoutCoords?.shippingAddress || null
+        }
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

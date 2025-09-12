@@ -41,6 +41,8 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
       address: req.body.address,
       phoneNumber: req.body.phoneNumber,
       zipCode: req.body.zipCode,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
     };
 
     const activationToken = createActivationToken(seller);
@@ -87,7 +89,7 @@ router.post(
       if (!newSeller) {
         return next(new ErrorHandler("Invalid token", 400));
       }
-      const { name, email, password, avatar, zipCode, address, phoneNumber } =
+      const { name, email, password, avatar, zipCode, address, phoneNumber, latitude, longitude } =
         newSeller;
 
       let seller = await Shop.findOne({ email });
@@ -104,6 +106,8 @@ router.post(
         zipCode,
         address,
         phoneNumber,
+        latitude,
+        longitude,
       });
 
       sendShopToken(seller, 201, res);
@@ -237,7 +241,7 @@ router.put(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { name, description, address, phoneNumber, zipCode } = req.body;
+      const { name, description, address, phoneNumber, zipCode, latitude, longitude } = req.body;
 
       const shop = await Shop.findOne(req.seller._id);
 
@@ -250,6 +254,14 @@ router.put(
       shop.address = address;
       shop.phoneNumber = phoneNumber;
       shop.zipCode = zipCode;
+      
+      // Update coordinates if provided
+      if (latitude !== undefined) {
+        shop.latitude = latitude;
+      }
+      if (longitude !== undefined) {
+        shop.longitude = longitude;
+      }
 
       await shop.save();
 
@@ -350,6 +362,39 @@ router.delete(
 
       res.status(201).json({
         success: true,
+        seller,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// update shop location --- sellers
+router.put(
+  "/update-shop-location",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { latitude, longitude, address } = req.body;
+
+      const seller = await Shop.findByIdAndUpdate(
+        req.seller._id,
+        {
+          latitude,
+          longitude,
+          address,
+        },
+        { new: true }
+      );
+
+      if (!seller) {
+        return next(new ErrorHandler("Seller not found", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Shop location updated successfully",
         seller,
       });
     } catch (error) {

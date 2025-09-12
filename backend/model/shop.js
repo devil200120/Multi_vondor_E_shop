@@ -40,6 +40,12 @@ const shopSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  latitude: {
+    type: String,
+  },
+  longitude: {
+    type: String,
+  },
   withdrawMethod: {
     type: Object,
   },

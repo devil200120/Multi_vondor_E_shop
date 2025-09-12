@@ -5,15 +5,11 @@ import AllUsers from "../components/Admin/AllUsers";
 
 const AdminDashboardUsers = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <AdminHeader />
-      <div className="w-full flex">
-        <div className="flex items-start justify-between w-full">
-          <div className="w-[80px] 800px:w-[330px]">
-            <AdminSideBar active={4} />
-          </div>
-          <AllUsers />
-        </div>
+      <div className="flex">
+        <AdminSideBar active={4} />
+        <AllUsers />
       </div>
     </div>
   );

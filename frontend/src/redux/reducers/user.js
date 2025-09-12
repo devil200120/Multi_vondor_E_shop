@@ -2,6 +2,9 @@ import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
   isAuthenticated: false,
+  loading: true,
+  user: null,
+  error: null,
 };
 
 export const userReducer = createReducer(initialState, {
@@ -85,6 +88,9 @@ export const userReducer = createReducer(initialState, {
 
   clearErrors: (state) => {
     state.error = null;
+  },
+  clearMessages: (state) => {
+    state.successMessage = null;
   },
 });
 

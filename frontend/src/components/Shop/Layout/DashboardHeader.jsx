@@ -37,7 +37,7 @@ const DashboardHeader = () => {
         <div className="hidden lg:flex items-center space-x-6">
           <div className="flex items-center space-x-2">
             <Link
-              to="/dashboard/cupouns"
+              to="/dashboard-coupouns"
               className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 transition-all duration-200 group transform hover:scale-105"
             >
               <AiOutlineGift
@@ -204,7 +204,7 @@ const DashboardHeader = () => {
             </div>
 
             <Link
-              to="/dashboard/cupouns"
+              to="/dashboard-coupouns"
               className="flex items-center space-x-4 p-4 rounded-2xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 transition-all duration-200 group hover:shadow-md border border-transparent hover:border-orange-200 bg-white"
               onClick={() => setIsMobileMenuOpen(false)}
             >

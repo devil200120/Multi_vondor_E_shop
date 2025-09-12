@@ -4,9 +4,16 @@ import { useEffect } from "react";
 import { backend_url, server } from "../../server";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
-import styles from "../../styles/styles";
+import {
+  AiOutlineArrowRight,
+  AiOutlineSend,
+  AiOutlineSearch,
+  AiOutlineMessage,
+  AiOutlineUser,
+} from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
+import { HiOutlinePhotograph } from "react-icons/hi";
+import { BsCircleFill } from "react-icons/bs";
 import socketIO from "socket.io-client";
 import { format } from "timeago.js";
 const ENDPOINT = "http://localhost:4000/";
@@ -24,6 +31,7 @@ const DashboardMessages = () => {
   const [images, setImages] = useState();
   const [activeStatus, setActiveStatus] = useState(false);
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -202,36 +210,130 @@ const DashboardMessages = () => {
   };
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ beahaviour: "smooth" });
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  return (
-    <div className="w-[90%] bg-white m-5 h-[85vh] overflow-y-scroll rounded">
-      {!open && (
-        <>
-          <h1 className="text-center text-[30px] py-3 font-Poppins">
-            All Messages
-          </h1>
-          {/* All messages list */}
-          {conversations &&
-            conversations.map((item, index) => (
-              <MessageList
-                data={item}
-                key={index}
-                index={index}
-                setOpen={setOpen}
-                setCurrentChat={setCurrentChat}
-                me={seller._id}
-                setUserData={setUserData}
-                userData={userData}
-                online={onlineCheck(item)}
-                setActiveStatus={setActiveStatus}
-              />
-            ))}
-        </>
-      )}
+  // Filter conversations based on search term
+  const filteredConversations = conversations.filter((conversation) => {
+    // You can add more sophisticated filtering here
+    return true; // For now, show all conversations
+  });
 
-      {open && (
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {!open ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Header Section */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-4 sm:mb-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+                  <AiOutlineMessage className="mr-3 h-8 w-8 text-blue-600" />
+                  Messages
+                </h1>
+                <p className="mt-2 text-sm text-gray-600">
+                  Chat with your customers and manage conversations
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <AiOutlineSearch className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search conversations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Section */}
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <AiOutlineMessage className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-600">
+                      Total Conversations
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {conversations.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <BsCircleFill className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-600">
+                      Online Users
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {onlineUsers.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <AiOutlineUser className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-600">
+                      Active Chats
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {conversations.filter((conv) => onlineCheck(conv)).length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Conversations List */}
+          <div className="divide-y divide-gray-200">
+            {filteredConversations.length > 0 ? (
+              filteredConversations.map((item, index) => (
+                <MessageList
+                  data={item}
+                  key={index}
+                  index={index}
+                  setOpen={setOpen}
+                  setCurrentChat={setCurrentChat}
+                  me={seller._id}
+                  setUserData={setUserData}
+                  userData={userData}
+                  online={onlineCheck(item)}
+                  setActiveStatus={setActiveStatus}
+                />
+              ))
+            ) : (
+              <div className="p-12 text-center">
+                <AiOutlineMessage className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No conversations
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Start selling products to receive customer messages.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
         <SellerInbox
           setOpen={setOpen}
           newMessage={newMessage}
@@ -284,9 +386,9 @@ const MessageList = ({
 
   return (
     <div
-      className={`w-full flex p-3 px-3 ${
-        active === index ? "bg-[#00000010]" : "bg-transparent"
-      }  cursor-pointer`}
+      className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
+        active === index ? "bg-blue-50 border-r-4 border-blue-500" : ""
+      }`}
       onClick={(e) =>
         setActive(index) ||
         handleClick(data._id) ||
@@ -295,26 +397,52 @@ const MessageList = ({
         setActiveStatus(online)
       }
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <img
           src={`${backend_url}${user?.avatar}`}
-          alt=""
-          className="w-[50px] h-[50px] rounded-full"
+          alt={user?.name || "User"}
+          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
         />
-        {online ? (
-          <div className="w-[12px] h-[12px] bg-green-400 rounded-full absolute top-[2px] right-[2px]" />
-        ) : (
-          <div className="w-[12px] h-[12px] bg-[#c7b9b9] rounded-full absolute top-[2px] right-[2px]" />
-        )}
+        <div
+          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+            online ? "bg-green-400" : "bg-gray-400"
+          }`}
+        />
       </div>
-      <div className="pl-3">
-        <h1 className="text-[18px]">{user?.name}</h1>
-        <p className="text-[16px] text-[#000c]">
-          {data?.lastMessageId !== user?._id
-            ? "You:"
-            : (user?.name ? user.name.split(" ")[0] : "") + ": "}
-          {data?.lastMessage}
-        </p>
+
+      <div className="ml-4 flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-900 truncate">
+            {user?.name || "Unknown User"}
+          </h3>
+          <span className="text-xs text-gray-500">
+            {format(data?.updatedAt)}
+          </span>
+        </div>
+        <div className="flex items-center mt-1">
+          <p className="text-sm text-gray-600 truncate flex-1">
+            <span className="font-medium">
+              {data?.lastMessageId !== user?._id
+                ? "You: "
+                : `${user?.name?.split(" ")[0] || "User"}: `}
+            </span>
+            {data?.lastMessage === "Photo" ? (
+              <span className="inline-flex items-center">
+                <HiOutlinePhotograph className="h-4 w-4 mr-1" />
+                Photo
+              </span>
+            ) : (
+              data?.lastMessage
+            )}
+          </p>
+          {online && (
+            <div className="ml-2 flex-shrink-0">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Online
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -333,108 +461,172 @@ const SellerInbox = ({
   handleImageUpload,
 }) => {
   return (
-    <div className="w-full min-h-full flex flex-col justify-between">
-      {/* message header */}
-      <div className="w-full flex p-3 items-center justify-between bg-slate-200">
-        <div className="flex">
-          <img
-            src={`${backend_url}${userData?.avatar}`}
-            alt=""
-            className="w-[60px] h-[60px] rounded-full"
-          />
-          <div className="pl-3">
-            <h1 className="text-[18px] font-[600]">{userData?.name}</h1>
-            <h1>{activeStatus ? "Active Now" : ""}</h1>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-[calc(100vh-200px)] flex flex-col">
+      {/* Chat Header */}
+      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="relative">
+              <img
+                src={`${backend_url}${userData?.avatar}`}
+                alt={userData?.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+              />
+              <div
+                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                  activeStatus ? "bg-green-400" : "bg-gray-400"
+                }`}
+              />
+            </div>
+            <div className="ml-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {userData?.name}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {activeStatus ? (
+                  <span className="inline-flex items-center text-green-600">
+                    <BsCircleFill className="h-2 w-2 mr-2" />
+                    Active now
+                  </span>
+                ) : (
+                  "Offline"
+                )}
+              </p>
+            </div>
           </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="inline-flex items-center p-2 border border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <AiOutlineArrowRight className="h-5 w-5" />
+          </button>
         </div>
-        <AiOutlineArrowRight
-          size={20}
-          className="cursor-pointer"
-          onClick={() => setOpen(false)}
-        />
       </div>
 
-      {/* messages */}
-      <div className="px-3 h-[65vh] py-3 overflow-y-scroll">
-        {messages &&
-          messages.map((item, index) => {
-            return (
-              <div
-                className={`flex w-full my-2 ${
-                  item.sender === sellerId ? "justify-end" : "justify-start"
-                }`}
-                ref={scrollRef}
-              >
-                {item.sender !== sellerId && (
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages && messages.length > 0 ? (
+          messages.map((item, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                item.sender === sellerId ? "justify-end" : "justify-start"
+              }`}
+              ref={scrollRef}
+            >
+              {item.sender !== sellerId && (
+                <div className="flex-shrink-0 mr-3">
                   <img
                     src={`${backend_url}${userData?.avatar}`}
-                    className="w-[40px] h-[40px] rounded-full mr-3"
-                    alt=""
+                    className="w-8 h-8 rounded-full object-cover"
+                    alt={userData?.name}
                   />
-                )}
+                </div>
+              )}
 
+              <div
+                className={`max-w-xs lg:max-w-md ${
+                  item.sender === sellerId ? "order-1" : "order-2"
+                }`}
+              >
                 {item.images && (
-                  <img
-                    src={`${backend_url}${item.images}`}
-                    className="w-[300px] h-[300px] object-cover rounded-[10px] mr-2"
-                  />
-                )}
-                {item.text !== "" && (
-                  <div>
-                    <div
-                      className={`w-max p-2 rounded ${
-                        item.sender === sellerId ? "bg-[#000]" : "bg-[#38c776]"
-                      } text-[#fff] h-min`}
-                    >
-                      <p>{item.text}</p>
-                    </div>
-
-                    <p className="text-[12px] text-[#000000d3] pt-1">
-                      {format(item.createdAt)}
-                    </p>
+                  <div className="mb-2">
+                    <img
+                      src={`${backend_url}${item.images}`}
+                      className="max-w-full h-auto rounded-lg shadow-sm border border-gray-200"
+                      alt="Shared image"
+                    />
                   </div>
                 )}
+
+                {item.text && item.text.trim() !== "" && (
+                  <div
+                    className={`px-4 py-2 rounded-2xl ${
+                      item.sender === sellerId
+                        ? "bg-blue-600 text-white rounded-br-sm"
+                        : "bg-gray-100 text-gray-900 rounded-bl-sm"
+                    }`}
+                  >
+                    <p className="text-sm">{item.text}</p>
+                  </div>
+                )}
+
+                <p
+                  className={`text-xs text-gray-500 mt-1 ${
+                    item.sender === sellerId ? "text-right" : "text-left"
+                  }`}
+                >
+                  {format(item.createdAt)}
+                </p>
               </div>
-            );
-          })}
+
+              {item.sender === sellerId && (
+                <div className="flex-shrink-0 ml-3 order-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {userData?.name?.charAt(0) || "S"}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <AiOutlineMessage className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No messages yet
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Start the conversation!
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* send message input */}
-      <form
-        aria-required={true}
-        className="p-3 relative w-full flex justify-between items-center"
-        onSubmit={sendMessageHandler}
-      >
-        <div className="w-[30px]">
-          <input
-            type="file"
-            name=""
-            id="image"
-            className="hidden"
-            onChange={handleImageUpload}
-          />
-          <label htmlFor="image">
-            <TfiGallery className="cursor-pointer" size={20} />
-          </label>
-        </div>
-        <div className="w-full">
-          <input
-            type="text"
-            required
-            placeholder="Enter your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className={`${styles.input}`}
-          />
-          <input type="submit" value="Send" className="hidden" id="send" />
-          <label htmlFor="send">
-            <AiOutlineSend
-              size={20}
-              className="absolute right-4 top-5 cursor-pointer"
+      {/* Message Input */}
+      <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
+        <form
+          onSubmit={sendMessageHandler}
+          className="flex items-center space-x-3"
+        >
+          <div className="flex-shrink-0">
+            <input
+              type="file"
+              name="image"
+              id="image"
+              className="hidden"
+              onChange={handleImageUpload}
+              accept="image/*"
             />
-          </label>
-        </div>
-      </form>
+            <label
+              htmlFor="image"
+              className="inline-flex items-center p-2 border border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer transition-colors"
+            >
+              <TfiGallery className="h-5 w-5" />
+            </label>
+          </div>
+
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              required
+              placeholder="Type your message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="block w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+            <button
+              type="submit"
+              className="absolute inset-y-0 right-0 flex items-center pr-3"
+            >
+              <AiOutlineSend className="h-5 w-5 text-blue-600 hover:text-blue-700 transition-colors" />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

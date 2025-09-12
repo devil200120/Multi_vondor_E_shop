@@ -271,34 +271,74 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const user = await User.findById(req.user.id);
-
-      const sameTypeAddress = user.addresses.find(
-        (address) => address.addressType === req.body.addressType
-      );
-      if (sameTypeAddress) {
-        return next(
-          new ErrorHandler(`${req.body.addressType} address already exists`)
-        );
-      }
-
-      const existsAddress = user.addresses.find(
-        (address) => address._id === req.body._id
-      );
-
-      if (existsAddress) {
-        Object.assign(existsAddress, req.body);
-      } else {
-        // add the new address to the array
-        user.addresses.push(req.body);
-      }
-
-      await user.save();
-
-      res.status(200).json({
-        success: true,
-        user,
+      
+      console.log("Address update request:", {
+        userId: req.user.id,
+        requestBody: req.body,
+        existingAddresses: user.addresses.length
       });
+
+      // If we have an _id, we're updating an existing address
+      if (req.body._id) {
+        const existsAddress = user.addresses.find(
+          (address) => address._id.toString() === req.body._id.toString()
+        );
+
+        if (existsAddress) {
+          console.log("Updating existing address with ID:", req.body._id);
+          
+          // Check if changing to a different address type that already exists
+          if (existsAddress.addressType !== req.body.addressType) {
+            const conflictAddress = user.addresses.find(
+              (address) => 
+                address.addressType === req.body.addressType && 
+                address._id.toString() !== req.body._id.toString()
+            );
+            
+            if (conflictAddress) {
+              return next(
+                new ErrorHandler(`${req.body.addressType} address already exists`)
+              );
+            }
+          }
+          
+          // Update existing address
+          Object.assign(existsAddress, req.body);
+          await user.save();
+          
+          return res.status(200).json({
+            success: true,
+            user,
+            message: "Address updated successfully"
+          });
+        } else {
+          return next(new ErrorHandler("Address not found", 404));
+        }
+      } else {
+        // Adding new address - check for duplicates
+        const sameTypeAddress = user.addresses.find(
+          (address) => address.addressType === req.body.addressType
+        );
+        
+        if (sameTypeAddress) {
+          return next(
+            new ErrorHandler(`${req.body.addressType} address already exists`)
+          );
+        }
+        
+        // Add new address
+        console.log("Adding new address");
+        user.addresses.push(req.body);
+        await user.save();
+        
+        return res.status(200).json({
+          success: true,
+          user,
+          message: "Address added successfully"
+        });
+      }
     } catch (error) {
+      console.error("Address update error:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })

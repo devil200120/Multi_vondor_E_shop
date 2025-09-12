@@ -80,7 +80,7 @@ const DashboardSideBar = ({ active }) => {
     {
       id: 7,
       title: "All Coupons",
-      link: "/dashboard/cupouns",
+      link: "/dashboard-coupouns",
       icon: AiOutlineGift,
       badge: null,
     },

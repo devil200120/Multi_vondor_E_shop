@@ -17,7 +17,7 @@ export const loadUser = () => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "LoadUserFail",
-      payload: error.response.data.message,
+      payload: error.response?.data?.message || "Failed to load user",
     });
   }
 };
@@ -113,34 +113,46 @@ export const updateUserInformation =
 
 // update user address
 export const updatUserAddress =
-  (country, city, address1, address2, zipCode, addressType) =>
+  (country, city, address1, address2, zipCode, addressType, latitude, longitude, addressId) =>
   async (dispatch) => {
     try {
       dispatch({
         type: "updateUserAddressRequest",
       });
 
+      const addressData = {
+        country,
+        city,
+        address1,
+        address2,
+        zipCode,
+        addressType,
+        latitude,
+        longitude,
+      };
+
+      // Include addressId if editing existing address
+      if (addressId) {
+        addressData._id = addressId;
+      }
+
+      console.log("Updating address with data:", addressData);
+
       const { data } = await axios.put(
         `${server}/user/update-user-addresses`,
-        {
-          country,
-          city,
-          address1,
-          address2,
-          zipCode,
-          addressType,
-        },
+        addressData,
         { withCredentials: true }
       );
 
       dispatch({
         type: "updateUserAddressSuccess",
         payload: {
-          successMessage: "User address updated succesfully!",
+          successMessage: data.message || (addressId ? "Address updated successfully!" : "Address added successfully!"),
           user: data.user,
         },
       });
     } catch (error) {
+      console.error("Address update error:", error.response?.data);
       dispatch({
         type: "updateUserAddressFailed",
         payload: error.response.data.message,

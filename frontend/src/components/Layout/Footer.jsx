@@ -8,6 +8,7 @@ import {
 } from "react-icons/ai";
 import { HiOutlineLocationMarker, HiOutlinePhone } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import BrandingLogo from "../../Branding_logo.jpg";
 import {
   footercompanyLinks,
   footerProductLinks,
@@ -72,11 +73,24 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
-              <span className="text-2xl font-bold">EShop</span>
+            <div className="flex items-center">
+              <Link
+                to="/"
+                className="group hover:scale-105 transition-all duration-300"
+              >
+                <div className="relative">
+                  <img
+                    src={BrandingLogo}
+                    alt="Brand Logo"
+                    className="h-14 w-auto object-contain brand-logo logo-shadow transition-all duration-300"
+                    style={{
+                      borderRadius: "8px",
+                    }}
+                  />
+                  {/* Subtle glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#27b3e2] to-[#38cb89] opacity-0 group-hover:opacity-20 rounded-lg transition-opacity duration-300 blur-sm"></div>
+                </div>
+              </Link>
             </div>
 
             <p className="text-secondary-400 leading-relaxed">
@@ -97,31 +111,41 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <AiOutlineMail className="w-5 h-5 text-primary-500" />
-                <span className="text-secondary-400">support@eshop.com</span>
+                <span className="text-secondary-400">
+                  support@multivendor.com
+                </span>
               </div>
             </div>
 
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-secondary-800 rounded-lg flex items-center justify-center hover:bg-primary-500 transition-colors duration-200"
               >
                 <AiFillFacebook className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-secondary-800 rounded-lg flex items-center justify-center hover:bg-primary-500 transition-colors duration-200"
               >
                 <AiOutlineTwitter className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-secondary-800 rounded-lg flex items-center justify-center hover:bg-primary-500 transition-colors duration-200"
               >
                 <AiFillInstagram className="w-5 h-5" />
               </a>
               <a
-                href="#"
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 bg-secondary-800 rounded-lg flex items-center justify-center hover:bg-primary-500 transition-colors duration-200"
               >
                 <AiFillYoutube className="w-5 h-5" />
@@ -209,7 +233,7 @@ const Footer = () => {
           <div className="md:flex md:items-center md:justify-between">
             <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-2 md:space-y-0">
               <p className="text-secondary-400 text-sm">
-                © 2024 EShop. All rights reserved.
+                © 2024 Multi Vendor E-Shop. All rights reserved.
               </p>
               <div className="flex space-x-6">
                 <Link

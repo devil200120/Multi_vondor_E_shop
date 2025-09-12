@@ -49,7 +49,7 @@ import {
   AdminDashboardWithdraw,
 } from "./routes/AdminRoutes";
 
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from "react";
 import { loadSeller, loadUser } from "./redux/actions/user";
@@ -66,19 +66,53 @@ import { loadStripe } from "@stripe/stripe-js";
 
 const App = () => {
   const [stripeApikey, setStripeApiKey] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
   async function getStripeApikey() {
-    const { data } = await axios.get(`${server}/payment/stripeapikey`);
-    setStripeApiKey(data.stripeApikey);
+    try {
+      const { data } = await axios.get(`${server}/payment/stripeapikey`);
+      setStripeApiKey(data.stripeApikey);
+    } catch (error) {
+      console.log("Error loading stripe key:", error);
+    }
   }
 
   useEffect(() => {
-    Store.dispatch(loadUser());
-    Store.dispatch(loadSeller());
-    Store.dispatch(getAllProducts());
-    Store.dispatch(getAllEvents());
-    getStripeApikey();
+    const initializeApp = async () => {
+      try {
+        // Load user and seller data first
+        await Promise.all([
+          Store.dispatch(loadUser()),
+          Store.dispatch(loadSeller()),
+        ]);
+        
+        // Load other data
+        Store.dispatch(getAllProducts());
+        Store.dispatch(getAllEvents());
+        getStripeApikey();
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.log("Error initializing app:", error);
+        setIsInitialized(true); // Set to true even on error to prevent infinite loading
+      }
+    };
+
+    initializeApp();
   }, []);
+
+  // Show loading screen while app is initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
+          <p className="text-gray-500">Initializing your shopping experience</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>

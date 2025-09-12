@@ -1,23 +1,258 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import styles from "../../styles/styles";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { RxAvatar } from "react-icons/rx";
+import { HiOutlineCamera, HiOutlineLocationMarker } from "react-icons/hi";
+import { MdMyLocation, MdLocationOn } from "react-icons/md";
+import { FiMapPin, FiGlobe } from "react-icons/fi";
+
+// Google Maps Configuration
+const GOOGLE_MAPS_API_KEY = "AIzaSyBVeker3NKNQyfAy-XkVDrqodDoU7GYQyk";
+
+// Load Google Maps Script
+const loadGoogleMapsScript = (callback) => {
+  const existingScript = document.getElementById("googleMaps");
+
+  if (!existingScript) {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.id = "googleMaps";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (callback) callback();
+    };
+  } else {
+    if (callback) callback();
+  }
+};
 
 const ShopCreate = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState();
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
-  const [zipCode, setZipCode] = useState();
-  const [avatar, setAvatar] = useState();
+  const [zipCode, setZipCode] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Google Maps states
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [showMap, setShowMap] = useState(false);
+  const [mapCenter, setMapCenter] = useState({ lat: 20.5937, lng: 78.9629 }); // Default to India
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // Refs
+  const addressInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markerRef = useRef(null);
+
+  // Initialize Google Maps when component mounts
+  React.useEffect(() => {
+    loadGoogleMapsScript(() => {
+      initializeAutocomplete();
+    });
+  }, []);
+
+  const initializeAutocomplete = useCallback(() => {
+    if (window.google && addressInputRef.current) {
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        addressInputRef.current,
+        {
+          types: ["address"],
+          componentRestrictions: { country: [] }, // Allow all countries
+        }
+      );
+
+      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
+    }
+  }, []);
+
+  const handlePlaceSelect = () => {
+    const place = autocompleteRef.current.getPlace();
+
+    if (place.geometry) {
+      const location = place.geometry.location;
+      const lat = location.lat();
+      const lng = location.lng();
+
+      setLatitude(lat.toString());
+      setLongitude(lng.toString());
+      setMapCenter({ lat, lng });
+      setAddress(place.formatted_address || place.name);
+
+      // Extract zip code if available
+      const addressComponents = place.address_components;
+      const postalCode = addressComponents?.find((component) =>
+        component.types.includes("postal_code")
+      )?.long_name;
+
+      if (postalCode) {
+        setZipCode(postalCode);
+      }
+
+      setShowMap(true);
+
+      setTimeout(() => {
+        initializeMap();
+      }, 100);
+    }
+  };
+
+  const getCurrentLocation = () => {
+    setIsLoadingLocation(true);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          setLatitude(lat.toString());
+          setLongitude(lng.toString());
+          setMapCenter({ lat, lng });
+
+          // Reverse geocode to get address
+          if (window.google) {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+              if (status === "OK" && results[0]) {
+                setAddress(results[0].formatted_address);
+
+                // Extract zip code
+                const addressComponents = results[0].address_components;
+                const postalCode = addressComponents?.find((component) =>
+                  component.types.includes("postal_code")
+                )?.long_name;
+
+                if (postalCode) {
+                  setZipCode(postalCode);
+                }
+              }
+              setIsLoadingLocation(false);
+            });
+          } else {
+            setIsLoadingLocation(false);
+          }
+
+          setShowMap(true);
+          setTimeout(() => {
+            initializeMap();
+          }, 100);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast.error(
+            "Unable to get your location. Please enter address manually."
+          );
+          setIsLoadingLocation(false);
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by this browser.");
+      setIsLoadingLocation(false);
+    }
+  };
+
+  const initializeMap = () => {
+    if (mapRef.current && window.google) {
+      const mapOptions = {
+        center: mapCenter,
+        zoom: 15,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+      };
+
+      mapInstanceRef.current = new window.google.maps.Map(
+        mapRef.current,
+        mapOptions
+      );
+
+      // Add click listener to map
+      mapInstanceRef.current.addListener("click", (event) => {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+
+        setLatitude(lat.toString());
+        setLongitude(lng.toString());
+        updateMarker(lat, lng);
+        reverseGeocode(lat, lng);
+      });
+
+      // If coordinates exist, add marker
+      if (latitude && longitude) {
+        updateMarker(parseFloat(latitude), parseFloat(longitude));
+      }
+    }
+  };
+
+  const updateMarker = (lat, lng) => {
+    if (mapInstanceRef.current) {
+      // Remove existing marker
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+
+      // Add new marker
+      markerRef.current = new window.google.maps.Marker({
+        position: { lat, lng },
+        map: mapInstanceRef.current,
+        draggable: true,
+        title: "Shop Location",
+      });
+
+      // Add drag listener to marker
+      markerRef.current.addListener("dragend", (event) => {
+        const newLat = event.latLng.lat();
+        const newLng = event.latLng.lng();
+
+        setLatitude(newLat.toString());
+        setLongitude(newLng.toString());
+        reverseGeocode(newLat, newLng);
+      });
+    }
+  };
+
+  const reverseGeocode = (lat, lng) => {
+    if (window.google) {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          setAddress(results[0].formatted_address);
+
+          // Extract zip code
+          const addressComponents = results[0].address_components;
+          const postalCode = addressComponents?.find((component) =>
+            component.types.includes("postal_code")
+          )?.long_name;
+
+          if (postalCode) {
+            setZipCode(postalCode);
+          }
+        }
+      });
+    }
+  };
+
+  React.useEffect(() => {
+    if (showMap && window.google) {
+      setTimeout(() => {
+        initializeMap();
+      }, 100);
+    }
+  }, [showMap, mapCenter]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,18 +297,21 @@ const ShopCreate = () => {
 
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
-      // meaning of uper line is that we are creating a new object with the name of config and the value of config is {headers:{'Content-Type':'multipart/form-data'}}
 
       const newForm = new FormData();
-      // meaning of uper line is that we are creating a new form data object and we are sending it to the backend with the name of newForm and the value of newForm is new FormData()
       newForm.append("file", avatar);
-      // meanin of newForm.append("file",avatar) is that we are sending a file to the backend with the name of file and the value of the file is avatar
       newForm.append("name", name);
       newForm.append("email", email);
       newForm.append("password", password);
       newForm.append("zipCode", zipCode);
       newForm.append("address", address);
       newForm.append("phoneNumber", phoneNumber);
+
+      // Include coordinates if available
+      if (latitude && longitude) {
+        newForm.append("latitude", latitude);
+        newForm.append("longitude", longitude);
+      }
 
       const response = await axios.post(
         `${server}/shop/create-shop`,
@@ -90,15 +328,17 @@ const ShopCreate = () => {
       setZipCode("");
       setAddress("");
       setPhoneNumber("");
+      setLatitude("");
+      setLongitude("");
+      setShowMap(false);
 
       // Navigate to login page after successful registration
       setTimeout(() => {
         navigate("/shop-login");
-      }, 2000); // Small delay to let user see success message
+      }, 2000);
     } catch (error) {
       console.error("Shop registration error:", error);
 
-      // Show specific error message from backend
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||
@@ -109,204 +349,261 @@ const ShopCreate = () => {
       setIsLoading(false);
     }
   };
-  // File upload
+
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     setAvatar(file);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Register as a seller
-        </h2>
-      </div>
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-[35rem]">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Shop Name */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                shop name
-              </label>
-              <div className="mt-1">
-                <input
-                  type="name"
-                  name="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
-            {/* Phon number */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Phone Number
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type="number"
-                  name="phone-number"
-                  autoComplete="password"
-                  required
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
-            {/* Phone number end */}
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl mb-6">
+            <FiGlobe className="text-white text-2xl" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Start Your Journey as a
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+              {" "}
+              Seller
+            </span>
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Join thousands of successful sellers on our platform. Create your
+            shop and start reaching customers worldwide.
+          </p>
+        </div>
 
-            {/* Email start */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
+            <h2 className="text-2xl font-bold text-white">Shop Registration</h2>
+            <p className="text-purple-100 mt-2">
+              Fill in your details to create your shop
+            </p>
+          </div>
 
-            {/* Address */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Address
-              </label>
-              <div className="mt-1">
-                <input
-                  type="address"
-                  name="address"
-                  required
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column */}
+              <div className="space-y-6">
+                {/* Shop Avatar */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Shop Logo/Avatar
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                        {avatar ? (
+                          <img
+                            src={URL.createObjectURL(avatar)}
+                            alt="avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <RxAvatar className="w-8 h-8 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="file-input"
+                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all cursor-pointer"
+                      >
+                        <HiOutlineCamera className="mr-2" />
+                        Choose Image
+                      </label>
+                      <input
+                        type="file"
+                        id="file-input"
+                        accept="image/*"
+                        onChange={handleFileInputChange}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        PNG, JPG up to 2MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-            {/* ZipCode */}
-
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Zip Code
-              </label>
-              <div className="mt-1">
-                <input
-                  type="number"
-                  name="zipcode"
-                  required
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={visible ? "text" : "password"}
-                  name="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-                {visible ? (
-                  <AiOutlineEye
-                    className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
-                    onClick={() => setVisible(false)}
+                {/* Shop Name */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Shop Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="Enter your shop name"
+                    required
                   />
-                ) : (
-                  <AiOutlineEyeInvisible
-                    className="absolute right-2 top-2 cursor-pointer"
-                    size={25}
-                    onClick={() => setVisible(true)}
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="Enter your email address"
+                    required
                   />
+                </div>
+
+                {/* Phone Number */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={visible ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all pr-12"
+                      placeholder="Create a strong password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setVisible(!visible)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {visible ? (
+                        <AiOutlineEye size={20} />
+                      ) : (
+                        <AiOutlineEyeInvisible size={20} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Address & Location */}
+              <div className="space-y-6">
+                {/* Location Tools */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <MdLocationOn className="mr-2 text-blue-600" />
+                    Shop Location
+                  </h3>
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={getCurrentLocation}
+                      disabled={isLoadingLocation}
+                      className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+                    >
+                      <MdMyLocation className="mr-2" />
+                      {isLoadingLocation
+                        ? "Getting Location..."
+                        : "Use Current Location"}
+                    </button>
+                    <p className="text-sm text-gray-600 text-center">
+                      or enter address manually below
+                    </p>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Shop Address *
+                  </label>
+                  <input
+                    ref={addressInputRef}
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="Start typing your address..."
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Address autocomplete powered by Google Maps
+                  </p>
+                </div>
+
+                {/* Zip Code */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Zip Code *
+                  </label>
+                  <input
+                    type="text"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    placeholder="Enter zip code"
+                    required
+                  />
+                </div>
+
+                {/* Coordinates Display */}
+                {latitude && longitude && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
+                      <FiMapPin className="mr-2" />
+                      Location Coordinates
+                    </h4>
+                    <div className="text-sm text-green-700 space-y-1">
+                      <p>Latitude: {parseFloat(latitude).toFixed(6)}</p>
+                      <p>Longitude: {parseFloat(longitude).toFixed(6)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Map */}
+                {showMap && (
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="h-64 w-full" ref={mapRef}></div>
+                    <div className="bg-gray-50 px-4 py-2 border-t">
+                      <p className="text-xs text-gray-600">
+                        Click on the map to adjust your shop location
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="avatar"
-                className="block text-sm font-medium text-gray-700"
-              ></label>
-              <div className="mt-2 flex items-center">
-                <span className="inline-block h-8 w-8 rounded-full overflow-hidden">
-                  {avatar ? (
-                    <img
-                      src={URL.createObjectURL(avatar)}
-                      alt="avatar"
-                      className="h-full w-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <RxAvatar className="h-8 w-8" />
-                  )}
-                </span>
-                <label
-                  htmlFor="file-input"
-                  className="ml-5 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <span>Upload a file</span>
-                  <input
-                    type="file"
-                    name="avatar"
-                    id="file-input"
-                    onChange={handleFileInputChange}
-                    className="sr-only"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div>
+            {/* Submit Button */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all ${
                   isLoading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    ? "bg-gray-400 cursor-not-allowed text-white"
+                    : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 }`}
               >
                 {isLoading ? (
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <svg
                       className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
@@ -327,19 +624,25 @@ const ShopCreate = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Creating Shop...
+                    Creating Your Shop...
                   </div>
                 ) : (
-                  "Submit"
+                  "Create My Shop"
                 )}
               </button>
             </div>
 
-            <div className={`${styles.noramlFlex} w-full`}>
-              <h4>Already have an account?</h4>
-              <Link to="/shop-login" className="text-blue-600 pl-2">
-                Sign In
-              </Link>
+            {/* Login Link */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-600">
+                Already have a shop?{" "}
+                <Link
+                  to="/shop-login"
+                  className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
+                >
+                  Sign in here
+                </Link>
+              </p>
             </div>
           </form>
         </div>

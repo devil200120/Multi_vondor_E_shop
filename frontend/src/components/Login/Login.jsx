@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+import { loadUser } from "../../redux/actions/user";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
@@ -23,8 +26,11 @@ const Login = () => {
         { withCredentials: true }
       );
       toast.success("Login Successful!");
+
+      // Load user data into Redux store
+      dispatch(loadUser());
+
       navigate("/");
-      // Removed window.location.reload(true) to prevent page reload
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {

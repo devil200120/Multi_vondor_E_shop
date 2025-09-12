@@ -194,3 +194,41 @@ img {
 .grid-auto-fill {
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
+
+/* Enhanced Logo Styles */
+.brand-logo {
+  filter: brightness(1.1) contrast(1.1) saturate(1.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.brand-logo:hover {
+  filter: brightness(1.2) contrast(1.2) saturate(1.2);
+  transform: scale(1.05);
+}
+
+/* Logo shadow enhancement */
+.logo-shadow {
+  box-shadow: 0 4px 8px rgba(39, 179, 226, 0.1),
+    0 2px 4px rgba(56, 203, 137, 0.1);
+}
+
+.logo-shadow:hover {
+  box-shadow: 0 8px 16px rgba(39, 179, 226, 0.2),
+    0 4px 8px rgba(56, 203, 137, 0.2);
+}
+
+/* Logo glow effect */
+@keyframes logoGlow {
+  0%,
+  100% {
+    filter: brightness(1.1) contrast(1.1);
+  }
+  50% {
+    filter: brightness(1.15) contrast(1.15)
+      drop-shadow(0 0 10px rgba(39, 179, 226, 0.3));
+  }
+}
+
+.logo-glow:hover {
+  animation: logoGlow 2s ease-in-out infinite;
+}

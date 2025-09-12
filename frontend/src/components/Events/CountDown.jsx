@@ -2,13 +2,16 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { server } from "../../server";
 
+import { HiOutlineClock } from "react-icons/hi";
+
 const CountDown = ({ data }) => {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
+
     if (
       typeof timeLeft.days === "undefined" &&
       typeof timeLeft.hours === "undefined" &&
@@ -17,16 +20,11 @@ const CountDown = ({ data }) => {
     ) {
       axios.delete(`${server}/event/delete-shop-event/${data._id}`);
     }
-    return () => clearInterval(timeLeft);
+
+    return () => clearTimeout(timer);
   });
 
   function calculateTimeLeft() {
-    // today date + 3 days
-    const evDate = new Date(
-      new Date().getTime() + 3 * 24 * 60 * 60 * 1000
-    ).toLocaleDateString();
-
-    // const difference = +new Date(evDate) - +new Date();
     const difference = +new Date(data.Finish_Date) - +new Date();
     let timeLeft = {};
 
@@ -41,24 +39,44 @@ const CountDown = ({ data }) => {
     return timeLeft;
   }
 
-  const timerComponents = Object.keys(timeLeft).map((interval) => {
-    if (!timeLeft[interval]) {
-      return null;
-    }
-
-    return (
-      <span className="text-[25px] text-[#475ad2]">
-        {timeLeft[interval]} {interval}{" "}
-      </span>
-    );
-  });
+  const timeComponents = [
+    { label: "days", value: timeLeft.days },
+    { label: "hours", value: timeLeft.hours },
+    { label: "minutes", value: timeLeft.minutes },
+    { label: "seconds", value: timeLeft.seconds },
+  ].filter((component) => component.value !== undefined);
 
   return (
-    <div>
-      {timerComponents.length ? (
-        timerComponents
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      <div className="flex items-center mb-2">
+        <HiOutlineClock className="w-4 h-4 text-blue-600 mr-2" />
+        <span className="text-sm font-medium text-gray-700">
+          Event ends in:
+        </span>
+      </div>
+
+      {timeComponents.length ? (
+        <div className="flex items-center space-x-2 flex-wrap">
+          {timeComponents.map((component, index) => (
+            <div key={component.label} className="flex items-center">
+              <div className="bg-white rounded-md px-2 py-1 border border-gray-200 shadow-sm">
+                <span className="text-lg font-bold text-blue-600">
+                  {component.value}
+                </span>
+                <span className="text-xs text-gray-500 ml-1">
+                  {component.label}
+                </span>
+              </div>
+              {index < timeComponents.length - 1 && (
+                <span className="text-gray-400 mx-1">:</span>
+              )}
+            </div>
+          ))}
+        </div>
       ) : (
-        <span className="text-[red] text-[25px]">Time's Up</span>
+        <div className="flex items-center">
+          <span className="text-red-600 font-bold text-lg">⏰ Event Ended</span>
+        </div>
       )}
     </div>
   );
