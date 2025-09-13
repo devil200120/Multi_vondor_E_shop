@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { RxAvatar } from "react-icons/rx";
 import { HiOutlineCamera, HiOutlineLocationMarker } from "react-icons/hi";
 import { MdMyLocation, MdLocationOn } from "react-icons/md";
-import { FiMapPin, FiGlobe } from "react-icons/fi";
+import { FiMapPin, FiGlobe, FiArrowLeft } from "react-icons/fi";
 
 // Google Maps Configuration
 const GOOGLE_MAPS_API_KEY = "AIzaSyBVeker3NKNQyfAy-XkVDrqodDoU7GYQyk";
@@ -356,295 +356,313 @@ const ShopCreate = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl mb-6">
-            <FiGlobe className="text-white text-2xl" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Start Your Journey as a
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
-              {" "}
-              Seller
-            </span>
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Join thousands of successful sellers on our platform. Create your
-            shop and start reaching customers worldwide.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
+      {/* Back Button - Fixed Position */}
+      <div className="absolute top-6 left-6 z-10">
+        <Link
+          to="/"
+          className="inline-flex items-center px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl border border-white/50 hover:border-blue-200 group"
+        >
+          <FiArrowLeft
+            className="mr-2 group-hover:-translate-x-0.5 transition-transform duration-200"
+            size={18}
+          />
+          Back to Home
+        </Link>
+      </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6">
-            <h2 className="text-2xl font-bold text-white">Shop Registration</h2>
-            <p className="text-purple-100 mt-2">
-              Fill in your details to create your shop
+      <div className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto pt-16">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl mb-4">
+              <FiGlobe className="text-white text-lg" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Start Your Journey as a
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+                {" "}
+                Seller
+              </span>
+            </h1>
+            <p className="text-sm text-gray-600 max-w-xl mx-auto">
+              Join thousands of successful sellers. Create your shop and start
+              reaching customers worldwide.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column */}
-              <div className="space-y-6">
-                {/* Shop Avatar */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Shop Logo/Avatar
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                        {avatar ? (
-                          <img
-                            src={URL.createObjectURL(avatar)}
-                            alt="avatar"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <RxAvatar className="w-8 h-8 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="file-input"
-                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all cursor-pointer"
-                      >
-                        <HiOutlineCamera className="mr-2" />
-                        Choose Image
-                      </label>
-                      <input
-                        type="file"
-                        id="file-input"
-                        accept="image/*"
-                        onChange={handleFileInputChange}
-                        className="hidden"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        PNG, JPG up to 2MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shop Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Shop Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="Enter your shop name"
-                    required
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="Enter your email address"
-                    required
-                  />
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="Enter your phone number"
-                    required
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Password *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={visible ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all pr-12"
-                      placeholder="Create a strong password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setVisible(!visible)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {visible ? (
-                        <AiOutlineEye size={20} />
-                      ) : (
-                        <AiOutlineEyeInvisible size={20} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Address & Location */}
-              <div className="space-y-6">
-                {/* Location Tools */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <MdLocationOn className="mr-2 text-blue-600" />
-                    Shop Location
-                  </h3>
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={getCurrentLocation}
-                      disabled={isLoadingLocation}
-                      className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
-                    >
-                      <MdMyLocation className="mr-2" />
-                      {isLoadingLocation
-                        ? "Getting Location..."
-                        : "Use Current Location"}
-                    </button>
-                    <p className="text-sm text-gray-600 text-center">
-                      or enter address manually below
-                    </p>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Shop Address *
-                  </label>
-                  <input
-                    ref={addressInputRef}
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="Start typing your address..."
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Address autocomplete powered by Google Maps
-                  </p>
-                </div>
-
-                {/* Zip Code */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Zip Code *
-                  </label>
-                  <input
-                    type="text"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                    placeholder="Enter zip code"
-                    required
-                  />
-                </div>
-
-                {/* Coordinates Display */}
-                {latitude && longitude && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
-                      <FiMapPin className="mr-2" />
-                      Location Coordinates
-                    </h4>
-                    <div className="text-sm text-green-700 space-y-1">
-                      <p>Latitude: {parseFloat(latitude).toFixed(6)}</p>
-                      <p>Longitude: {parseFloat(longitude).toFixed(6)}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Map */}
-                {showMap && (
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <div className="h-64 w-full" ref={mapRef}></div>
-                    <div className="bg-gray-50 px-4 py-2 border-t">
-                      <p className="text-xs text-gray-600">
-                        Click on the map to adjust your shop location
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all ${
-                  isLoading
-                    ? "bg-gray-400 cursor-not-allowed text-white"
-                    : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                }`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Creating Your Shop...
-                  </div>
-                ) : (
-                  "Create My Shop"
-                )}
-              </button>
-            </div>
-
-            {/* Login Link */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-600">
-                Already have a shop?{" "}
-                <Link
-                  to="/shop-login"
-                  className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
-                >
-                  Sign in here
-                </Link>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4">
+              <h2 className="text-lg font-semibold text-white">
+                Shop Registration
+              </h2>
+              <p className="text-purple-100 text-sm mt-1">
+                Fill in your details to create your shop
               </p>
             </div>
-          </form>
+
+            <form onSubmit={handleSubmit} className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Shop Avatar */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
+                      Shop Logo/Avatar
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
+                          {avatar ? (
+                            <img
+                              src={URL.createObjectURL(avatar)}
+                              alt="avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <RxAvatar className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="file-input"
+                          className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all cursor-pointer"
+                        >
+                          <HiOutlineCamera className="mr-1 text-sm" />
+                          Choose Image
+                        </label>
+                        <input
+                          type="file"
+                          id="file-input"
+                          accept="image/*"
+                          onChange={handleFileInputChange}
+                          className="hidden"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          PNG, JPG up to 2MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shop Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Shop Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="Enter your shop name"
+                      required
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="Enter your email address"
+                      required
+                    />
+                  </div>
+
+                  {/* Phone Number */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="Enter your phone number"
+                      required
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Password *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={visible ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all pr-10"
+                        placeholder="Create a strong password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setVisible(!visible)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {visible ? (
+                          <AiOutlineEye size={16} />
+                        ) : (
+                          <AiOutlineEyeInvisible size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Address & Location */}
+                <div className="space-y-4">
+                  {/* Location Tools */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                      <MdLocationOn className="mr-1 text-blue-600 text-lg" />
+                      Shop Location
+                    </h3>
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        disabled={isLoadingLocation}
+                        className="w-full flex items-center justify-center px-3 py-2 text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+                      >
+                        <MdMyLocation className="mr-1 text-sm" />
+                        {isLoadingLocation
+                          ? "Getting Location..."
+                          : "Use Current Location"}
+                      </button>
+                      <p className="text-xs text-gray-600 text-center">
+                        or enter address manually below
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Shop Address *
+                    </label>
+                    <input
+                      ref={addressInputRef}
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="Start typing your address..."
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Address autocomplete powered by Google Maps
+                    </p>
+                  </div>
+
+                  {/* Zip Code */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Zip Code *
+                    </label>
+                    <input
+                      type="text"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="Enter zip code"
+                      required
+                    />
+                  </div>
+
+                  {/* Coordinates Display */}
+                  {latitude && longitude && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <h4 className="text-xs font-semibold text-green-800 mb-2 flex items-center">
+                        <FiMapPin className="mr-1 text-sm" />
+                        Location Coordinates
+                      </h4>
+                      <div className="text-xs text-green-700 space-y-1">
+                        <p>Lat: {parseFloat(latitude).toFixed(6)}</p>
+                        <p>Lng: {parseFloat(longitude).toFixed(6)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Map */}
+                  {showMap && (
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="h-48 w-full" ref={mapRef}></div>
+                      <div className="bg-gray-50 px-3 py-2 border-t">
+                        <p className="text-xs text-gray-600">
+                          Click on the map to adjust your shop location
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    isLoading
+                      ? "bg-gray-400 cursor-not-allowed text-white"
+                      : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  }`}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Creating Your Shop...
+                    </div>
+                  ) : (
+                    "Create My Shop"
+                  )}
+                </button>
+              </div>
+
+              {/* Login Link */}
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  Already have a shop?{" "}
+                  <Link
+                    to="/shop-login"
+                    className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
+                  >
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

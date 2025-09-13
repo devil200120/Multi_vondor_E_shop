@@ -11,7 +11,7 @@ import {
   FiPause,
 } from "react-icons/fi";
 import socketIO from "socket.io-client";
-const SOCKET_ENDPOINT = "http://localhost:4000";
+const SOCKET_ENDPOINT = "https://multi-vondor-e-shop-2.onrender.com";
 
 const OrderLocationMap = ({ order, shopLocation }) => {
   const mapRef = useRef(null);

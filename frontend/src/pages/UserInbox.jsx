@@ -24,7 +24,7 @@ import { BsEmojiSmile, BsMic, BsThreeDots } from "react-icons/bs";
 import { RiAttachment2 } from "react-icons/ri";
 import { MdOutlineMarkUnreadChatAlt, MdMarkChatRead } from "react-icons/md";
 import styles from "../styles/styles";
-const ENDPOINT = "http://localhost:4000/";
+const ENDPOINT = "https://multi-vondor-e-shop-2.onrender.com";
 const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 const UserInbox = () => {

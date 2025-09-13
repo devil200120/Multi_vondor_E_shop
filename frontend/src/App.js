@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 import Store from "./redux/store";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useGoogleTranslate } from "./hooks/useGoogleTranslate";
 import {
   LoginPage,
   SignupPage,
@@ -37,6 +38,9 @@ import {
   ShopSettingsPage,
   ShopWithDrawMoneyPage,
   ShopInboxPage,
+  ShopEditProductPage,
+  ShopForgotPasswordPage,
+  ShopResetPasswordPage,
 } from "./routes/ShopRoutes";
 
 import {
@@ -67,6 +71,9 @@ import { loadStripe } from "@stripe/stripe-js";
 const App = () => {
   const [stripeApikey, setStripeApiKey] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Initialize Google Translate
+  useGoogleTranslate();
 
   async function getStripeApikey() {
     try {
@@ -198,6 +205,8 @@ const App = () => {
         {/* shop Routes */}
         <Route path="/shop-create" element={<ShopCreatePage />} />
         <Route path="/shop-login" element={<ShopLoginPage />} />
+        <Route path="/shop-forgot-password" element={<ShopForgotPasswordPage />} />
+        <Route path="/shop-reset-password/:token" element={<ShopResetPasswordPage />} />
         <Route
           path="/shop/:id"
           element={
@@ -229,6 +238,15 @@ const App = () => {
           element={
             <SellerProtectedRoute>
               <ShopCreateProduct />
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-edit-product/:id"
+          element={
+            <SellerProtectedRoute>
+              <ShopEditProductPage />
             </SellerProtectedRoute>
           }
         />

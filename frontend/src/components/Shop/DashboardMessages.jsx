@@ -16,7 +16,7 @@ import { HiOutlinePhotograph } from "react-icons/hi";
 import { BsCircleFill } from "react-icons/bs";
 import socketIO from "socket.io-client";
 import { format } from "timeago.js";
-const ENDPOINT = "http://localhost:4000/";
+const ENDPOINT = "https://multi-vondor-e-shop-2.onrender.com";
 const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
 const DashboardMessages = () => {

@@ -22,7 +22,7 @@ import { getAllOrdersOfShop } from "../../redux/actions/order";
 import { useDispatch, useSelector } from "react-redux";
 import OrderLocationMap from "./OrderLocationMap";
 import socketIO from "socket.io-client";
-const SOCKET_ENDPOINT = "http://localhost:4000";
+const SOCKET_ENDPOINT = "https://multi-vondor-e-shop-2.onrender.com";
 
 const OrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);

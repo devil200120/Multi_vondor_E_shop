@@ -57,6 +57,96 @@ router.get(
   })
 );
 
+// get single product
+router.get(
+  "/get-product/:id",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return next(new ErrorHandler("Product not found with this id!", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        product,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error, 400));
+    }
+  })
+);
+
+// update product of a shop
+router.put(
+  "/update-shop-product/:id",
+  upload.array("images"),
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const productId = req.params.id;
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return next(new ErrorHandler("Product not found with this id!", 404));
+      }
+
+      // Check if the product belongs to the seller's shop
+      if (product.shopId.toString() !== req.seller._id.toString()) {
+        return next(new ErrorHandler("You are not authorized to update this product!", 403));
+      }
+
+      const files = req.files;
+      let imageUrls = [];
+
+      // If new images are uploaded, use them; otherwise keep existing images
+      if (files && files.length > 0) {
+        // Delete old images if new ones are uploaded
+        if (product.images && product.images.length > 0) {
+          product.images.forEach((imageUrl) => {
+            const filename = imageUrl;
+            const filePath = `uploads/${filename}`;
+            fs.unlink(filePath, (err) => {
+              if (err) {
+                console.log(err);
+              }
+            });
+          });
+        }
+        imageUrls = files.map((file) => `${file.filename}`);
+      } else {
+        // Keep existing images if no new images are uploaded
+        imageUrls = product.images;
+      }
+
+      const updateData = {
+        name: req.body.name || product.name,
+        description: req.body.description || product.description,
+        category: req.body.category || product.category,
+        tags: req.body.tags || product.tags,
+        originalPrice: req.body.originalPrice || product.originalPrice,
+        discountPrice: req.body.discountPrice || product.discountPrice,
+        stock: req.body.stock || product.stock,
+        images: imageUrls,
+      };
+
+      const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, {
+        new: true,
+        runValidators: true,
+      });
+
+      res.status(200).json({
+        success: true,
+        product: updatedProduct,
+        message: "Product updated successfully!",
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error, 400));
+    }
+  })
+);
+
 // delete product of a shop
 router.delete(
   "/delete-shop-product/:id",

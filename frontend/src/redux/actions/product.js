@@ -75,6 +75,36 @@ export const deleteProduct = (id) => async (dispatch) => {
   }
 };
 
+// update product of a shop
+export const updateProduct = (id, productData) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "updateProductRequest",
+    });
+
+    const config = { headers: { "Content-Type": "multipart/form-data" } };
+
+    const { data } = await axios.put(
+      `${server}/product/update-shop-product/${id}`,
+      productData,
+      {
+        withCredentials: true,
+        ...config,
+      }
+    );
+
+    dispatch({
+      type: "updateProductSuccess",
+      payload: data.product,
+    });
+  } catch (error) {
+    dispatch({
+      type: "updateProductFailed",
+      payload: error.response.data.message,
+    });
+  }
+};
+
 // get all products
 export const getAllProducts = () => async (dispatch) => {
   try {
@@ -93,4 +123,31 @@ export const getAllProducts = () => async (dispatch) => {
       payload: error.response.data.message,
     });
   }
+};
+
+// get single product
+export const getSingleProduct = (id) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "getSingleProductRequest",
+    });
+
+    const { data } = await axios.get(`${server}/product/get-product/${id}`);
+    dispatch({
+      type: "getSingleProductSuccess",
+      payload: data.product,
+    });
+  } catch (error) {
+    dispatch({
+      type: "getSingleProductFailed",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+// clear success state
+export const clearSuccess = () => async (dispatch) => {
+  dispatch({
+    type: "clearSuccess",
+  });
 };

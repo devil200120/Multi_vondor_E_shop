@@ -3,6 +3,7 @@ const path = require("path");
 const router = express.Router();
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const sendMail = require("../utils/sendMail");
 const Shop = require("../model/shop");
 const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
@@ -47,7 +48,7 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
 
     const activationToken = createActivationToken(seller);
 
-    const activationUrl = `http://localhost:3000/seller/activation/${activationToken}`;
+    const activationUrl = `https://multi-vondor-e-shop-1.onrender.com/seller/activation/${activationToken}`;
 
     try {
       await sendMail({
@@ -397,6 +398,103 @@ router.put(
         message: "Shop location updated successfully",
         seller,
       });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// forgot password --- sellers
+router.post(
+  "/forgot-password",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      const shop = await Shop.findOne({ email });
+
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found with this email", 404));
+      }
+
+      // Generate reset password token
+      const resetToken = crypto.randomBytes(20).toString("hex");
+
+      // Hash token and set to resetPasswordToken field
+      shop.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+      // Set expire time (10 minutes)
+      shop.resetPasswordTime = Date.now() + 10 * 60 * 1000;
+
+      await shop.save();
+
+      // Create reset password URL (pointing to frontend)
+      const resetPasswordUrl = `https://multi-vondor-e-shop-1.onrender.com/shop-reset-password/${resetToken}`;
+
+      const message = `Your password reset token is: \n\n${resetPasswordUrl}\n\nIf you have not requested this email, then ignore it.`;
+
+      try {
+        await sendMail({
+          email: shop.email,
+          subject: "Shop Password Recovery",
+          message,
+        });
+
+        res.status(200).json({
+          success: true,
+          message: `Email sent to ${shop.email} successfully`,
+        });
+      } catch (error) {
+        shop.resetPasswordToken = undefined;
+        shop.resetPasswordTime = undefined;
+        await shop.save();
+        return next(new ErrorHandler(error.message, 500));
+      }
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// reset password --- sellers
+router.put(
+  "/reset-password/:token",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      // Hash URL token
+      const resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(req.params.token)
+        .digest("hex");
+
+      const shop = await Shop.findOne({
+        resetPasswordToken,
+        resetPasswordTime: { $gt: Date.now() },
+      });
+
+      if (!shop) {
+        return next(
+          new ErrorHandler(
+            "Reset password token is invalid or has been expired",
+            400
+          )
+        );
+      }
+
+      if (req.body.password !== req.body.confirmPassword) {
+        return next(new ErrorHandler("Password doesn't match", 400));
+      }
+
+      shop.password = req.body.password;
+      shop.resetPasswordToken = undefined;
+      shop.resetPasswordTime = undefined;
+
+      await shop.save();
+
+      sendShopToken(shop, 200, res);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }

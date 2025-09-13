@@ -6,8 +6,9 @@ import {
   AiOutlineSearch,
   AiOutlineFilter,
   AiOutlineArrowRight,
+  AiOutlineEdit,
 } from "react-icons/ai";
-import { FiPackage, FiDollarSign, FiAlertTriangle } from "react-icons/fi";
+import { FiPackage, FiAlertTriangle } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { getAllProductsShop } from "../../redux/actions/product";
@@ -111,8 +112,8 @@ const AllProducts = () => {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 0.6,
-      minWidth: 100,
+      flex: 0.8,
+      minWidth: 120,
       sortable: false,
       renderCell: (params) => (
         <div className="flex items-center space-x-1">
@@ -122,6 +123,13 @@ const AllProducts = () => {
             title="View Product"
           >
             <AiOutlineEye size={14} />
+          </Link>
+          <Link
+            to={`/dashboard-edit-product/${params.row.id}`}
+            className="p-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-all duration-200 transform hover:scale-110"
+            title="Edit Product"
+          >
+            <AiOutlineEdit size={14} />
           </Link>
           <button
             onClick={() => handleDelete(params.row.id)}
@@ -182,6 +190,12 @@ const AllProducts = () => {
             className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 transform hover:scale-110"
           >
             <AiOutlineEye size={16} />
+          </Link>
+          <Link
+            to={`/dashboard-edit-product/${product._id}`}
+            className="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-all duration-200 transform hover:scale-110"
+          >
+            <AiOutlineEdit size={16} />
           </Link>
           <button
             onClick={() => handleDelete(product._id)}

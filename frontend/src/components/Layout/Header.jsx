@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { backend_url } from "../../server";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
+import GoogleTranslate from "./GoogleTranslate";
 import { RxCross1 } from "react-icons/rx";
 
 const Header = ({ activeHeading }) => {
@@ -201,6 +202,9 @@ const Header = ({ activeHeading }) => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
+            {/* Google Translate */}
+            <GoogleTranslate />
+
             {/* Wishlist */}
             <div
               className="relative cursor-pointer p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200"
@@ -351,6 +355,13 @@ const Header = ({ activeHeading }) => {
                 className="text-text-secondary cursor-pointer hover:text-red-500 hover:scale-110 transition-all duration-200"
                 onClick={() => setOpen(false)}
               />
+            </div>
+
+            {/* Google Translate in Sidebar */}
+            <div className="p-4 border-b border-secondary-100 animate-slideIn">
+              <div className="flex items-center justify-center">
+                <GoogleTranslate />
+              </div>
             </div>
 
             {/* Search Bar */}
