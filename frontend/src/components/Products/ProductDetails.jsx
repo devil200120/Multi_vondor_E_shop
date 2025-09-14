@@ -84,7 +84,7 @@ const ProductDetails = ({ data }) => {
       toast.error("Please login to continue!");
       return;
     }
-    
+
     if (data.stock < count) {
       toast.error("Product stock limited!");
       return;
@@ -94,9 +94,9 @@ const ProductDetails = ({ data }) => {
     const orderData = {
       cart: [{ ...data, qty: count }],
       subTotalPrice: data.discountPrice * count,
-      shipping: (data.discountPrice * count) * 0.1, // 10% shipping
+      shipping: data.discountPrice * count * 0.1, // 10% shipping
       discountPrice: 0,
-      totalPrice: (data.discountPrice * count) + ((data.discountPrice * count) * 0.1),
+      totalPrice: data.discountPrice * count + data.discountPrice * count * 0.1,
       user: user,
     };
 
@@ -311,7 +311,7 @@ const ProductDetails = ({ data }) => {
                     <span className="mr-2">🚀</span>
                     Buy Now
                   </button>
-                  
+
                   {/* Add to Cart and Message Buttons */}
                   <div className="flex items-center space-x-2">
                     <button

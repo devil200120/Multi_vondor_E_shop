@@ -26,7 +26,7 @@ app.use(cookieParser());
 // Enable CORS for all routes
 app.use(
   cors({
-  origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com"],
+  origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com","https://www.wanttar.in"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
@@ -54,6 +54,10 @@ const order = require("./controller/order");
 const message = require("./controller/message");
 const conversation = require("./controller/conversation");
 const withdraw = require("./controller/withdraw");
+const newsletter = require("./controller/newsletter");
+const notification = require("./controller/notification");
+const pincode = require("./routes/pincode");
+const shipping = require("./controller/shipping");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -66,6 +70,10 @@ app.use("/api/v2/event", event);
 app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
 app.use("/api/v2/withdraw", withdraw);
+app.use("/api/v2/newsletter", newsletter);
+app.use("/api/v2/notification", notification);
+app.use("/api/v2/pincode", pincode);
+app.use("/api/v2/shipping", shipping);
 
 // error handler middleware
 app.use(ErrorHandler);

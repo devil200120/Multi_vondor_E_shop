@@ -63,7 +63,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
       toast.error("Please login to continue!");
       return;
     }
-    
+
     if (data.stock < count) {
       toast.error("Product stock limited!");
       return;
@@ -73,9 +73,9 @@ const ProductDetailsCard = ({ setOpen, data }) => {
     const orderData = {
       cart: [{ ...data, qty: count }],
       subTotalPrice: data.discountPrice * count,
-      shipping: (data.discountPrice * count) * 0.1, // 10% shipping
+      shipping: data.discountPrice * count * 0.1, // 10% shipping
       discountPrice: 0,
-      totalPrice: (data.discountPrice * count) + ((data.discountPrice * count) * 0.1),
+      totalPrice: data.discountPrice * count + data.discountPrice * count * 0.1,
       user: user,
     };
 

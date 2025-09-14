@@ -47,7 +47,7 @@ const EventCard = ({ active, data, compact = false }) => {
       toast.error("Please login to continue!");
       return;
     }
-    
+
     if (data.stock < 1) {
       toast.error("Product stock limited!");
       return;
@@ -59,7 +59,7 @@ const EventCard = ({ active, data, compact = false }) => {
       subTotalPrice: data.discountPrice,
       shipping: data.discountPrice * 0.1, // 10% shipping
       discountPrice: 0,
-      totalPrice: data.discountPrice + (data.discountPrice * 0.1),
+      totalPrice: data.discountPrice + data.discountPrice * 0.1,
       user: user,
     };
 
@@ -278,7 +278,7 @@ const EventCard = ({ active, data, compact = false }) => {
               <span className="mr-1">🚀</span>
               Buy Now
             </button>
-            
+
             {/* Bottom Row: View Details & Add to Cart */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               <Link to={`/product/${data._id}?isEvent=true`} className="flex-1">

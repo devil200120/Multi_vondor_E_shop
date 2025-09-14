@@ -3,6 +3,7 @@ const path = require("path");
 const User = require("../model/user");
 const { upload } = require("../multer");
 const ErrorHandler = require("../utils/ErrorHandler");
+const NotificationService = require("../utils/NotificationService");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
@@ -109,6 +110,15 @@ router.post(
         avatar,
         password,
       });
+
+      // Create notification for new user registration
+      await NotificationService.createUserRegistrationNotification(
+        'New User Registered',
+        `New user ${name} (${email}) has registered and activated their account`,
+        'new_registration',
+        user._id
+      );
+
       sendToken(user, 201, res);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -468,6 +478,220 @@ router.delete(
       res.status(201).json({
         success: true,
         message: "User deleted successfully!",
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// forgot password --- users
+router.post(
+  "/forgot-password",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return next(new ErrorHandler("User not found with this email", 404));
+      }
+
+      // Generate reset password token
+      const crypto = require("crypto");
+      const resetToken = crypto.randomBytes(20).toString("hex");
+
+      // Hash token and set to resetPasswordToken field
+      user.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+      // Set expire time (10 minutes)
+      user.resetPasswordTime = Date.now() + 10 * 60 * 1000;
+
+      await user.save();
+
+      // Create reset password URL (pointing to frontend)
+      const resetPasswordUrl = `https://multi-vondor-e-shop-1.onrender.com/reset-password/${resetToken}`;
+
+      const message = `Your password reset token is: \n\n${resetPasswordUrl}\n\nIf you have not requested this email, then ignore it.`;
+
+      try {
+        await sendMail({
+          email: user.email,
+          subject: "User Password Recovery",
+          message,
+        });
+
+        res.status(200).json({
+          success: true,
+          message: `Email sent to ${user.email} successfully`,
+        });
+      } catch (error) {
+        user.resetPasswordToken = undefined;
+        user.resetPasswordTime = undefined;
+
+        await user.save();
+        return next(new ErrorHandler(error.message, 500));
+      }
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// reset password --- users
+router.put(
+  "/reset-password/:token",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      // Hash URL token
+      const crypto = require("crypto");
+      const resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(req.params.token)
+        .digest("hex");
+
+      const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordTime: { $gt: Date.now() },
+      });
+
+      if (!user) {
+        return next(
+          new ErrorHandler(
+            "Reset password token is invalid or has been expired",
+            400
+          )
+        );
+      }
+
+      if (req.body.password !== req.body.confirmPassword) {
+        return next(new ErrorHandler("Password doesn't match", 400));
+      }
+
+      user.password = req.body.password;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordTime = undefined;
+
+      await user.save();
+
+      sendToken(user, 200, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Ban user
+router.put(
+  "/ban-user/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { reason } = req.body;
+      const userId = req.params.id;
+
+      if (!reason) {
+        return next(new ErrorHandler("Please provide a reason for banning", 400));
+      }
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
+      if (user.role === "Admin") {
+        return next(new ErrorHandler("Cannot ban admin users", 400));
+      }
+
+      if (user.isBanned) {
+        return next(new ErrorHandler("User is already banned", 400));
+      }
+
+      user.isBanned = true;
+      user.banReason = reason;
+      user.bannedBy = req.user._id;
+      user.bannedAt = new Date();
+
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: "User has been banned successfully",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          isBanned: user.isBanned,
+          banReason: user.banReason,
+          bannedAt: user.bannedAt,
+        },
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Unban user
+router.put(
+  "/unban-user/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
+      if (!user.isBanned) {
+        return next(new ErrorHandler("User is not banned", 400));
+      }
+
+      user.isBanned = false;
+      user.banReason = null;
+      user.bannedBy = null;
+      user.bannedAt = null;
+
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: "User has been unbanned successfully",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          isBanned: user.isBanned,
+        },
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Check ban status (for user-side)
+router.get(
+  "/ban-status",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user._id).populate('bannedBy', 'name');
+
+      res.status(200).json({
+        success: true,
+        isBanned: user.isBanned,
+        banReason: user.banReason,
+        bannedAt: user.bannedAt,
+        bannedBy: user.bannedBy?.name || 'Admin',
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

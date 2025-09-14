@@ -210,6 +210,27 @@ export const getAllUsers = () => async (dispatch) => {
   }
 };
 
+// Check ban status
+export const checkBanStatus = () => async (dispatch) => {
+  try {
+    dispatch({
+      type: "checkBanStatusRequest",
+    });
+    const { data } = await axios.get(`${server}/user/ban-status`, {
+      withCredentials: true,
+    });
+    dispatch({
+      type: "checkBanStatusSuccess",
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: "checkBanStatusFail",
+      payload: error.response?.data?.message || "Failed to check ban status",
+    });
+  }
+};
+
 // what is action in redux ?
 // Trigger an event , and call reducer
 // action is a plain object that contains information about an event that has occurred

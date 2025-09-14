@@ -10,6 +10,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const { upload } = require("../multer");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
+const NotificationService = require("../utils/NotificationService");
 
 const sendShopToken = require("../utils/shopToken");
 
@@ -110,6 +111,14 @@ router.post(
         latitude,
         longitude,
       });
+
+      // Create notification for new seller registration
+      await NotificationService.createSellerRegistrationNotification(
+        'New Seller Registered',
+        `New seller "${name}" (${email}) has registered and activated their shop`,
+        'new_seller_registration',
+        seller._id
+      );
 
       sendShopToken(seller, 201, res);
     } catch (error) {
@@ -495,6 +504,112 @@ router.put(
       await shop.save();
 
       sendShopToken(shop, 200, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Ban a shop (Admin only)
+router.put(
+  "/ban-shop",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { shopId, banReason } = req.body;
+
+      if (!shopId || !banReason) {
+        return next(new ErrorHandler("Shop ID and ban reason are required", 400));
+      }
+
+      const shop = await Shop.findById(shopId);
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      if (shop.isBanned) {
+        return next(new ErrorHandler("Shop is already banned", 400));
+      }
+
+      shop.isBanned = true;
+      shop.banReason = banReason;
+      shop.bannedBy = req.user._id;
+      shop.bannedAt = new Date();
+
+      await shop.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Shop has been banned successfully",
+        shop,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Unban a shop (Admin only)
+router.put(
+  "/unban-shop",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { shopId } = req.body;
+
+      if (!shopId) {
+        return next(new ErrorHandler("Shop ID is required", 400));
+      }
+
+      const shop = await Shop.findById(shopId);
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      if (!shop.isBanned) {
+        return next(new ErrorHandler("Shop is not banned", 400));
+      }
+
+      shop.isBanned = false;
+      shop.banReason = null;
+      shop.bannedBy = null;
+      shop.bannedAt = null;
+
+      await shop.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Shop has been unbanned successfully",
+        shop,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Check shop ban status
+router.get(
+  "/ban-status",
+  isAuthenticated,
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const shop = await Shop.findById(req.seller._id).select('+isBanned +banReason +bannedAt +bannedBy');
+      
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        isBanned: shop.isBanned,
+        banReason: shop.banReason,
+        bannedAt: shop.bannedAt,
+        bannedBy: shop.bannedBy,
+      });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }

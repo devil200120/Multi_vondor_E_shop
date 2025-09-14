@@ -87,4 +87,68 @@ router.get(
   })
 );
 
+// get available coupons for users based on cart
+router.post(
+  "/get-available-coupons",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { cart } = req.body;
+      
+      if (!cart || cart.length === 0) {
+        return res.status(200).json({
+          success: true,
+          availableCoupons: [],
+        });
+      }
+
+      // Get all shop IDs from cart
+      const shopIds = [...new Set(cart.map(item => item.shopId))];
+      
+      // Calculate total amount for each shop
+      const shopTotals = {};
+      cart.forEach(item => {
+        if (!shopTotals[item.shopId]) {
+          shopTotals[item.shopId] = 0;
+        }
+        shopTotals[item.shopId] += item.qty * item.discountPrice;
+      });
+
+      // Find all coupons for these shops
+      const allCoupons = await CoupounCode.find({ 
+        shopId: { $in: shopIds } 
+      }).populate('shopId', 'name');
+
+      // Filter coupons based on minimum amount requirement
+      const availableCoupons = allCoupons.filter(coupon => {
+        const shopTotal = shopTotals[coupon.shopId] || 0;
+        return !coupon.minAmount || shopTotal >= coupon.minAmount;
+      }).map(coupon => ({
+        _id: coupon._id,
+        name: coupon.name,
+        value: coupon.value,
+        minAmount: coupon.minAmount,
+        maxAmount: coupon.maxAmount,
+        shopId: coupon.shopId,
+        shopName: coupon.shopId?.name || 'Unknown Shop',
+        applicableAmount: shopTotals[coupon.shopId] || 0,
+        discountAmount: Math.min(
+          coupon.value,
+          coupon.maxAmount || coupon.value,
+          (shopTotals[coupon.shopId] || 0) * (coupon.value / 100)
+        )
+      }));
+
+      // Sort by discount amount (highest first)
+      availableCoupons.sort((a, b) => b.discountAmount - a.discountAmount);
+
+      res.status(200).json({
+        success: true,
+        availableCoupons,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error, 400));
+    }
+  })
+);
+
 module.exports = router;

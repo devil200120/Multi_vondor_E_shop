@@ -6,7 +6,7 @@ import {
 } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { createProduct } from "../../redux/actions/product";
+import { createProduct, clearSuccess } from "../../redux/actions/product";
 import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
 import { FiPackage, FiDollarSign, FiImage } from "react-icons/fi";
@@ -32,8 +32,19 @@ const CreateProduct = () => {
     }
     if (success) {
       toast.success("Product created successfully!");
-      navigate("/dashboard");
-      window.location.reload();
+      // Reset form fields
+      setImages([]);
+      setName("");
+      setDescription("");
+      setCategory("");
+      setTags("");
+      setOriginalPrice("");
+      setDiscountPrice("");
+      setStock("");
+      // Clear the success state to prevent re-triggering
+      dispatch(clearSuccess());
+      // Navigate to products page without reload
+      navigate("/dashboard-products");
     }
   }, [dispatch, error, success, navigate]);
 

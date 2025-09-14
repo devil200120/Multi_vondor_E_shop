@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { BsFillBagFill } from "react-icons/bs";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,6 +13,7 @@ import {
   HiOutlineCreditCard,
 } from "react-icons/hi";
 import { FiPackage, FiArrowLeft, FiMessageCircle } from "react-icons/fi";
+import InvoiceDownloadButton from "./InvoiceDownloadButton";
 
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
@@ -158,14 +158,24 @@ const UserOrderDetails = () => {
                 Placed on {formatDate(data.createdAt)}
               </p>
             </div>
+            <div className="flex space-x-3 mt-4 sm:mt-0">
+              <InvoiceDownloadButton
+                order={data}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              />
+            </div>
             <div className="mt-4 sm:mt-0">
               <div
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                ${data.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                  data.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
-                  data.status === 'Shipping' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'}
-              "
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                ${
+                  data.status === "Delivered"
+                    ? "bg-green-100 text-green-800"
+                    : data.status === "Processing"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : data.status === "Shipping"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}
               >
                 {data.status}
               </div>

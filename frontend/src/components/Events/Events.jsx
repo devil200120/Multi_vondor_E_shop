@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { server } from "../../server";
 import EventCard from "./EventCard";
 import {
   HiOutlineCalendar,
@@ -13,6 +16,54 @@ import {
 
 const Events = () => {
   const { allEvents, isLoading } = useSelector((state) => state.events);
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleNewsletterSubscribe = async (e) => {
+    e.preventDefault();
+
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsSubscribing(true);
+
+    try {
+      const response = await axios.post(`${server}/newsletter/subscribe`, {
+        email: email,
+      });
+
+      if (response.data.success) {
+        setIsSubscribed(true);
+        setEmail("");
+        toast.success(
+          response.data.message ||
+            "Successfully subscribed to our newsletter! 🎉"
+        );
+
+        // Reset success state after 3 seconds
+        setTimeout(() => setIsSubscribed(false), 3000);
+      }
+    } catch (error) {
+      console.error("Subscription error:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to subscribe. Please try again later.");
+      }
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -160,16 +211,44 @@ const Events = () => {
                   Be the first to know about exclusive events and special deals
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto">
+              <form
+                onSubmit={handleNewsletterSubscribe}
+                className="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto"
+              >
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2.5 rounded-lg border-0 text-gray-900 placeholder-gray-500 focus:ring-4 focus:ring-white focus:ring-opacity-30 transition-all duration-200 text-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubscribing}
+                  className="flex-1 px-3 py-2.5 rounded-lg border-0 text-gray-900 placeholder-gray-500 focus:ring-4 focus:ring-white focus:ring-opacity-30 transition-all duration-200 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 />
-                <button className="px-4 py-2.5 bg-white text-red-600 font-bold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-sm">
-                  Subscribe
+                <button
+                  type="submit"
+                  disabled={isSubscribing || !email}
+                  className="px-4 py-2.5 bg-white text-red-600 font-bold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {isSubscribing ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <span>...</span>
+                    </div>
+                  ) : isSubscribed ? (
+                    <div className="flex items-center justify-center">
+                      <span className="text-green-600">✓ Subscribed!</span>
+                    </div>
+                  ) : (
+                    "Subscribe"
+                  )}
                 </button>
-              </div>
+              </form>
+              {isSubscribed && (
+                <div className="text-center mt-2">
+                  <span className="text-orange-100 text-xs">
+                    ✨ Welcome to our newsletter!
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         ) : (

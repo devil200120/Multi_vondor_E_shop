@@ -12,7 +12,18 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-  req.user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.id);
+  
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Check if user is banned
+  if (user.isBanned) {
+    return next(new ErrorHandler(`Your account has been banned. Reason: ${user.banReason}`, 403));
+  }
+
+  req.user = user;
   next();
 });
 
@@ -24,8 +35,23 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 
   const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
 
-  req.seller = await Shop.findById(decoded.id);
+  const shop = await Shop.findById(decoded.id);
+  
+  if (!shop) {
+    return next(new ErrorHandler("Shop not found", 404));
+  }
 
+  // Don't block login for banned shops - let them access dashboard to see ban message
+  // The ban check will be handled in the frontend components
+  req.seller = shop;
+  next();
+});
+
+// Middleware to check if seller is banned for operations (not for login/dashboard access)
+exports.isSellerNotBanned = catchAsyncErrors(async (req, res, next) => {
+  if (req.seller && req.seller.isBanned) {
+    return next(new ErrorHandler(`Your shop has been banned. Reason: ${req.seller.banReason}`, 403));
+  }
   next();
 });
 

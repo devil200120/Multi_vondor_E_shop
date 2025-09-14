@@ -6,6 +6,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
+const NotificationService = require("../utils/NotificationService");
 
 // create new order
 router.post(
@@ -37,6 +38,16 @@ router.post(
           paymentInfo,
         });
         orders.push(order);
+
+        // Create notification for new order
+        await NotificationService.createOrderNotification(
+          'New Order Received',
+          `Order #${order._id.toString().substr(-8)} for ${order.cart.length} items worth ₹${order.totalPrice}`,
+          'new_order',
+          order._id,
+          null,
+          [shopId]
+        );
       }
 
       res.status(201).json({
@@ -136,6 +147,15 @@ router.put(
 
       await order.save({ validateBeforeSave: false });
 
+      // Create notification for order status update
+      await NotificationService.createOrderStatusNotification(
+        `Order Status Updated`,
+        `Order #${order._id.toString().substr(-8)} status changed to ${req.body.status}`,
+        'order_status',
+        order._id,
+        order.user._id
+      );
+
       res.status(200).json({
         success: true,
         order,
@@ -189,6 +209,15 @@ router.put(
       order.status = req.body.status;
 
       await order.save({ validateBeforeSave: false });
+
+      // Create notification for refund request
+      await NotificationService.createOrderStatusNotification(
+        'Refund Request',
+        `Refund requested for Order #${order._id.toString().substr(-8)}`,
+        'refund_request',
+        order._id,
+        order.user._id
+      );
 
       res.status(200).json({
         success: true,

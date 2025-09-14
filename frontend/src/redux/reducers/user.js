@@ -86,6 +86,19 @@ export const userReducer = createReducer(initialState, {
     state.error = action.payload;
   },
 
+  // Check ban status
+  checkBanStatusRequest: (state) => {
+    state.banStatusLoading = true;
+  },
+  checkBanStatusSuccess: (state, action) => {
+    state.banStatusLoading = false;
+    state.banStatus = action.payload;
+  },
+  checkBanStatusFail: (state, action) => {
+    state.banStatusLoading = false;
+    state.error = action.payload;
+  },
+
   clearErrors: (state) => {
     state.error = null;
   },

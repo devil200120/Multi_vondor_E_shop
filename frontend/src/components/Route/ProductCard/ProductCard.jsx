@@ -66,19 +66,23 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
       toast.error("Please login to continue!");
       return;
     }
-    
+
     if (data.stock < 1) {
       toast.error("Product stock limited!");
       return;
     }
 
     // Create order data with single item
+    const cartItem = { ...data, qty: 1 };
+    const subTotalPrice = data.discountPrice;
+    const shipping = subTotalPrice * 0.1; // 10% shipping
+
     const orderData = {
-      cart: [{ ...data, qty: 1 }],
-      subTotalPrice: data.discountPrice,
-      shipping: data.discountPrice * 0.1, // 10% shipping
+      cart: [cartItem],
+      subTotalPrice: subTotalPrice,
+      shipping: shipping,
       discountPrice: 0,
-      totalPrice: data.discountPrice + (data.discountPrice * 0.1),
+      totalPrice: subTotalPrice + shipping,
       user: user,
     };
 
@@ -98,7 +102,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           isCompact
             ? "hover:-translate-y-0.5"
             : "transform hover:-translate-y-1"
-        } h-full flex flex-col`}
+        } h-full flex flex-col min-h-[240px] sm:min-h-[280px] md:min-h-[320px]`}
       >
         {/* Product Image Container */}
         <div className="relative overflow-hidden bg-gray-50">
@@ -111,7 +115,9 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           >
             <div
               className={`${
-                isCompact ? "aspect-square" : "aspect-[4/3]"
+                isCompact
+                  ? "aspect-square"
+                  : "aspect-[6/5] sm:aspect-[5/4] md:aspect-[4/3]"
               } w-full`}
             >
               <img
@@ -187,12 +193,14 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
         {/* Product Information */}
         <div
           className={`${
-            isCompact ? "p-3 space-y-2" : "p-4 space-y-3"
-          } flex-grow flex flex-col justify-between`}
+            isCompact
+              ? "p-1 space-y-0.5"
+              : "p-1.5 sm:p-2 md:p-2.5 space-y-0.5 sm:space-y-1"
+          } flex-grow flex flex-col`}
         >
           {/* Shop Name & Category */}
           {!isCompact && (
-            <div className="flex items-center justify-between">
+            <div className="hidden sm:flex items-center justify-between">
               <Link
                 to={`${
                   isEvent === true
@@ -218,16 +226,18 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           <div className="flex items-start justify-between">
             <Link to={`/product/${data._id}`} className="flex-1">
               <h3
-                className={`font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 line-clamp-2 leading-snug ${
-                  isCompact ? "text-xs min-h-[2rem]" : "text-sm min-h-[2.5rem]"
+                className={`font-semibold text-gray-900 hover:text-blue-600 transition-colors duration-200 line-clamp-2 leading-tight ${
+                  isCompact
+                    ? "text-[10px] min-h-[1.2rem]"
+                    : "text-[11px] sm:text-xs min-h-[1.2rem] sm:min-h-[1.5rem]"
                 } flex items-start`}
               >
                 {isCompact
-                  ? data.name.length > 30
-                    ? data.name.slice(0, 30) + "..."
+                  ? data.name.length > 45
+                    ? data.name.slice(0, 45) + "..."
                     : data.name
-                  : data.name.length > 45
-                  ? data.name.slice(0, 45) + "..."
+                  : data.name.length > 50
+                  ? data.name.slice(0, 50) + "..."
                   : data.name}
               </h3>
             </Link>
@@ -257,7 +267,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
 
           {/* Rating & Reviews */}
           {!isCompact && (
-            <div className="flex items-center space-x-2">
+            <div className="hidden sm:flex items-center space-x-2">
               <div className="flex items-center space-x-1">
                 <Ratings rating={data?.ratings} />
               </div>
@@ -271,11 +281,11 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           )}
 
           {/* Price Section */}
-          <div className={`${isCompact ? "space-y-0" : "space-y-1"}`}>
-            <div className="flex items-baseline space-x-2">
+          <div className={`${isCompact ? "space-y-0" : "space-y-0"} mt-0`}>
+            <div className="flex items-baseline space-x-1">
               <span
                 className={`${
-                  isCompact ? "text-sm" : "text-xl"
+                  isCompact ? "text-xs" : "text-sm sm:text-base"
                 } font-bold text-gray-900`}
               >
                 ₹
@@ -287,7 +297,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
                 data.originalPrice > data.discountPrice && (
                   <span
                     className={`${
-                      isCompact ? "text-xs" : "text-base"
+                      isCompact ? "text-[10px]" : "text-xs sm:text-sm"
                     } text-gray-400 line-through font-medium`}
                   >
                     ₹{data.originalPrice}
@@ -298,7 +308,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
             {!isCompact &&
               data.originalPrice &&
               data.originalPrice > data.discountPrice && (
-                <div className="text-sm text-green-600 font-semibold">
+                <div className="text-[10px] sm:text-xs text-green-600 font-semibold">
                   You save ₹{data.originalPrice - data.discountPrice}
                 </div>
               )}
@@ -306,31 +316,31 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
 
           {/* Action Buttons */}
           {!isCompact && (
-            <div className="pt-2 space-y-2">
+            <div className="pt-0.5 space-y-0.5 mt-auto">
               {/* Buy Now Button */}
               <button
                 onClick={buyNowHandler}
                 disabled={data.stock < 1}
-                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                className={`w-full py-1 sm:py-1.5 rounded-md font-medium text-[10px] sm:text-xs transition-all duration-200 ${
                   data.stock < 1
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                    : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-sm hover:shadow-md transform hover:scale-[1.01] active:scale-[0.99]"
                 }`}
               >
                 {data.stock < 1 ? "Out of Stock" : "🚀 Buy Now"}
               </button>
-              
+
               {/* Add to Cart Button */}
               <button
                 onClick={() => addToCartHandler(data._id)}
                 disabled={data.stock < 1}
-                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`w-full py-1 sm:py-1.5 rounded-md font-medium text-[10px] sm:text-xs transition-all duration-200 flex items-center justify-center gap-0.5 ${
                   data.stock < 1
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-sm hover:shadow-md transform hover:scale-[1.01] active:scale-[0.99]"
                 }`}
               >
-                <RiShoppingCartFill className="w-4 h-4" />
+                <RiShoppingCartFill className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 {data.stock < 1 ? "Out of Stock" : "Add to Cart"}
               </button>
             </div>

@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import {
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineArrowLeft,
+} from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { loadUser } from "../../redux/actions/user";
+import BrandingLogo from "../../Branding_logo.jpg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -40,11 +45,29 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Back Button */}
+      <div className="absolute top-6 left-6">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-unacademy-md hover:shadow-unacademy-lg transition-all duration-200 hover:scale-105"
+        >
+          <AiOutlineArrowLeft size={20} className="text-text-primary" />
+        </button>
+      </div>
+
       {/* Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center shadow-unacademy-md">
-            <span className="text-white font-bold text-2xl">E</span>
+          <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-50 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-100 p-3 hover:scale-105 transition-all duration-300">
+            <img
+              src={BrandingLogo}
+              alt="Brand Logo"
+              className="h-full w-full object-contain filter drop-shadow-lg"
+              style={{
+                filter:
+                  "drop-shadow(0 4px 8px rgba(0,0,0,0.1)) brightness(1.1) contrast(1.1)",
+              }}
+            />
           </div>
         </div>
         <h2 className="text-center text-3xl font-bold text-text-primary mb-2">

@@ -210,61 +210,63 @@ const BestDeals = () => {
         {data && data.length !== 0 ? (
           <>
             {/* Enhanced Timer Banner with Glow Effect */}
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-2xl blur-xl opacity-75 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-2xl p-5 shadow-2xl">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl blur-lg opacity-75 animate-pulse"></div>
+              <div className="relative bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl p-3 shadow-xl">
                 <div className="text-center text-white">
-                  <div className="flex items-center justify-center mb-3">
-                    <HiClock className="w-5 h-5 mr-2 animate-pulse" />
-                    <h3 className="text-lg font-black">
-                      ⏰ DEAL EXPIRES IN ⏰
-                    </h3>
+                  <div className="flex items-center justify-center mb-2">
+                    <HiClock className="w-4 h-4 mr-1.5 animate-pulse" />
+                    <h3 className="text-sm font-bold">⏰ DEAL EXPIRES IN ⏰</h3>
                   </div>
-                  <div className="flex justify-center space-x-3 md:space-x-4">
+                  <div className="flex justify-center space-x-2 md:space-x-3">
                     <div className="relative">
-                      <div className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-xl animate-pulse"></div>
-                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-3 min-w-[60px] border border-white border-opacity-30">
-                        <div className="text-2xl md:text-3xl font-black">
+                      <div className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-lg animate-pulse"></div>
+                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 min-w-[45px] border border-white border-opacity-30">
+                        <div className="text-lg md:text-xl font-black">
                           {String(timeLeft.hours).padStart(2, "0")}
                         </div>
-                        <div className="text-xs font-bold opacity-90">
+                        <div className="text-[10px] font-bold opacity-90">
                           HOURS
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center text-2xl font-black opacity-75 animate-pulse">
+                    <div className="flex items-center text-lg font-black opacity-75 animate-pulse">
                       :
                     </div>
                     <div className="relative">
                       <div
-                        className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-xl animate-pulse"
+                        className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-lg animate-pulse"
                         style={{ animationDelay: "0.5s" }}
                       ></div>
-                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-3 min-w-[60px] border border-white border-opacity-30">
-                        <div className="text-2xl md:text-3xl font-black">
+                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 min-w-[45px] border border-white border-opacity-30">
+                        <div className="text-lg md:text-xl font-black">
                           {String(timeLeft.minutes).padStart(2, "0")}
                         </div>
-                        <div className="text-xs font-bold opacity-90">MINS</div>
+                        <div className="text-[10px] font-bold opacity-90">
+                          MINS
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center text-2xl font-black opacity-75 animate-pulse">
+                    <div className="flex items-center text-lg font-black opacity-75 animate-pulse">
                       :
                     </div>
                     <div className="relative">
                       <div
-                        className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-xl animate-pulse"
+                        className="absolute inset-0 bg-white bg-opacity-30 backdrop-blur-sm rounded-lg animate-pulse"
                         style={{ animationDelay: "1s" }}
                       ></div>
-                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-4 py-3 min-w-[60px] border border-white border-opacity-30">
-                        <div className="text-2xl md:text-3xl font-black">
+                      <div className="relative bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 min-w-[45px] border border-white border-opacity-30">
+                        <div className="text-lg md:text-xl font-black">
                           {String(timeLeft.seconds).padStart(2, "0")}
                         </div>
-                        <div className="text-xs font-bold opacity-90">SECS</div>
+                        <div className="text-[10px] font-bold opacity-90">
+                          SECS
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-center">
-                    <p className="text-sm font-bold bg-white bg-opacity-20 px-4 py-1.5 rounded-full">
+                  <div className="mt-2 flex items-center justify-center">
+                    <p className="text-xs font-bold bg-white bg-opacity-20 px-3 py-1 rounded-full">
                       🚨 <strong>HURRY UP!</strong> Don't miss these incredible
                       savings! 🚨
                     </p>
@@ -274,17 +276,17 @@ const BestDeals = () => {
             </div>
 
             {/* Enhanced Products Grid with Special Effects */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 mb-8">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 mb-8 items-stretch">
               {data.map((product, index) => (
                 <div
                   key={index}
-                  className="group transform transition-all duration-500 hover:scale-110 hover:z-10"
+                  className="group transform transition-all duration-500 hover:scale-110 hover:z-10 flex"
                   style={{
                     animationDelay: `${index * 150}ms`,
                     animation: "fadeInUp 0.6s ease-out forwards",
                   }}
                 >
-                  <div className="relative">
+                  <div className="relative w-full flex">
                     {/* Enhanced Trending Badge */}
                     {index === 0 && (
                       <div className="absolute -top-3 -right-3 z-20">

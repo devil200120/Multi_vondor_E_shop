@@ -3,6 +3,9 @@ import "./App.css";
 import Store from "./redux/store";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGoogleTranslate } from "./hooks/useGoogleTranslate";
+import BanModal from "./components/BanDetection/BanModal";
+import BanProtection from "./components/BanDetection/BanProtection";
+import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
 import {
   LoginPage,
   SignupPage,
@@ -23,6 +26,8 @@ import {
   OrderDetailsPage,
   TrackOrderPage,
   UserInbox,
+  UserForgotPasswordPage,
+  UserResetPasswordPage,
 } from "./routes/Routes";
 import {
   ShopDashboardPage,
@@ -52,6 +57,8 @@ import {
   AdminDashboardEvents,
   AdminDashboardWithdraw,
 } from "./routes/AdminRoutes";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import AdminOrderDetailsPage from "./pages/AdminOrderDetailsPage";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -123,6 +130,7 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <BanModal />
       {stripeApikey && (
         <Elements stripe={loadStripe(stripeApikey)}>
           <Routes>
@@ -130,7 +138,9 @@ const App = () => {
               path="/payment"
               element={
                 <ProtectedRoute>
-                  <PaymentPage />
+                  <BanProtection>
+                    <PaymentPage />
+                  </BanProtection>
                 </ProtectedRoute>
               }
             />
@@ -142,6 +152,8 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<UserForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<UserResetPasswordPage />} />
         <Route
           path="/activation/:activation_token"
           element={<ActivationPage />}
@@ -159,7 +171,9 @@ const App = () => {
           path="/checkout"
           element={
             <ProtectedRoute>
-              <CheckoutPage />
+              <BanProtection>
+                <CheckoutPage />
+              </BanProtection>
             </ProtectedRoute>
           }
         />
@@ -169,7 +183,9 @@ const App = () => {
           path="/profile"
           element={
             <ProtectedRoute>
-              <ProfilePage />
+              <BanProtection>
+                <ProfilePage />
+              </BanProtection>
             </ProtectedRoute>
           }
         />
@@ -178,7 +194,9 @@ const App = () => {
           path="/inbox"
           element={
             <ProtectedRoute>
-              <UserInbox />
+              <BanProtection>
+                <UserInbox />
+              </BanProtection>
             </ProtectedRoute>
           }
         />
@@ -187,7 +205,9 @@ const App = () => {
           path="/user/order/:id"
           element={
             <ProtectedRoute>
-              <OrderDetailsPage />
+              <BanProtection>
+                <OrderDetailsPage />
+              </BanProtection>
             </ProtectedRoute>
           }
         />
@@ -196,7 +216,9 @@ const App = () => {
           path="/user/track/order/:id"
           element={
             <ProtectedRoute>
-              <TrackOrderPage />
+              <BanProtection>
+                <TrackOrderPage />
+              </BanProtection>
             </ProtectedRoute>
           }
         />
@@ -211,7 +233,9 @@ const App = () => {
           path="/shop/:id"
           element={
             <SellerProtectedRoute>
-              <ShopHomePage />
+              <SellerBanProtection>
+                <ShopHomePage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -220,7 +244,9 @@ const App = () => {
           path="/settings"
           element={
             <SellerProtectedRoute>
-              <ShopSettingsPage />
+              <SellerBanProtection>
+                <ShopSettingsPage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -229,7 +255,9 @@ const App = () => {
           path="/dashboard"
           element={
             <SellerProtectedRoute>
-              <ShopDashboardPage />
+              <SellerBanProtection>
+                <ShopDashboardPage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -237,7 +265,9 @@ const App = () => {
           path="/dashboard-create-product"
           element={
             <SellerProtectedRoute>
-              <ShopCreateProduct />
+              <SellerBanProtection>
+                <ShopCreateProduct />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -246,7 +276,9 @@ const App = () => {
           path="/dashboard-edit-product/:id"
           element={
             <SellerProtectedRoute>
-              <ShopEditProductPage />
+              <SellerBanProtection>
+                <ShopEditProductPage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -255,7 +287,9 @@ const App = () => {
           path="/dashboard-orders"
           element={
             <SellerProtectedRoute>
-              <ShopAllOrders />
+              <SellerBanProtection>
+                <ShopAllOrders />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -264,7 +298,9 @@ const App = () => {
           path="/dashboard-refunds"
           element={
             <SellerProtectedRoute>
-              <ShopAllRefunds />
+              <SellerBanProtection>
+                <ShopAllRefunds />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -273,7 +309,9 @@ const App = () => {
           path="/order/:id"
           element={
             <SellerProtectedRoute>
-              <ShopOrderDetails />
+              <SellerBanProtection>
+                <ShopOrderDetails />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -282,7 +320,9 @@ const App = () => {
           path="/dashboard-products"
           element={
             <SellerProtectedRoute>
-              <ShopAllProducts />
+              <SellerBanProtection>
+                <ShopAllProducts />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -291,7 +331,9 @@ const App = () => {
           path="/dashboard-withdraw-money"
           element={
             <SellerProtectedRoute>
-              <ShopWithDrawMoneyPage />
+              <SellerBanProtection>
+                <ShopWithDrawMoneyPage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -300,7 +342,9 @@ const App = () => {
           path="/dashboard-messages"
           element={
             <SellerProtectedRoute>
-              <ShopInboxPage />
+              <SellerBanProtection>
+                <ShopInboxPage />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -309,7 +353,9 @@ const App = () => {
           path="/dashboard-create-event"
           element={
             <SellerProtectedRoute>
-              <ShopCreateEvents />
+              <SellerBanProtection>
+                <ShopCreateEvents />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -317,7 +363,9 @@ const App = () => {
           path="/dashboard-events"
           element={
             <SellerProtectedRoute>
-              <ShopAllEvents />
+              <SellerBanProtection>
+                <ShopAllEvents />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -325,7 +373,9 @@ const App = () => {
           path="/dashboard-coupouns"
           element={
             <SellerProtectedRoute>
-              <ShopAllCoupouns />
+              <SellerBanProtection>
+                <ShopAllCoupouns />
+              </SellerBanProtection>
             </SellerProtectedRoute>
           }
         />
@@ -336,6 +386,14 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminDashboardPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedAdminRoute>
+              <AdminAnalyticsPage />
             </ProtectedAdminRoute>
           }
         />
@@ -360,6 +418,14 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminDashboardOrders />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/order/:id"
+          element={
+            <ProtectedAdminRoute>
+              <AdminOrderDetailsPage />
             </ProtectedAdminRoute>
           }
         />

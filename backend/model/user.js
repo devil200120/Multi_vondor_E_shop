@@ -56,6 +56,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // Ban system fields
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
+  banReason: {
+    type: String,
+    default: null,
+  },
+  bannedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  bannedAt: {
+    type: Date,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

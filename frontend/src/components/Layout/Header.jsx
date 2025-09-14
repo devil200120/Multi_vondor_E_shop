@@ -305,17 +305,46 @@ const Header = ({ activeHeading }) => {
             </Link>
           </div>
 
-          {/* Cart Icon */}
-          <div
-            className="relative cursor-pointer p-2"
-            onClick={() => setOpenCart(true)}
-          >
-            <AiOutlineShoppingCart size={24} className="text-text-secondary" />
-            {cart && cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                {cart.length}
-              </span>
-            )}
+          {/* Right Side Icons - Cart and Profile */}
+          <div className="flex items-center space-x-3">
+            {/* Profile/Login */}
+            <div className="cursor-pointer">
+              {isAuthenticated ? (
+                <Link to="/profile">
+                  <img
+                    src={`${backend_url}${user.avatar}`}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-secondary-200 hover:border-primary-500 transition-colors duration-200"
+                    alt="Profile"
+                  />
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className="p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200 block"
+                >
+                  <CgProfile
+                    size={24}
+                    className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
+                  />
+                </Link>
+              )}
+            </div>
+
+            {/* Cart Icon */}
+            <div
+              className="relative cursor-pointer p-2"
+              onClick={() => setOpenCart(true)}
+            >
+              <AiOutlineShoppingCart
+                size={24}
+                className="text-text-secondary"
+              />
+              {cart && cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -436,8 +465,8 @@ const Header = ({ activeHeading }) => {
               className="p-4 border-t border-secondary-200 mt-4 animate-slideIn"
               style={{ animationDelay: "0.4s" }}
             >
-              <div className="flex justify-center">
-                {isAuthenticated ? (
+              {isAuthenticated ? (
+                <div className="flex flex-col items-center space-y-3">
                   <Link to="/profile" onClick={() => setOpen(false)}>
                     <img
                       src={`${backend_url}${user.avatar}`}
@@ -445,25 +474,45 @@ const Header = ({ activeHeading }) => {
                       className="w-16 h-16 rounded-full object-cover border-4 border-primary-500"
                     />
                   </Link>
-                ) : (
-                  <div className="flex space-x-4">
-                    <Link
-                      to="/login"
-                      className="text-text-primary font-medium hover:text-primary-500 transition-colors duration-200"
-                      onClick={() => setOpen(false)}
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      to="/sign-up"
-                      className="text-text-primary font-medium hover:text-primary-500 transition-colors duration-200"
-                      onClick={() => setOpen(false)}
-                    >
-                      Sign up
-                    </Link>
+                  <div className="text-center">
+                    <p className="text-text-primary font-medium">{user.name}</p>
+                    <p className="text-text-muted text-sm">{user.email}</p>
                   </div>
-                )}
-              </div>
+                  <Link
+                    to="/profile"
+                    onClick={() => setOpen(false)}
+                    className="w-full bg-primary-500 text-white font-medium py-2 rounded-lg hover:bg-primary-600 transition-colors duration-200 text-center"
+                  >
+                    View Profile
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-center mb-4">
+                    <CgProfile
+                      size={48}
+                      className="text-gray-400 mx-auto mb-2"
+                    />
+                    <p className="text-text-muted text-sm">
+                      Join us to get the best deals!
+                    </p>
+                  </div>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="w-full bg-primary-500 text-white font-medium py-3 rounded-lg hover:bg-primary-600 transition-colors duration-200 text-center block"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/sign-up"
+                    onClick={() => setOpen(false)}
+                    className="w-full border-2 border-primary-500 text-primary-500 font-medium py-3 rounded-lg hover:bg-primary-50 transition-colors duration-200 text-center block"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

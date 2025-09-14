@@ -7,6 +7,7 @@ const Order = require("../model/order");
 const Shop = require("../model/shop");
 const { upload } = require("../multer");
 const ErrorHandler = require("../utils/ErrorHandler");
+const NotificationService = require("../utils/NotificationService");
 const fs = require("fs");
 
 // create product
@@ -28,6 +29,16 @@ router.post(
         productData.shop = shop;
 
         const product = await Product.create(productData);
+
+        // Create notification for new product
+        await NotificationService.createProductNotification(
+          'New Product Added',
+          `Product "${product.name}" added by ${shop.name}`,
+          'new_product',
+          product._id,
+          null,
+          [shopId]
+        );
 
         res.status(201).json({
           success: true,
@@ -135,6 +146,27 @@ router.put(
         new: true,
         runValidators: true,
       });
+
+      // Check for low stock and create notification
+      if (updatedProduct.stock <= 10 && updatedProduct.stock > 0) {
+        await NotificationService.createStockNotification(
+          'Low Stock Alert',
+          `Product "${updatedProduct.name}" is running low on stock (${updatedProduct.stock} remaining)`,
+          'low_stock',
+          updatedProduct._id,
+          null,
+          [updatedProduct.shopId]
+        );
+      } else if (updatedProduct.stock === 0) {
+        await NotificationService.createStockNotification(
+          'Out of Stock Alert',
+          `Product "${updatedProduct.name}" is now out of stock`,
+          'out_of_stock',
+          updatedProduct._id,
+          null,
+          [updatedProduct.shopId]
+        );
+      }
 
       res.status(200).json({
         success: true,

@@ -46,121 +46,56 @@ const ShopSettings = () => {
     process.env.REACT_APP_GOOGLE_MAPS_API_KEY ||
     "AIzaSyBVeker3NKNQyfAy-XkVDrqodDoU7GYQyk";
 
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!window.google) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setMapLoaded(true);
-        initializeAutocomplete();
-      };
-      script.onerror = () => toast.error("Failed to load Google Maps");
-      document.head.appendChild(script);
-    } else {
-      setMapLoaded(true);
-      initializeAutocomplete();
-    }
-  }, []);
-
-  const initializeAutocomplete = useCallback(() => {
-    if (window.google && addressInputRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        {
-          types: ["address"],
-          componentRestrictions: { country: [] },
-        }
-      );
-      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
-    }
-  }, []);
-
-  const handlePlaceSelect = () => {
-    const place = autocompleteRef.current.getPlace();
-    if (place.geometry) {
-      const location = place.geometry.location;
-      const lat = location.lat();
-      const lng = location.lng();
-
-      setLatitude(lat.toString());
-      setLongitude(lng.toString());
-      setMapCenter({ lat, lng });
-      setAddress(place.formatted_address || place.name);
-
-      // Extract zip code if available
-      const addressComponents = place.address_components;
-      const postalCode = addressComponents?.find((component) =>
-        component.types.includes("postal_code")
-      )?.long_name;
-
-      if (postalCode) {
-        setZipcode(postalCode);
-      }
-
-      setShowMap(true);
-      setTimeout(() => {
-        initializeMap();
-      }, 100);
-    }
-  };
-
-  const getCurrentLocation = () => {
-    setIsLoadingLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-
-          setLatitude(lat.toString());
-          setLongitude(lng.toString());
-          setMapCenter({ lat, lng });
-
-          // Reverse geocode to get address
-          if (window.google) {
-            const geocoder = new window.google.maps.Geocoder();
-            geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-              if (status === "OK" && results[0]) {
-                setAddress(results[0].formatted_address);
-                // Extract zip code
-                const addressComponents = results[0].address_components;
-                const postalCode = addressComponents?.find((component) =>
-                  component.types.includes("postal_code")
-                )?.long_name;
-                if (postalCode) {
-                  setZipcode(postalCode);
-                }
-              }
-              setIsLoadingLocation(false);
-            });
-          } else {
-            setIsLoadingLocation(false);
+  // Google Maps functions wrapped in useCallback
+  const reverseGeocode = useCallback((lat, lng) => {
+    if (window.google && window.google.maps) {
+      try {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            setAddress(results[0].formatted_address);
           }
-
-          setShowMap(true);
-          setTimeout(() => {
-            initializeMap();
-          }, 100);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          toast.error(
-            "Unable to get your location. Please enter address manually."
-          );
-          setIsLoadingLocation(false);
-        }
-      );
-    } else {
-      toast.error("Geolocation is not supported by this browser.");
-      setIsLoadingLocation(false);
+        });
+      } catch (error) {
+        console.warn("Reverse geocoding failed:", error);
+      }
     }
-  };
+  }, []);
 
-  const initializeMap = () => {
-    if (mapRef.current && window.google) {
+  const updateMarker = useCallback(
+    (lat, lng) => {
+      if (!window.google || !window.google.maps) return;
+
+      try {
+        if (markerRef.current) {
+          markerRef.current.setMap(null);
+        }
+
+        markerRef.current = new window.google.maps.Marker({
+          position: { lat, lng },
+          map: mapInstanceRef.current,
+          title: "Shop Location",
+          draggable: true,
+        });
+
+        markerRef.current.addListener("dragend", (event) => {
+          const newLat = event.latLng.lat();
+          const newLng = event.latLng.lng();
+          setLatitude(newLat.toString());
+          setLongitude(newLng.toString());
+          reverseGeocode(newLat, newLng);
+        });
+      } catch (error) {
+        console.warn("Error updating marker:", error);
+      }
+    },
+    [reverseGeocode]
+  );
+
+  const initializeMap = useCallback(() => {
+    if (!mapRef.current || !window.google || !window.google.maps) return;
+
+    try {
       const mapOptions = {
         center: mapCenter,
         zoom: 15,
@@ -188,39 +123,159 @@ const ShopSettings = () => {
       if (latitude && longitude) {
         updateMarker(parseFloat(latitude), parseFloat(longitude));
       }
+    } catch (error) {
+      console.warn("Error initializing map:", error);
+      toast.error("Failed to initialize map. Please try refreshing the page.");
     }
-  };
+  }, [mapCenter, latitude, longitude, updateMarker, reverseGeocode]);
 
-  const updateMarker = (lat, lng) => {
-    if (markerRef.current) {
-      markerRef.current.setMap(null);
-    }
+  const handlePlaceSelect = useCallback(() => {
+    if (!autocompleteRef.current) return;
 
-    markerRef.current = new window.google.maps.Marker({
-      position: { lat, lng },
-      map: mapInstanceRef.current,
-      title: "Shop Location",
-      draggable: true,
-    });
+    try {
+      const place = autocompleteRef.current.getPlace();
+      if (place.geometry) {
+        const location = place.geometry.location;
+        const lat = location.lat();
+        const lng = location.lng();
 
-    markerRef.current.addListener("dragend", (event) => {
-      const newLat = event.latLng.lat();
-      const newLng = event.latLng.lng();
-      setLatitude(newLat.toString());
-      setLongitude(newLng.toString());
-      reverseGeocode(newLat, newLng);
-    });
-  };
+        setLatitude(lat.toString());
+        setLongitude(lng.toString());
+        setMapCenter({ lat, lng });
+        setAddress(place.formatted_address || place.name);
 
-  const reverseGeocode = (lat, lng) => {
-    if (window.google) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-        if (status === "OK" && results[0]) {
-          setAddress(results[0].formatted_address);
+        // Extract zip code if available
+        const addressComponents = place.address_components;
+        const postalCode = addressComponents?.find((component) =>
+          component.types.includes("postal_code")
+        )?.long_name;
+
+        if (postalCode) {
+          setZipcode(postalCode);
         }
-      });
+
+        setShowMap(true);
+        setTimeout(() => {
+          initializeMap();
+        }, 100);
+      }
+    } catch (error) {
+      console.warn("Error handling place selection:", error);
+      toast.error("Error selecting location. Please try again.");
     }
+  }, [initializeMap]);
+
+  const initializeAutocomplete = useCallback(() => {
+    if (
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      addressInputRef.current
+    ) {
+      try {
+        autocompleteRef.current = new window.google.maps.places.Autocomplete(
+          addressInputRef.current,
+          {
+            types: ["address"],
+            componentRestrictions: { country: [] },
+          }
+        );
+        autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
+      } catch (error) {
+        console.warn("Failed to initialize autocomplete:", error);
+      }
+    }
+  }, [handlePlaceSelect]);
+
+  // Initialize Google Maps
+  useEffect(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        // Wait a bit for the API to be fully loaded
+        setTimeout(() => {
+          setMapLoaded(true);
+          initializeAutocomplete();
+        }, 500);
+      };
+      script.onerror = () => {
+        console.error("Failed to load Google Maps");
+        toast.error(
+          "Google Maps failed to load. Address autocomplete will not work."
+        );
+      };
+      document.head.appendChild(script);
+    } else {
+      setMapLoaded(true);
+      setTimeout(() => {
+        initializeAutocomplete();
+      }, 100);
+    }
+  }, [GOOGLE_MAPS_API_KEY, initializeAutocomplete]);
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        setLatitude(lat.toString());
+        setLongitude(lng.toString());
+        setMapCenter({ lat, lng });
+
+        // Reverse geocode to get address
+        if (window.google && window.google.maps) {
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+              if (status === "OK" && results[0]) {
+                setAddress(results[0].formatted_address);
+                // Extract zip code
+                const addressComponents = results[0].address_components;
+                const postalCode = addressComponents?.find((component) =>
+                  component.types.includes("postal_code")
+                )?.long_name;
+                if (postalCode) {
+                  setZipcode(postalCode);
+                }
+              }
+              setIsLoadingLocation(false);
+            });
+          } catch (error) {
+            console.warn("Geocoding failed:", error);
+            setIsLoadingLocation(false);
+          }
+        } else {
+          setIsLoadingLocation(false);
+        }
+
+        setShowMap(true);
+        setTimeout(() => {
+          initializeMap();
+        }, 100);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        toast.error(
+          "Unable to get your location. Please enter address manually."
+        );
+        setIsLoadingLocation(false);
+      },
+      {
+        timeout: 10000,
+        enableHighAccuracy: true,
+        maximumAge: 600000,
+      }
+    );
   };
 
   // Image updated
@@ -359,7 +414,7 @@ const ShopSettings = () => {
               <button
                 type="button"
                 onClick={getCurrentLocation}
-                disabled={isLoadingLocation}
+                disabled={isLoadingLocation || !mapLoaded}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
                 title="Use current location"
               >
@@ -368,6 +423,16 @@ const ShopSettings = () => {
                 />
               </button>
             </div>
+
+            {/* Google Maps loading status */}
+            {!mapLoaded && (
+              <div className="w-[95%] mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  Loading Google Maps... Address autocomplete will be available
+                  once loaded.
+                </p>
+              </div>
+            )}
 
             {/* Location Actions */}
             <div className="w-[95%] flex justify-between items-center mb-4">
