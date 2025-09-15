@@ -93,7 +93,7 @@ const Cart = ({ setOpenCart }) => {
                   Total:
                 </span>
                 <span className="text-lg font-bold text-text-primary">
-                  ${totalPrice.toFixed(2)}
+                  ₹{totalPrice.toFixed(2)}
                 </span>
               </div>
               {/* Checkout Button */}
@@ -152,7 +152,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
             {data.name}
           </h3>
           <p className="text-xs text-text-muted mb-2">
-            ${data.discountPrice} each
+            ₹{data.discountPrice} each
           </p>
 
           {/* Quantity Controls */}
@@ -177,7 +177,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
 
           {/* Total Price */}
           <p className="text-sm font-semibold text-primary-500">
-            ${totalPrice.toFixed(2)}
+            ₹{totalPrice.toFixed(2)}
           </p>
         </div>
 

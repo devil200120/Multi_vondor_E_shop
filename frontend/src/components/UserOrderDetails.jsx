@@ -206,10 +206,10 @@ const UserOrderDetails = () => {
                         {item.name}
                       </h4>
                       <p className="text-gray-600 mt-1">
-                        US${item.discountPrice} × {item.qty}
+                        ₹{item.discountPrice} × {item.qty}
                       </p>
                       <p className="text-lg font-semibold text-gray-900 mt-2">
-                        US${(item.discountPrice * item.qty).toFixed(2)}
+                        ₹{(item.discountPrice * item.qty).toFixed(2)}
                       </p>
                     </div>
                     {!item.isReviewed && data.status === "Delivered" && (
@@ -234,7 +234,7 @@ const UserOrderDetails = () => {
                     Total Amount
                   </span>
                   <span className="text-2xl font-bold text-gray-900">
-                    US${data.totalPrice}
+                    ₹{data.totalPrice}
                   </span>
                 </div>
               </div>
@@ -360,7 +360,7 @@ const UserOrderDetails = () => {
                     {selectedItem?.name}
                   </h3>
                   <p className="text-gray-600">
-                    US${selectedItem?.discountPrice} × {selectedItem?.qty}
+                    ₹{selectedItem?.discountPrice} × {selectedItem?.qty}
                   </p>
                 </div>
               </div>

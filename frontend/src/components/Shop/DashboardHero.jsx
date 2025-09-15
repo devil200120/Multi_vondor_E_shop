@@ -163,7 +163,7 @@ const DashboardHero = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.reduce((acc, item) => acc + item.qty, 0),
-        total: "US$ " + item.totalPrice,
+        total: "₹" + item.totalPrice,
         status: item.status,
       });
     });
@@ -228,7 +228,7 @@ const DashboardHero = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
         <StatsCard
           title="Total Revenue"
-          value={`$${totalRevenue}`}
+          value={`₹${totalRevenue}`}
           icon={FiDollarSign}
           color="text-green-600"
           trend={true}
@@ -250,7 +250,7 @@ const DashboardHero = () => {
         />
         <StatsCard
           title="Available Balance"
-          value={`$${availableBalance}`}
+          value={`₹${availableBalance}`}
           icon={AiOutlineMoneyCollect}
           color="text-indigo-600"
         />
@@ -317,7 +317,7 @@ const DashboardHero = () => {
                 Withdraw Money
               </h3>
               <p className="text-xs md:text-sm text-gray-600 truncate">
-                Available: ${availableBalance}
+                Available: ₹{availableBalance}
               </p>
             </div>
             <AiOutlineArrowRight

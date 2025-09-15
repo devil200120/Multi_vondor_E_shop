@@ -163,7 +163,7 @@ const AllProducts = () => {
     row.push({
       id: item._id,
       name: item.name,
-      price: "US$ " + item.discountPrice,
+      price: "₹" + item.discountPrice,
       Stock: item.stock,
       sold: item.sold_out,
     });
@@ -210,7 +210,7 @@ const AllProducts = () => {
         <div className="text-center p-2 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 font-medium">Price</p>
           <p className="font-bold text-green-600 text-sm">
-            US$ {product.discountPrice}
+            ₹{product.discountPrice}
           </p>
         </div>
         <div className="text-center p-2 bg-gray-50 rounded-lg">

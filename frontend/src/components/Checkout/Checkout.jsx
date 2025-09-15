@@ -811,7 +811,7 @@ const CartData = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Subtotal</span>
               <span className="font-semibold text-gray-800">
-                ${subTotalPrice}
+                ₹{subTotalPrice}
               </span>
             </div>
 
@@ -834,7 +834,7 @@ const CartData = ({
                   ) : shipping === 0 ? (
                     "FREE"
                   ) : (
-                    `$${shipping.toFixed(2)}`
+                    `₹${shipping.toFixed(2)}`
                   )}
                 </span>
               </div>
@@ -869,7 +869,7 @@ const CartData = ({
                   Discount Applied
                 </span>
                 <span className="font-semibold">
-                  -${discountPercentenge.toFixed(2)}
+                  -₹{discountPercentenge.toFixed(2)}
                 </span>
               </div>
             )}
@@ -880,7 +880,7 @@ const CartData = ({
                   Total
                 </span>
                 <span className="text-xl font-bold text-indigo-600">
-                  ${totalPrice}
+                  ₹{totalPrice}
                 </span>
               </div>
             </div>

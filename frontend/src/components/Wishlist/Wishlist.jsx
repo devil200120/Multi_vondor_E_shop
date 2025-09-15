@@ -108,7 +108,7 @@ const CartSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
             {data.name}
           </h3>
           <p className="text-lg font-semibold text-primary-500 mb-3">
-            ${totalPrice.toFixed(2)}
+            ₹{totalPrice.toFixed(2)}
           </p>
 
           {/* Action Button */}

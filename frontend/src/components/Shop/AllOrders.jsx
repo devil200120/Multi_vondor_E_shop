@@ -163,7 +163,7 @@ const AllOrders = () => {
         id: item._id,
         itemsQty:
           item.cart?.reduce((acc, cartItem) => acc + cartItem.qty, 0) || 0,
-        total: "US$ " + item.totalPrice?.toFixed(2),
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
         createdAt: item.createdAt,
       });

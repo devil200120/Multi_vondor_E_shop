@@ -222,12 +222,12 @@ export const generateInvoice = (order) => {
       doc.text(`×${qty}`, 130, yPos, { align: 'center' });
       
       // Price
-      doc.text(`$${price.toFixed(2)}`, 155, yPos, { align: 'center' });
+      doc.text(`₹${price.toFixed(2)}`, 155, yPos, { align: 'center' });
       
       // Total with bold styling
       doc.setTextColor(...darkGray);
       doc.setFont('helvetica', 'bold');
-      doc.text(`$${lineTotal.toFixed(2)}`, pageWidth - 35, yPos, { align: 'right' });
+      doc.text(`₹${lineTotal.toFixed(2)}`, pageWidth - 35, yPos, { align: 'right' });
       
       yPos += 20;
     });
@@ -245,14 +245,14 @@ export const generateInvoice = (order) => {
     doc.setFont('helvetica', 'normal');
     doc.text('Subtotal', pageWidth - 85, summaryY + 15);
     doc.setTextColor(...darkGray);
-    doc.text(`$${totalAmount.toFixed(2)}`, pageWidth - 30, summaryY + 15, { align: 'right' });
+    doc.text(`₹${totalAmount.toFixed(2)}`, pageWidth - 30, summaryY + 15, { align: 'right' });
     
     // Shipping
     const shippingCost = order.shippingPrice || 0;
     doc.setTextColor(...mediumGray);
     doc.text('Shipping', pageWidth - 85, summaryY + 25);
     doc.setTextColor(...darkGray);
-    doc.text(`$${shippingCost.toFixed(2)}`, pageWidth - 30, summaryY + 25, { align: 'right' });
+    doc.text(`₹${shippingCost.toFixed(2)}`, pageWidth - 30, summaryY + 25, { align: 'right' });
     
     // Tax
     const tax = order.tax || 0;
@@ -260,7 +260,7 @@ export const generateInvoice = (order) => {
       doc.setTextColor(...mediumGray);
       doc.text('Tax', pageWidth - 85, summaryY + 35);
       doc.setTextColor(...darkGray);
-      doc.text(`$${tax.toFixed(2)}`, pageWidth - 30, summaryY + 35, { align: 'right' });
+      doc.text(`₹${tax.toFixed(2)}`, pageWidth - 30, summaryY + 35, { align: 'right' });
     }
     
     // Divider line
@@ -278,7 +278,7 @@ export const generateInvoice = (order) => {
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL', pageWidth - 80, summaryY + (tax > 0 ? 53 : 43));
     doc.setFontSize(14);
-    doc.text(`$${finalTotal.toFixed(2)}`, pageWidth - 30, summaryY + (tax > 0 ? 53 : 43), { align: 'right' });
+    doc.text(`₹${finalTotal.toFixed(2)}`, pageWidth - 30, summaryY + (tax > 0 ? 53 : 43), { align: 'right' });
     
     // Modern Footer
     const footerY = pageHeight - 45;
