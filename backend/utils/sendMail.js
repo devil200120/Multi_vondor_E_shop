@@ -19,6 +19,7 @@ const sendMail = async (options) => {
     to: options.email,
     subject: options.subject,
     text: options.message,
+    html: options.html, // Add HTML support
   };
 
   await transporter.sendMail(mailOptions);

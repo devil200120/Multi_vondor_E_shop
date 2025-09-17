@@ -45,6 +45,21 @@ const BestDeals = () => {
           box-shadow: 0 0 40px rgba(249, 115, 22, 0.8);
         }
       }
+
+      /* Hide scrollbar for mobile horizontal scroll */
+      .scrollbar-hide {
+        -ms-overflow-style: none;  /* Internet Explorer 10+ */
+        scrollbar-width: none;  /* Firefox */
+      }
+      .scrollbar-hide::-webkit-scrollbar { 
+        display: none;  /* Safari and Chrome */
+      }
+
+      /* Smooth scrolling for mobile */
+      .scrollbar-hide {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
     `;
     document.head.appendChild(style);
 
@@ -124,7 +139,7 @@ const BestDeals = () => {
   }
 
   return (
-    <section className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-8 relative overflow-hidden">
+    <section className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-6 sm:py-8 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200 to-red-200 rounded-full opacity-20 animate-pulse"></div>
@@ -142,7 +157,7 @@ const BestDeals = () => {
         ></div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
         {/* Eye-catching Header Section */}
         <div className="text-center mb-8">
           {/* Animated Badge with Glow Effect */}
@@ -210,7 +225,7 @@ const BestDeals = () => {
         {data && data.length !== 0 ? (
           <>
             {/* Enhanced Timer Banner with Glow Effect */}
-            <div className="relative mb-4">
+            <div className="relative mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl blur-lg opacity-75 animate-pulse"></div>
               <div className="relative bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl p-3 shadow-xl">
                 <div className="text-center text-white">
@@ -275,53 +290,132 @@ const BestDeals = () => {
               </div>
             </div>
 
-            {/* Enhanced Products Grid with Special Effects */}
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 mb-8 items-stretch">
-              {data.map((product, index) => (
-                <div
-                  key={index}
-                  className="group transform transition-all duration-500 hover:scale-110 hover:z-10 flex"
-                  style={{
-                    animationDelay: `${index * 150}ms`,
-                    animation: "fadeInUp 0.6s ease-out forwards",
-                  }}
-                >
-                  <div className="relative w-full flex">
-                    {/* Enhanced Trending Badge */}
-                    {index === 0 && (
-                      <div className="absolute -top-3 -right-3 z-20">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-md animate-pulse"></div>
-                          <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-3 py-2 rounded-full shadow-xl animate-bounce">
-                            🏆 #1 BESTSELLER
+            {/* Enhanced Products Grid with Mobile-Optimized Layout */}
+            <div className="mb-8">
+              {/* Mobile View - Horizontal Scroll */}
+              <div className="block md:hidden">
+                <div className="flex space-x-3 overflow-x-auto pb-4 px-2 scrollbar-hide">
+                  {data.map((product, index) => (
+                    <div
+                      key={index}
+                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[200px]"
+                      style={{
+                        animationDelay: `${index * 150}ms`,
+                        animation: "fadeInUp 0.6s ease-out forwards",
+                      }}
+                    >
+                      <div className="relative w-full flex">
+                        {/* Enhanced Trending Badge */}
+                        {index === 0 && (
+                          <div className="absolute top-2 -right-1 z-20">
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-sm animate-pulse"></div>
+                              <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-lg animate-bounce flex items-center space-x-1">
+                                <span>⬆️</span>
+                                <span>🏆 #1</span>
+                                <span>⬆️</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    )}
-                    {/* Hot Deal Badge for other products */}
-                    {index > 0 && index < 3 && (
-                      <div className="absolute -top-2 -right-2 z-20">
-                        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
-                          🔥 HOT
-                        </div>
-                      </div>
-                    )}
-                    {/* Limited Stock Badge */}
-                    {index >= 3 && (
-                      <div className="absolute -top-2 -right-2 z-20">
-                        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                          ⚡ LIMITED
-                        </div>
-                      </div>
-                    )}
+                        )}
+                        {/* Hot Deal Badge for other products */}
+                        {index > 0 && index < 3 && (
+                          <div className="absolute top-2 -right-1 z-20">
+                            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
+                              🔥 HOT
+                            </div>
+                          </div>
+                        )}
+                        {/* Limited Stock Badge */}
+                        {index >= 3 && (
+                          <div className="absolute top-2 -right-1 z-20">
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                              ⚡ LIMITED
+                            </div>
+                          </div>
+                        )}
 
-                    {/* Glow Effect on Hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                        {/* Glow Effect on Hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
 
-                    <ProductCard data={product} />
+                        <ProductCard data={product} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Mobile Scroll Indicator */}
+                <div className="flex justify-center mt-3">
+                  <div className="flex items-center space-x-1 bg-white bg-opacity-80 px-3 py-1.5 rounded-full shadow-md">
+                    <span className="text-xs font-medium text-gray-600">
+                      Swipe to see more
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-gray-400 animate-pulse"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Desktop/Tablet View - Grid Layout */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-stretch">
+                {data.map((product, index) => (
+                  <div
+                    key={index}
+                    className="group transform transition-all duration-500 hover:scale-110 hover:z-10 flex"
+                    style={{
+                      animationDelay: `${index * 150}ms`,
+                      animation: "fadeInUp 0.6s ease-out forwards",
+                    }}
+                  >
+                    <div className="relative w-full flex">
+                      {/* Enhanced Trending Badge */}
+                      {index === 0 && (
+                        <div className="absolute top-2 -right-1 z-20">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-md animate-pulse"></div>
+                            <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-3 py-2 rounded-full shadow-xl animate-bounce flex items-center space-x-1">
+                              <span>⬆️</span>
+                              <span>🏆 #1 BESTSELLER</span>
+                              <span>⬆️</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* Hot Deal Badge for other products */}
+                      {index > 0 && index < 3 && (
+                        <div className="absolute top-2 -right-1 z-20">
+                          <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
+                            🔥 HOT
+                          </div>
+                        </div>
+                      )}
+                      {/* Limited Stock Badge */}
+                      {index >= 3 && (
+                        <div className="absolute top-2 -right-1 z-20">
+                          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            ⚡ LIMITED
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Glow Effect on Hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+
+                      <ProductCard data={product} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Enhanced CTA Section */}

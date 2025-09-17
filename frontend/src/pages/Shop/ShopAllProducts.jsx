@@ -13,10 +13,15 @@ const ShopAllProducts = () => {
           <DashboardSideBar active={3} />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-56">
+        {/* Main Content - Add mobile content padding */}
+        <div className="flex-1 lg:ml-56 mobile-content-padding">
           <AllProducts />
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <DashboardSideBar active={3} />
       </div>
     </div>
   );

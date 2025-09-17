@@ -191,24 +191,57 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
         </button>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - Enhanced with Beautiful Design */}
       {isMobileMenuOpen && (
-        <>
-          {/* Backdrop */}
+        <div className="800px:hidden fixed inset-0 z-50 admin-mobile-menu-overlay">
+          {/* Enhanced Backdrop with gradient and better blur */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 800px:hidden"
+            className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-md transition-all duration-300 ease-out"
             onClick={toggleMobileMenu}
-          ></div>
+          />
 
-          {/* Mobile Sidebar */}
-          <div className="fixed top-20 left-0 w-80 h-full bg-white z-50 transform transition-transform duration-300 ease-in-out 800px:hidden">
-            <AdminSideBar
-              active={activeMenuItem}
-              onItemClick={() => setIsMobileMenuOpen(false)}
-              isMobileOverlay={true}
-            />
+          {/* Mobile Sidebar with refined sizing */}
+          <div className="absolute top-0 left-0 bottom-0 w-64 max-w-[75vw] bg-white/95 backdrop-blur-xl shadow-2xl border-r border-gray-200/50 admin-mobile-sidebar">
+            <div className="h-full flex flex-col overflow-hidden">
+              {/* Refined Header Section */}
+              <div className="flex-shrink-0 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-b border-gray-200/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                      <HiOutlineViewGrid className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-semibold text-gray-800">
+                        Admin Panel
+                      </h2>
+                      <p className="text-xs text-gray-500">
+                        Management Dashboard
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleMobileMenu}
+                    className="p-1.5 rounded-lg bg-white/80 hover:bg-white border border-gray-200/50 transition-all duration-200 hover:shadow-sm group"
+                  >
+                    <HiOutlineX
+                      size={16}
+                      className="text-gray-500 group-hover:text-gray-700"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Content */}
+              <div className="flex-1 overflow-hidden">
+                <AdminSideBar
+                  active={activeMenuItem}
+                  onItemClick={() => setIsMobileMenuOpen(false)}
+                  isMobileOverlay={true}
+                />
+              </div>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

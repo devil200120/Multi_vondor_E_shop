@@ -122,7 +122,7 @@ const Footer = () => {
       </div>
 
       {/* Newsletter Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 py-8">
+      <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 py-4 sm:py-6">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
@@ -132,8 +132,8 @@ const Footer = () => {
                 : "translate-y-10 opacity-0"
             }`}
           >
-            <div className="text-center mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+            <div className="text-center mb-3 sm:mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
                 Stay Connected
               </h2>
               <p className="text-blue-100 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
@@ -153,12 +153,12 @@ const Footer = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
-                    className="flex-1 px-4 py-3 rounded-l-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-l-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
                     disabled={isLoading || !email}
-                    className="px-6 py-3 bg-white text-purple-600 font-bold rounded-r-xl hover:bg-purple-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/30 group disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-white text-purple-600 font-bold rounded-r-xl hover:bg-purple-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/30 group disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>

@@ -91,6 +91,15 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
     navigate("/checkout");
   };
 
+  // Calculate average rating from reviews
+  const averageRating =
+    data?.reviews && data.reviews.length > 0
+      ? (
+          data.reviews.reduce((sum, review) => sum + review.rating, 0) /
+          data.reviews.length
+        ).toFixed(1)
+      : "0.0";
+
   return (
     <>
       <div
@@ -269,13 +278,13 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           {!isCompact && (
             <div className="hidden sm:flex items-center space-x-2">
               <div className="flex items-center space-x-1">
-                <Ratings rating={data?.ratings} />
+                <Ratings rating={parseFloat(averageRating)} />
               </div>
               <span className="text-sm text-gray-500 font-medium">
-                {data?.ratings?.toFixed(1) || "0.0"}
+                {averageRating}
               </span>
               <span className="text-xs text-gray-400">
-                ({data?.numOfReviews || 0} reviews)
+                ({data?.reviews?.length || 0} reviews)
               </span>
             </div>
           )}

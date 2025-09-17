@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-  AiOutlinePlusCircle,
-  AiOutlineCamera,
-  AiOutlineClose,
-} from "react-icons/ai";
+import { AiOutlineCamera, AiOutlineClose } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { createProduct, clearSuccess } from "../../redux/actions/product";
 import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
-import { FiPackage, FiDollarSign, FiImage } from "react-icons/fi";
+import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -18,6 +14,7 @@ const CreateProduct = () => {
   const dispatch = useDispatch();
 
   const [images, setImages] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -34,6 +31,7 @@ const CreateProduct = () => {
       toast.success("Product created successfully!");
       // Reset form fields
       setImages([]);
+      setVideos([]);
       setName("");
       setDescription("");
       setCategory("");
@@ -55,7 +53,41 @@ const CreateProduct = () => {
     setImages((prevImages) => [...prevImages, ...files]);
   };
 
-  console.log(images);
+  const handleVideoChange = (e) => {
+    e.preventDefault();
+
+    let files = Array.from(e.target.files);
+    // Validate video files
+    const validVideoTypes = [
+      "video/mp4",
+      "video/avi",
+      "video/mov",
+      "video/wmv",
+      "video/flv",
+      "video/webm",
+    ];
+    const maxVideoSize = 100 * 1024 * 1024; // 100MB
+
+    const validFiles = files.filter((file) => {
+      if (!validVideoTypes.includes(file.type)) {
+        toast.error(
+          `${file.name} is not a valid video format. Please upload MP4, AVI, MOV, WMV, FLV, or WebM files.`
+        );
+        return false;
+      }
+      if (file.size > maxVideoSize) {
+        toast.error(`${file.name} is too large. Maximum file size is 100MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setVideos((prevVideos) => [...prevVideos, ...validFiles]);
+    }
+  };
+
+  console.log(images, videos);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -64,6 +96,9 @@ const CreateProduct = () => {
 
     images.forEach((image) => {
       newForm.append("images", image);
+    });
+    videos.forEach((video) => {
+      newForm.append("videos", video);
     });
     newForm.append("name", name);
     newForm.append("description", description);
@@ -319,6 +354,77 @@ const CreateProduct = () => {
                           type="button"
                           onClick={() =>
                             setImages(images.filter((_, i) => i !== index))
+                          }
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
+                        >
+                          <AiOutlineClose size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Video Upload Section */}
+            <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-gray-200/50 backdrop-blur-sm">
+              <div className="flex items-center space-x-3 mb-4 md:mb-6">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <FiVideo className="text-white" size={16} />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-gray-900">
+                  Product Videos
+                </h3>
+              </div>
+
+              <div className="space-y-4">
+                <label className="flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-gray-300 border-dashed rounded-2xl cursor-pointer bg-gradient-to-br from-gray-50 to-purple-50/50 hover:from-purple-50 hover:to-pink-50 transition-all duration-300 group shadow-sm hover:shadow-lg">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+                      <FiVideo className="text-white" size={20} />
+                    </div>
+                    <p className="text-sm md:text-base text-gray-700 font-bold mb-1">
+                      Upload Videos
+                    </p>
+                    <p className="text-xs md:text-sm text-gray-500">
+                      MP4, AVI, MOV up to 100MB
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    name="upload"
+                    className="hidden"
+                    multiple
+                    accept="video/*"
+                    onChange={handleVideoChange}
+                  />
+                </label>
+
+                {/* Video Preview */}
+                {videos && videos.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                    {videos.map((video, index) => (
+                      <div key={index} className="relative group">
+                        <video
+                          className="w-full h-32 md:h-36 object-cover rounded-xl border border-gray-300 shadow-sm group-hover:shadow-lg transition-all duration-200"
+                          controls
+                          preload="metadata"
+                        >
+                          <source
+                            src={URL.createObjectURL(video)}
+                            type={video.type}
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                          {video.name.length > 15
+                            ? `${video.name.substring(0, 15)}...`
+                            : video.name}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVideos(videos.filter((_, i) => i !== index))
                           }
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
                         >

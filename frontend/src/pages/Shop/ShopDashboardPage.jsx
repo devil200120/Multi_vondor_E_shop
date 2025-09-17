@@ -13,10 +13,15 @@ const ShopDashboardPage = () => {
           <DashboardSideBar active={1} />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-56">
+        {/* Main Content - Add mobile content padding */}
+        <div className="flex-1 lg:ml-56 mobile-content-padding">
           <DashboardHero />
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <DashboardSideBar active={1} />
       </div>
     </div>
   );

@@ -32,6 +32,11 @@ const productSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  videos: [
+    {
+      type: String,
+    },
+  ],
 
   reviews: [
     {

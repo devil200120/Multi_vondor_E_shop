@@ -55,19 +55,26 @@ const ShopInfo = ({ isOwner }) => {
     }
   };
 
+  // Calculate total reviews and ratings more safely
   const totalReviewsLength =
-    products &&
-    products.reduce((acc, product) => acc + product.reviews.length, 0);
+    products?.reduce((acc, product) => {
+      return acc + (product?.reviews?.length || 0);
+    }, 0) || 0;
 
   const totalRatings =
-    products &&
-    products.reduce(
-      (acc, product) =>
-        acc + product.reviews.reduce((sum, review) => sum + review.rating, 0),
-      0
-    );
+    products?.reduce((acc, product) => {
+      const productRatingSum =
+        product?.reviews?.reduce((sum, review) => {
+          return sum + (review?.rating || 0);
+        }, 0) || 0;
+      return acc + productRatingSum;
+    }, 0) || 0;
 
-  const averageRating = totalRatings / totalReviewsLength || 0;
+  // Fix: Properly handle case when there are no reviews and round to 1 decimal
+  const averageRating =
+    totalReviewsLength > 0
+      ? Math.round((totalRatings / totalReviewsLength) * 10) / 10
+      : 0;
 
   return (
     <>
@@ -148,10 +155,26 @@ const ShopInfo = ({ isOwner }) => {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">Rating</p>
                     <div className="flex items-center gap-1">
-                      <p className="text-xl font-bold text-gray-800">
-                        {averageRating.toFixed(1)}
-                      </p>
-                      <span className="text-amber-500 text-sm">★</span>
+                      {totalReviewsLength > 0 ? (
+                        <>
+                          <p className="text-xl font-bold text-gray-800">
+                            {averageRating.toFixed(1)}
+                          </p>
+                          <span className="text-amber-500 text-sm">★</span>
+                          <span className="text-gray-400 text-xs ml-1">
+                            ({totalReviewsLength} reviews)
+                          </span>
+                        </>
+                      ) : (
+                        <div className="flex flex-col">
+                          <p className="text-lg font-bold text-gray-500">
+                            No Reviews
+                          </p>
+                          <span className="text-gray-400 text-xs">
+                            Be the first to review!
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

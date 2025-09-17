@@ -59,6 +59,7 @@ const notification = require("./controller/notification");
 const pincode = require("./routes/pincode");
 const shipping = require("./controller/shipping");
 const aiChat = require("./routes/ai-chat");
+const banner = require("./controller/banner");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -76,6 +77,7 @@ app.use("/api/v2/notification", notification);
 app.use("/api/v2/pincode", pincode);
 app.use("/api/v2/shipping", shipping);
 app.use("/api/v2/ai-chat", aiChat);
+app.use("/api/v2/banner", banner);
 
 // error handler middleware
 app.use(ErrorHandler);

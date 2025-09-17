@@ -13,10 +13,15 @@ const ShopAllEvents = () => {
           <DashboardSideBar active={5} />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-56">
+        {/* Main Content - Add mobile content padding */}
+        <div className="flex-1 lg:ml-56 mobile-content-padding">
           <AllEvents />
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <DashboardSideBar active={5} />
       </div>
     </div>
   );

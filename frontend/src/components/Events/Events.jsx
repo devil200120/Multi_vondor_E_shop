@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,6 +12,8 @@ import {
   HiTrendingUp,
   HiLightningBolt,
   HiFire,
+  HiChevronLeft,
+  HiChevronRight,
 } from "react-icons/hi";
 
 const Events = () => {
@@ -19,6 +21,80 @@ const Events = () => {
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  // Slider state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const sliderRef = useRef(null);
+  const autoPlayRef = useRef(null);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (allEvents && allEvents.length > 1 && isAutoPlaying) {
+      autoPlayRef.current = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % allEvents.length);
+      }, 4000); // Auto-slide every 4 seconds like Flipkart
+    }
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [allEvents, isAutoPlaying]);
+
+  // Touch/swipe functionality for mobile
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && allEvents) {
+      setCurrentSlide((prev) => (prev + 1) % allEvents.length);
+    }
+    if (isRightSwipe && allEvents) {
+      setCurrentSlide(
+        (prev) => (prev - 1 + allEvents.length) % allEvents.length
+      );
+    }
+  };
+
+  // Navigation functions
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000); // Resume auto-play after 10 seconds
+  };
+
+  const nextSlide = () => {
+    if (allEvents) {
+      setCurrentSlide((prev) => (prev + 1) % allEvents.length);
+    }
+  };
+
+  const prevSlide = () => {
+    if (allEvents) {
+      setCurrentSlide(
+        (prev) => (prev - 1 + allEvents.length) % allEvents.length
+      );
+    }
+  };
 
   const handleNewsletterSubscribe = async (e) => {
     e.preventDefault();
@@ -86,10 +162,10 @@ const Events = () => {
   }
 
   return (
-    <section className="bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 py-6">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 py-4 sm:py-6">
+      <div className="max-w-4xl sm:max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Modern Header Section */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-4 sm:mb-6">
           {/* Badge */}
           <div className="inline-flex items-center mb-3">
             <div className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full shadow-md">
@@ -135,38 +211,148 @@ const Events = () => {
           </div>
         </div>
 
-        {/* Events Content */}
+        {/* Events Content - Enhanced Mobile Slider */}
         {allEvents && allEvents.length > 0 ? (
           <div className="space-y-4">
-            {/* Featured Event */}
-            <div className="relative">
-              <div className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                FEATURED EVENT
+            {/* Mobile Auto-Slider (visible on mobile only) */}
+            <div className="block sm:hidden">
+              <div className="relative overflow-hidden rounded-2xl shadow-lg events-slider">
+                {/* Slider Container */}
+                <div
+                  ref={sliderRef}
+                  className="flex events-slide-transition events-slider-container"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
+                >
+                  {allEvents.map((event, index) => (
+                    <div
+                      key={index}
+                      className="w-full flex-shrink-0 relative events-touch-feedback"
+                    >
+                      <div className="relative">
+                        {index === 0 && (
+                          <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                            ⭐ FEATURED
+                          </div>
+                        )}
+                        {index === 1 && (
+                          <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            🔥 HOT
+                          </div>
+                        )}
+                        <EventCard data={event} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2.5 rounded-full shadow-lg events-nav-arrow z-10"
+                  aria-label="Previous event"
+                >
+                  <HiChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2.5 rounded-full shadow-lg events-nav-arrow z-10"
+                  aria-label="Next event"
+                >
+                  <HiChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* Enhanced Dots Indicator */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                  {allEvents.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToSlide(index)}
+                      className={`events-dot rounded-full transition-all duration-300 ${
+                        index === currentSlide
+                          ? "w-6 h-2 bg-white shadow-lg active"
+                          : "w-2 h-2 bg-white/60 hover:bg-white/80"
+                      }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Auto-play indicator with progress */}
+                <div className="absolute top-3 left-3 z-10">
+                  <div className="flex items-center space-x-2 bg-black/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full">
+                    <div
+                      className={`w-2 h-2 rounded-full events-autoplay-indicator ${
+                        isAutoPlaying ? "bg-green-400" : "bg-gray-400"
+                      }`}
+                    ></div>
+                    <span className="text-xs font-medium">
+                      {isAutoPlaying ? "AUTO" : "MANUAL"}
+                    </span>
+                    <span className="text-xs opacity-75">
+                      {currentSlide + 1}/{allEvents.length}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress bar for auto-play */}
+                {isAutoPlaying && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20 z-10">
+                    <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 events-progress-bar"></div>
+                  </div>
+                )}
               </div>
-              <EventCard data={allEvents[0]} />
+
+              {/* Mobile Slider Info */}
+              <div className="text-center mt-3">
+                <div className="inline-flex items-center space-x-4 text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-full">
+                  <span className="flex items-center space-x-1">
+                    <span>👈👉</span>
+                    <span>Swipe to browse</span>
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center space-x-1">
+                    <span>⏱️</span>
+                    <span>Auto-slides every 4s</span>
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Multiple Events Grid */}
-            {allEvents.length > 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allEvents.slice(1, 4).map((event, index) => (
-                  <div
-                    key={index}
-                    className="transform hover:scale-105 transition-all duration-300"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="relative">
-                      {index === 0 && (
-                        <div className="absolute -top-1 -right-1 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                          HOT
-                        </div>
-                      )}
-                      <EventCard data={event} compact={true} />
-                    </div>
-                  </div>
-                ))}
+            {/* Desktop Grid Layout (hidden on mobile) */}
+            <div className="hidden sm:block space-y-4">
+              {/* Featured Event */}
+              <div className="relative">
+                <div className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                  FEATURED EVENT
+                </div>
+                <EventCard data={allEvents[0]} />
               </div>
-            )}
+
+              {/* Multiple Events Grid */}
+              {allEvents.length > 1 && (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allEvents.slice(1, 4).map((event, index) => (
+                    <div
+                      key={index}
+                      className="transform hover:scale-105 transition-all duration-300"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="relative">
+                        {index === 0 && (
+                          <div className="absolute -top-1 -right-1 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                            HOT
+                          </div>
+                        )}
+                        <EventCard data={event} compact={true} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* View All Events Button */}
             <div className="text-center">

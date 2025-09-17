@@ -17,7 +17,9 @@ import { HiOutlineShoppingBag } from "react-icons/hi";
 import { MdPending, MdCheckCircle, MdCancel } from "react-icons/md";
 import { AiOutlineDollarCircle } from "react-icons/ai";
 import { Button } from "@material-ui/core";
-import { downloadInvoice } from "../utils/invoiceGenerator";
+import { downloadBulkOrderCSV } from "../utils/csvExporter";
+import InvoiceDownloadButton from "../components/InvoiceDownloadButton";
+import { toast } from "react-toastify";
 
 const AdminDashboardOrders = () => {
   const dispatch = useDispatch();
@@ -30,6 +32,29 @@ const AdminDashboardOrders = () => {
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
   }, [dispatch]);
+
+  // Bulk export handler
+  const handleBulkExport = () => {
+    try {
+      if (filteredRows.length === 0) {
+        toast.error("No orders to export");
+        return;
+      }
+
+      // Convert filtered rows back to order objects for export
+      const ordersToExport = filteredRows
+        .map((row) => adminOrders.find((order) => order._id === row.id))
+        .filter(Boolean);
+
+      downloadBulkOrderCSV(ordersToExport, "admin-orders-export");
+      toast.success(
+        `Successfully exported ${ordersToExport.length} orders to CSV!`
+      );
+    } catch (error) {
+      console.error("Error exporting orders:", error);
+      toast.error("Error exporting orders");
+    }
+  };
 
   const columns = [
     {
@@ -155,21 +180,13 @@ const AdminDashboardOrders = () => {
               <FiEye size={16} />
             </Button>
             {order && (
-              <Button
-                className="!min-w-0 !p-2 !text-green-600 hover:!bg-green-50 !rounded-lg transition-all duration-200"
-                title="Download Invoice"
-                onClick={() => {
-                  try {
-                    downloadInvoice(order);
-                    // You can add a toast notification here if needed
-                  } catch (error) {
-                    console.error("Error generating invoice:", error);
-                    // You can add error toast notification here
-                  }
-                }}
+              <InvoiceDownloadButton
+                order={order}
+                showDropdown={true}
+                className="!min-w-0 !p-2 !text-green-600 hover:!bg-green-50 !rounded-lg transition-all duration-200 !text-xs"
               >
                 <FiDownload size={16} />
-              </Button>
+              </InvoiceDownloadButton>
             )}
           </div>
         );
@@ -331,18 +348,33 @@ const AdminDashboardOrders = () => {
               </div>
             </div>
 
-            {/* Search Bar */}
+            {/* Search Bar and Actions */}
             <div className={`${styles.card} p-4 mb-6`}>
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="text"
-                  placeholder="Search orders by ID, status, or amount..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={styles.input}
-                  style={{ paddingLeft: "2.5rem" }}
-                />
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div className="relative flex-1 min-w-0">
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    placeholder="Search orders by ID, status, or amount..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={styles.input}
+                    style={{ paddingLeft: "2.5rem" }}
+                  />
+                </div>
+
+                {/* Bulk Export Button */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleBulkExport}
+                    disabled={filteredRows.length === 0}
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+                    title="Export filtered orders to CSV"
+                  >
+                    <FiDownload className="mr-2 h-4 w-4" />
+                    Export CSV ({filteredRows.length})
+                  </button>
+                </div>
               </div>
             </div>
 

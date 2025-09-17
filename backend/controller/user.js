@@ -248,27 +248,57 @@ router.put(
   upload.single("image"),
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return next(new ErrorHandler("No file uploaded", 400));
+      }
+
       const existsUser = await User.findById(req.user.id);
+      
+      // Delete previous avatar if it exists
+      if (existsUser.avatar) {
+        const existAvatarPath = path.join(__dirname, "../uploads", existsUser.avatar);
+        
+        // Check if file exists before trying to delete it
+        if (fs.existsSync(existAvatarPath)) {
+          try {
+            fs.unlinkSync(existAvatarPath);
+          } catch (deleteError) {
+            console.log("Error deleting previous avatar:", deleteError.message);
+            // Continue with the update even if old file deletion fails
+          }
+        }
+      }
 
-      const existAvatarPath = `uploads/${existsUser.avatar}`;
-
-      fs.unlinkSync(existAvatarPath); // Delete Priviuse Image
-
-      const fileUrl = path.join(req.file.filename); // new image
+      const fileUrl = req.file.filename; // new image filename
 
       /* The code `const user = await User.findByIdAndUpdate(req.user.id, { avatar: fileUrl });` is
         updating the avatar field of the user with the specified `req.user.id`. It uses the
         `User.findByIdAndUpdate()` method to find the user by their id and update the avatar field
         with the new `fileUrl` value. The updated user object is then stored in the `user` variable. */
-      const user = await User.findByIdAndUpdate(req.user.id, {
-        avatar: fileUrl,
-      });
+      const user = await User.findByIdAndUpdate(
+        req.user.id, 
+        { avatar: fileUrl },
+        { new: true } // Return the updated user
+      );
 
       res.status(200).json({
         success: true,
         user,
+        message: "Avatar updated successfully",
       });
     } catch (error) {
+      // If there's an error and we have a new file, clean it up
+      if (req.file) {
+        const newFilePath = path.join(__dirname, "../uploads", req.file.filename);
+        if (fs.existsSync(newFilePath)) {
+          try {
+            fs.unlinkSync(newFilePath);
+          } catch (cleanupError) {
+            console.log("Error cleaning up new file:", cleanupError.message);
+          }
+        }
+      }
       return next(new ErrorHandler(error.message, 500));
     }
   })

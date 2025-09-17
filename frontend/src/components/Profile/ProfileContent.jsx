@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { backend_url, server } from "../../server";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -12,11 +12,14 @@ import {
   AiOutlineCamera,
   AiOutlineDelete,
 } from "react-icons/ai";
-import { HiOutlineShoppingBag } from "react-icons/hi";
+import {
+  HiOutlineShoppingBag,
+  HiOutlineCheckCircle,
+  HiOutlineClock,
+} from "react-icons/hi";
 import { TbAddressBook } from "react-icons/tb";
 import { MdLocationOn, MdMyLocation } from "react-icons/md";
 import { Link } from "react-router-dom";
-import styles from "../../styles/styles";
 import { DataGrid } from "@material-ui/data-grid";
 import { Button } from "@material-ui/core";
 import { RxCross1 } from "react-icons/rx";
@@ -27,7 +30,7 @@ import { Country, State } from "country-state-city";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
 
 // Google Maps Configuration
-const GOOGLE_MAPS_API_KEY = "AIzaSyBVeker3NKNQyfAy-XkVDrqodDoU7GYQyk";
+const GOOGLE_MAPS_API_KEY = "AIzaSyBWd7BilPU2XqPBawnjoxBFCyRQHgB0kQA";
 
 // Load Google Maps Script
 const loadGoogleMapsScript = (callback) => {
@@ -233,12 +236,23 @@ const ProfileContent = ({ active }) => {
 
       {/* Orders */}
       {active === 2 && (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-green-500 to-teal-600 px-6 py-8">
-            <h2 className="text-2xl font-bold text-white">My Orders</h2>
-            <p className="text-green-100 mt-1">Track and manage your orders</p>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="bg-gradient-to-r from-green-500 to-teal-600 px-6 sm:px-8 py-8">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-white/20 rounded-lg">
+                <HiOutlineShoppingBag className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white">
+                  My Orders
+                </h2>
+                <p className="text-green-100 mt-1 text-sm sm:text-base">
+                  Track and manage your orders
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="p-6">
+          <div className="p-6 sm:p-8">
             <AllOrders />
           </div>
         </div>
@@ -314,9 +328,11 @@ const AllOrders = () => {
       field: "id",
       headerName: "Order ID",
       minWidth: 150,
-      flex: 0.7,
+      flex: 0.8,
       renderCell: (params) => (
-        <span className="font-mono text-sm">#{params.value.slice(-8)}</span>
+        <span className="font-mono text-sm font-semibold text-gray-700">
+          #{params.value.slice(-8).toUpperCase()}
+        </span>
       ),
     },
     {
@@ -326,14 +342,16 @@ const AllOrders = () => {
       flex: 0.7,
       renderCell: (params) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
             params.value === "Delivered"
-              ? "bg-green-100 text-green-800"
+              ? "bg-green-100 text-green-800 border border-green-200"
               : params.value === "Processing"
-              ? "bg-yellow-100 text-yellow-800"
+              ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
               : params.value === "Shipping"
-              ? "bg-blue-100 text-blue-800"
-              : "bg-red-100 text-red-800"
+              ? "bg-blue-100 text-blue-800 border border-blue-200"
+              : params.value === "Processing refund"
+              ? "bg-orange-100 text-orange-800 border border-orange-200"
+              : "bg-gray-100 text-gray-800 border border-gray-200"
           }`}
         >
           {params.value}
@@ -346,6 +364,11 @@ const AllOrders = () => {
       type: "number",
       minWidth: 100,
       flex: 0.5,
+      renderCell: (params) => (
+        <span className="font-medium text-gray-900">
+          {params.value} item{params.value !== 1 ? "s" : ""}
+        </span>
+      ),
     },
     {
       field: "total",
@@ -354,7 +377,7 @@ const AllOrders = () => {
       minWidth: 130,
       flex: 0.8,
       renderCell: (params) => (
-        <span className="font-semibold text-gray-900">{params.value}</span>
+        <span className="font-bold text-lg text-gray-900">{params.value}</span>
       ),
     },
     {
@@ -365,9 +388,12 @@ const AllOrders = () => {
       sortable: false,
       renderCell: (params) => (
         <Link to={`/user/order/${params.id}`}>
-          <button className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-            <AiOutlineArrowRight size={16} />
+          <button className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm font-medium group">
             <span>View</span>
+            <AiOutlineArrowRight
+              size={14}
+              className="group-hover:translate-x-1 transition-transform duration-200"
+            />
           </button>
         </Link>
       ),
@@ -378,44 +404,144 @@ const AllOrders = () => {
     ? orders.map((item) => ({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
+        total: "₹" + item.totalPrice,
         status: item.status,
       }))
     : [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {orders && orders.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            pageSize={10}
-            disableSelectionOnClick
-            autoHeight
-            className="border-0"
-            sx={{
-              "& .MuiDataGrid-cell": {
-                borderBottom: "1px solid #f3f4f6",
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#f9fafb",
-                borderBottom: "1px solid #e5e7eb",
-              },
-            }}
-          />
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <HiOutlineShoppingBag size={32} className="text-gray-400" />
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg mr-4">
+                  <HiOutlineShoppingBag className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-600">
+                    Total Orders
+                  </p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {orders.length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg mr-4">
+                  <HiOutlineCheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-green-600">
+                    Delivered
+                  </p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {
+                      orders.filter((order) => order.status === "Delivered")
+                        .length
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-xl p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-orange-100 rounded-lg mr-4">
+                  <HiOutlineClock className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-orange-600">
+                    Processing
+                  </p>
+                  <p className="text-2xl font-bold text-orange-900">
+                    {
+                      orders.filter((order) => order.status === "Processing")
+                        .length
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+
+          {/* Orders Table */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Order History
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                View and manage all your orders
+              </p>
+            </div>
+            <div className="overflow-hidden">
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                pageSize={10}
+                disableSelectionOnClick
+                autoHeight
+                className="border-0"
+                sx={{
+                  "& .MuiDataGrid-cell": {
+                    borderBottom: "1px solid #f3f4f6",
+                    padding: "16px",
+                    fontSize: "14px",
+                  },
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#f9fafb",
+                    borderBottom: "2px solid #e5e7eb",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#374151",
+                  },
+                  "& .MuiDataGrid-row": {
+                    "&:hover": {
+                      backgroundColor: "#f8fafc",
+                    },
+                  },
+                  "& .MuiDataGrid-cell:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-columnHeader:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-root": {
+                    border: "none",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    borderTop: "2px solid #e5e7eb",
+                    backgroundColor: "#f9fafb",
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-16">
+          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <HiOutlineShoppingBag size={48} className="text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
             No orders yet
           </h3>
-          <p className="text-gray-500">
-            When you place orders, they'll appear here.
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            When you place orders, they'll appear here. Start shopping to see
+            your order history.
           </p>
+          <Link
+            to="/"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm font-medium"
+          >
+            Start Shopping
+          </Link>
         </div>
       )}
     </div>
@@ -494,7 +620,7 @@ const AllRefundOrders = () => {
       row.push({
         id: item._id,
         itemsQty: item.cart.length,
-        total: "US$ " + item.totalPrice,
+        total: "₹" + item.totalPrice,
         status: item.status,
       });
     });
@@ -604,7 +730,7 @@ const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPasswords, setShowPasswords] = useState({
+  const [showPasswords] = useState({
     old: false,
     new: false,
     confirm: false,
@@ -735,55 +861,7 @@ const Address = () => {
     { name: "Office" },
   ];
 
-  // Initialize Google Maps
-  const initializeAutocompleteCallback = React.useCallback(() => {
-    if (window.google && addressInputRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        {
-          types: ["address"],
-          componentRestrictions: { country: [] }, // Allow all countries
-        }
-      );
-
-      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (open) {
-      loadGoogleMapsScript(() => {
-        initializeAutocompleteCallback();
-      });
-    }
-  }, [open, initializeAutocompleteCallback]);
-
-  const handlePlaceSelect = () => {
-    const place = autocompleteRef.current.getPlace();
-
-    if (place.geometry) {
-      const location = place.geometry.location;
-      const lat = location.lat();
-      const lng = location.lng();
-
-      setLatitude(lat.toString());
-      setLongitude(lng.toString());
-      setMapCenter({ lat, lng });
-
-      // Parse address components
-      parseAddressComponents(place);
-
-      // Update map if visible
-      if (showMap && mapInstanceRef.current) {
-        mapInstanceRef.current.setCenter({ lat, lng });
-        updateMarker(lat, lng);
-      }
-
-      toast.success("Location selected successfully!");
-    }
-  };
-
-  const parseAddressComponents = (place) => {
+  const parseAddressComponents = useCallback((place) => {
     let streetNumber = "";
     let route = "";
     let locality = "";
@@ -824,17 +902,121 @@ const Address = () => {
       (c) => c.isoCode === country
     );
     if (countryData) {
-      setCountry(country);
-      const stateData = State.getStatesOfCountry(country).find(
-        (s) =>
-          s.name.toLowerCase().includes(administrativeArea.toLowerCase()) ||
-          administrativeArea.toLowerCase().includes(s.name.toLowerCase())
+      setCountry(countryData.isoCode);
+
+      const stateData = State.getStatesOfCountry(countryData.isoCode).find(
+        (s) => s.name === administrativeArea
       );
       if (stateData) {
         setCity(stateData.isoCode);
+      } else {
+        // If no exact state match, use the locality or administrative area
+        setCity(locality || administrativeArea);
       }
+    } else {
+      // Set city directly if country not found
+      setCity(locality || administrativeArea);
     }
-  };
+  }, []);
+
+  const reverseGeocode = useCallback(
+    (lat, lng) => {
+      if (window.google) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const place = results[0];
+            setAddress1(place.formatted_address);
+            parseAddressComponents(place);
+
+            // Update autocomplete input
+            if (addressInputRef.current) {
+              addressInputRef.current.value = place.formatted_address;
+            }
+          }
+        });
+      }
+    },
+    [parseAddressComponents]
+  );
+
+  const updateMarker = useCallback(
+    (lat, lng) => {
+      if (mapInstanceRef.current) {
+        // Remove existing marker
+        if (markerRef.current) {
+          markerRef.current.setMap(null);
+        }
+
+        // Add new marker
+        markerRef.current = new window.google.maps.Marker({
+          position: { lat, lng },
+          map: mapInstanceRef.current,
+          draggable: true,
+          title: "Delivery Location",
+        });
+
+        // Add drag listener to marker
+        markerRef.current.addListener("dragend", (event) => {
+          const newLat = event.latLng.lat();
+          const newLng = event.latLng.lng();
+
+          setLatitude(newLat.toString());
+          setLongitude(newLng.toString());
+          reverseGeocode(newLat, newLng);
+        });
+      }
+    },
+    [reverseGeocode]
+  );
+
+  const handlePlaceSelect = useCallback(() => {
+    const place = autocompleteRef.current.getPlace();
+
+    if (place.geometry) {
+      const location = place.geometry.location;
+      const lat = location.lat();
+      const lng = location.lng();
+
+      setLatitude(lat.toString());
+      setLongitude(lng.toString());
+      setMapCenter({ lat, lng });
+
+      // Parse address components
+      parseAddressComponents(place);
+
+      // Update map if visible
+      if (showMap && mapInstanceRef.current) {
+        mapInstanceRef.current.setCenter({ lat, lng });
+        updateMarker(lat, lng);
+      }
+
+      toast.success("Location selected successfully!");
+    }
+  }, [parseAddressComponents, showMap, updateMarker]);
+
+  // Initialize Google Maps
+  const initializeAutocompleteCallback = React.useCallback(() => {
+    if (window.google && addressInputRef.current) {
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        addressInputRef.current,
+        {
+          types: ["address"],
+          componentRestrictions: { country: [] }, // Allow all countries
+        }
+      );
+
+      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
+    }
+  }, [handlePlaceSelect]);
+
+  useEffect(() => {
+    if (open) {
+      loadGoogleMapsScript(() => {
+        initializeAutocompleteCallback();
+      });
+    }
+  }, [open, initializeAutocompleteCallback]);
 
   const getCurrentLocation = () => {
     setIsLoadingLocation(true);
@@ -867,25 +1049,7 @@ const Address = () => {
     }
   };
 
-  const reverseGeocode = (lat, lng) => {
-    if (window.google) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-        if (status === "OK" && results[0]) {
-          const place = results[0];
-          setAddress1(place.formatted_address);
-          parseAddressComponents(place);
-
-          // Update autocomplete input
-          if (addressInputRef.current) {
-            addressInputRef.current.value = place.formatted_address;
-          }
-        }
-      });
-    }
-  };
-
-  const initializeMap = () => {
+  const initializeMap = useCallback(() => {
     if (window.google && mapRef.current) {
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         center: mapCenter,
@@ -911,34 +1075,7 @@ const Address = () => {
         updateMarker(parseFloat(latitude), parseFloat(longitude));
       }
     }
-  };
-
-  const updateMarker = (lat, lng) => {
-    if (mapInstanceRef.current) {
-      // Remove existing marker
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-      }
-
-      // Add new marker
-      markerRef.current = new window.google.maps.Marker({
-        position: { lat, lng },
-        map: mapInstanceRef.current,
-        draggable: true,
-        title: "Delivery Location",
-      });
-
-      // Add drag listener to marker
-      markerRef.current.addListener("dragend", (event) => {
-        const newLat = event.latLng.lat();
-        const newLng = event.latLng.lng();
-
-        setLatitude(newLat.toString());
-        setLongitude(newLng.toString());
-        reverseGeocode(newLat, newLng);
-      });
-    }
-  };
+  }, [mapCenter, latitude, longitude, updateMarker, reverseGeocode]);
 
   useEffect(() => {
     if (showMap && window.google) {
@@ -946,7 +1083,7 @@ const Address = () => {
         initializeMap();
       }, 100);
     }
-  }, [showMap, mapCenter]);
+  }, [showMap, mapCenter, initializeMap]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

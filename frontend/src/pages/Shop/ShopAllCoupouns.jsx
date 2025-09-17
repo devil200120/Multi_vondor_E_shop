@@ -10,13 +10,18 @@ const ShopAllCoupouns = () => {
       <div className="flex">
         {/* Sidebar - Fixed positioning for better responsiveness */}
         <div className="hidden lg:block w-56 fixed left-0 top-16 h-[calc(100vh-4rem)] z-10">
-          <DashboardSideBar active={9} />
+          <DashboardSideBar active={7} />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-56">
+        {/* Main Content - Add mobile content padding */}
+        <div className="flex-1 lg:ml-56 mobile-content-padding">
           <AllCoupons />
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <DashboardSideBar active={7} />
       </div>
     </div>
   );

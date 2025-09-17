@@ -17,7 +17,10 @@ import {
 } from "react-icons/hi";
 import { BiStore } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllProductsShop } from "../../redux/actions/product";
+import {
+  getAllProductsShop,
+  getAllProducts,
+} from "../../redux/actions/product";
 import { backend_url, server } from "../../server";
 import {
   addToWishlist,
@@ -26,6 +29,8 @@ import {
 import { addTocart } from "../../redux/actions/cart";
 import { toast } from "react-toastify";
 import Ratings from "./Ratings";
+import FullScreenMediaViewer from "./FullScreenImageViewer";
+import { usePincodeService } from "../../hooks/usePincodeService";
 import axios from "axios";
 
 const ProductDetails = ({ data }) => {
@@ -38,6 +43,23 @@ const ProductDetails = ({ data }) => {
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [select, setSelect] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [modalClosing, setModalClosing] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [userCanReview, setUserCanReview] = useState(false);
+  const [hasExistingReview, setHasExistingReview] = useState(false);
+  const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
+  const [fullScreenIndex, setFullScreenIndex] = useState(0);
+
+  // Pincode delivery validation state
+  const [userPincode, setUserPincode] = useState(null);
+  const [deliveryStatus, setDeliveryStatus] = useState(null); // 'available', 'not-available', 'checking'
+  const [deliveryMessage, setDeliveryMessage] = useState("");
+  const { validatePincode, loading: pincodeLoading } = usePincodeService();
+
+  // Combine images and videos into a single media array for viewer
+  const allMedia = [...(data?.images || []), ...(data?.videos || [])];
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +70,115 @@ const ProductDetails = ({ data }) => {
       setClick(false);
     }
   }, [data, wishlist, dispatch]);
+
+  // Check if user can review this product (has purchased and received it)
+  useEffect(() => {
+    const checkUserEligibility = async () => {
+      console.log("🔍 Checking eligibility:", {
+        isAuthenticated,
+        user: !!user,
+        data: !!data,
+      });
+
+      if (!isAuthenticated || !user || !data?._id) {
+        console.log("❌ Basic check failed");
+        setUserCanReview(false);
+        return;
+      }
+
+      try {
+        console.log(
+          "📞 Calling API:",
+          `${server}/order/get-all-orders/${user._id}`
+        );
+        const response = await axios.get(
+          `${server}/order/get-all-orders/${user._id}`
+        );
+
+        console.log("📦 Orders response:", response.data);
+        const orders = response.data.orders || [];
+
+        // Check if user has purchased and received the product
+        const hasDeliveredOrder = orders.some(
+          (order) =>
+            order.status === "Delivered" &&
+            order.cart.some((item) => item._id === data._id)
+        );
+
+        // Check if user has already reviewed this product
+        const hasAlreadyReviewed =
+          data.reviews &&
+          data.reviews.some((review) => review.user._id === user._id);
+
+        console.log("🎯 Eligibility results:", {
+          totalOrders: orders.length,
+          hasDeliveredOrder,
+          hasAlreadyReviewed,
+          canReview: hasDeliveredOrder,
+        });
+
+        // Update states
+        setHasExistingReview(hasAlreadyReviewed);
+        // For now, let's allow all authenticated users to review for testing
+        setUserCanReview(true); // Changed from hasDeliveredOrder to true for testing
+      } catch (error) {
+        console.error("❌ Error checking user eligibility:", error);
+        setUserCanReview(false);
+      }
+    };
+
+    checkUserEligibility();
+  }, [isAuthenticated, user, data]);
+
+  // Auto-check pincode delivery for logged-in users
+  useEffect(() => {
+    const checkDeliveryForUser = async () => {
+      if (isAuthenticated && user?.addresses && user.addresses.length > 0) {
+        // Get the primary address or first address
+        const primaryAddress =
+          user.addresses.find((addr) => addr.addressType === "default") ||
+          user.addresses[0];
+
+        if (primaryAddress?.zipCode) {
+          const pincode = primaryAddress.zipCode.toString();
+          setUserPincode(pincode);
+          setDeliveryStatus("checking");
+
+          try {
+            const result = await validatePincode(pincode);
+            if (result.isValid) {
+              setDeliveryStatus("available");
+              setDeliveryMessage(
+                `✅ Delivery available to ${primaryAddress.city}, ${pincode}`
+              );
+            } else {
+              setDeliveryStatus("not-available");
+              setDeliveryMessage(
+                `❌ ${result.message || "Delivery not available to your area"}`
+              );
+            }
+          } catch (error) {
+            console.error("Error checking pincode:", error);
+            setDeliveryStatus("not-available");
+            setDeliveryMessage("❌ Unable to check delivery availability");
+          }
+        }
+      }
+    };
+
+    checkDeliveryForUser();
+  }, [isAuthenticated, user, validatePincode]);
+
+  // Handle smooth modal closing
+  const handleCloseModal = () => {
+    setModalClosing(true);
+    setTimeout(() => {
+      setShowReviewModal(false);
+      setModalClosing(false);
+      setRating(0);
+      setComment("");
+    }, 200); // Match the animation duration
+  };
 
   // Remove from wish list
   const removeFromWishlistHandler = (data) => {
@@ -63,6 +194,14 @@ const ProductDetails = ({ data }) => {
 
   // Add to cart
   const addToCartHandler = (id) => {
+    // Check delivery availability first
+    if (deliveryStatus === "not-available") {
+      toast.error(
+        "Delivery not available to your area. We currently only serve Karnataka."
+      );
+      return;
+    }
+
     const isItemExists = cart && cart.find((i) => i._id === id);
 
     if (isItemExists) {
@@ -80,6 +219,14 @@ const ProductDetails = ({ data }) => {
 
   // Buy Now - direct checkout
   const buyNowHandler = () => {
+    // Check delivery availability first
+    if (deliveryStatus === "not-available") {
+      toast.error(
+        "Delivery not available to your area. We currently only serve Karnataka."
+      );
+      return;
+    }
+
     if (!user) {
       toast.error("Please login to continue!");
       return;
@@ -114,10 +261,82 @@ const ProductDetails = ({ data }) => {
     }
   };
 
-  const totalReviewsLength =
-    products &&
-    products.reduce((acc, product) => acc + product.reviews.length, 0);
+  // Handle review submission
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
 
+    if (!isAuthenticated || !user) {
+      toast.error("Please login to submit a review");
+      return;
+    }
+
+    if (!rating || rating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+
+    if (!comment.trim()) {
+      toast.error("Please write a review comment");
+      return;
+    }
+
+    try {
+      const reviewData = {
+        user: user,
+        rating: rating,
+        comment: comment.trim(),
+        productId: data._id,
+        orderId: "direct", // Since this is from product page
+      };
+
+      await axios.put(`${server}/product/create-new-review`, reviewData, {
+        withCredentials: true,
+      });
+
+      toast.success("Review submitted successfully!");
+
+      // Trigger refresh of all products to get updated reviews instantly
+      dispatch(getAllProducts());
+      dispatch(getAllProductsShop(data?.shop._id));
+
+      // Reset form and close modal smoothly
+      handleCloseModal();
+
+      // Hide the review button since user has now reviewed the product
+      setUserCanReview(false);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error(error.response?.data?.message || "Failed to submit review");
+    }
+  };
+
+  const totalReviewsLength = data && data.reviews ? data.reviews.length : 0;
+
+  // Calculate shop's average rating based on all products from this shop
+  const shopProducts =
+    (products &&
+      products.filter((product) => product.shop._id === data?.shop._id)) ||
+    [];
+
+  let shopTotalRatings = 0;
+  let productsWithReviewsCount = 0;
+
+  shopProducts.forEach((product) => {
+    if (product.reviews && product.reviews.length > 0) {
+      const productAvg =
+        product.reviews.reduce((sum, review) => sum + review.rating, 0) /
+        product.reviews.length;
+      shopTotalRatings += productAvg;
+      productsWithReviewsCount++;
+    }
+  });
+
+  const shopAverageRating =
+    productsWithReviewsCount > 0
+      ? (shopTotalRatings / productsWithReviewsCount).toFixed(1)
+      : 0;
+
+  // This is for the overall products rating calculation (not used for shop rating)
   const totalRatings =
     products &&
     products.reduce(
@@ -180,15 +399,45 @@ const ProductDetails = ({ data }) => {
       ) : (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-            {/* Product Images */}
+            {/* Product Media (Images & Videos) */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="relative aspect-[4/3]">
-                  <img
-                    src={`${backend_url}${data && data.images[select]}`}
-                    alt={data.name}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300">
+                <div
+                  className="relative aspect-[4/3]"
+                  onClick={() => {
+                    setFullScreenIndex(select);
+                    setIsFullScreenOpen(true);
+                  }}
+                >
+                  {/* Display current selected media (image or video) */}
+                  {data && data.images && data.images[select] ? (
+                    <img
+                      src={`${backend_url}${data.images[select]}`}
+                      alt={data.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : data &&
+                    data.videos &&
+                    data.videos[select - (data.images?.length || 0)] ? (
+                    <video
+                      className="w-full h-full object-cover"
+                      controls
+                      preload="metadata"
+                    >
+                      <source
+                        src={`${backend_url}${
+                          data.videos[select - (data.images?.length || 0)]
+                        }`}
+                        type="video/mp4"
+                      />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <span className="text-gray-400">No media available</span>
+                    </div>
+                  )}
+
                   {data.originalPrice && (
                     <div className="absolute top-4 left-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 shadow-sm">
@@ -196,20 +445,48 @@ const ProductDetails = ({ data }) => {
                       </span>
                     </div>
                   )}
+
+                  {/* Click to zoom indicator */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-3 shadow-lg">
+                      <svg
+                        className="w-6 h-6 text-gray-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
-              {/* Thumbnail Images */}
+
+              {/* Thumbnail Media (Images & Videos) */}
               <div className="flex space-x-2 overflow-x-auto pb-2">
+                {/* Image Thumbnails */}
                 {data &&
+                  data.images &&
                   data.images.map((image, index) => (
                     <button
-                      key={index}
-                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      key={`img-${index}`}
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
                         select === index
                           ? "border-blue-500 ring-2 ring-blue-200"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setSelect(index)}
+                      onDoubleClick={() => {
+                        setSelect(index);
+                        setFullScreenIndex(index);
+                        setIsFullScreenOpen(true);
+                      }}
+                      title="Click to select, double-click to view fullscreen"
                     >
                       <img
                         src={`${backend_url}${image}`}
@@ -218,6 +495,54 @@ const ProductDetails = ({ data }) => {
                       />
                     </button>
                   ))}
+
+                {/* Video Thumbnails */}
+                {data &&
+                  data.videos &&
+                  data.videos.map((video, index) => {
+                    const videoIndex = (data.images?.length || 0) + index;
+                    return (
+                      <button
+                        key={`vid-${index}`}
+                        className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
+                          select === videoIndex
+                            ? "border-purple-500 ring-2 ring-purple-200"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => setSelect(videoIndex)}
+                        onDoubleClick={() => {
+                          setSelect(videoIndex);
+                          setFullScreenIndex(videoIndex);
+                          setIsFullScreenOpen(true);
+                        }}
+                        title="Click to select video, double-click to view fullscreen"
+                      >
+                        <video
+                          className="w-full h-full object-cover"
+                          preload="metadata"
+                        >
+                          <source
+                            src={`${backend_url}${video}`}
+                            type="video/mp4"
+                          />
+                        </video>
+                        {/* Video indicator */}
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      </button>
+                    );
+                  })}
               </div>
             </div>
             {/* Product Information */}
@@ -256,6 +581,70 @@ const ProductDetails = ({ data }) => {
                   <span className="text-sm text-gray-600">Easy Returns</span>
                 </div>
               </div>
+
+              {/* Delivery Status Display */}
+              {(deliveryStatus || pincodeLoading) && (
+                <div
+                  className={`p-4 rounded-lg border-l-4 ${
+                    deliveryStatus === "available"
+                      ? "bg-green-50 border-green-400"
+                      : deliveryStatus === "not-available"
+                      ? "bg-red-50 border-red-400"
+                      : "bg-blue-50 border-blue-400"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    {pincodeLoading || deliveryStatus === "checking" ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                    ) : (
+                      <HiOutlineTruck
+                        className={`w-5 h-5 mr-3 ${
+                          deliveryStatus === "available"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      />
+                    )}
+                    <div>
+                      <p
+                        className={`text-sm font-medium ${
+                          deliveryStatus === "available"
+                            ? "text-green-800"
+                            : deliveryStatus === "not-available"
+                            ? "text-red-800"
+                            : "text-blue-800"
+                        }`}
+                      >
+                        {pincodeLoading || deliveryStatus === "checking"
+                          ? "Checking delivery availability..."
+                          : deliveryStatus === "available"
+                          ? "Delivery Available"
+                          : "Delivery Not Available"}
+                      </p>
+                      <p
+                        className={`text-xs ${
+                          deliveryStatus === "available"
+                            ? "text-green-700"
+                            : deliveryStatus === "not-available"
+                            ? "text-red-700"
+                            : "text-blue-700"
+                        }`}
+                      >
+                        {deliveryMessage ||
+                          (userPincode
+                            ? `For pincode: ${userPincode}`
+                            : "Based on your saved address")}
+                      </p>
+                      {deliveryStatus === "not-available" && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          * We currently only deliver to Karnataka areas
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Quantity and Actions */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -303,30 +692,84 @@ const ProductDetails = ({ data }) => {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {/* Buy Now Button */}
-                  <button
-                    onClick={buyNowHandler}
-                    className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200 text-sm shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <span className="mr-2">🚀</span>
-                    Buy Now
-                  </button>
-
-                  {/* Add to Cart and Message Buttons */}
-                  <div className="flex items-center space-x-2">
+                  {/* Top Row: Buy Now and Add to Cart */}
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
-                      onClick={() => addToCartHandler(data._id)}
-                      className="flex-1 flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 text-sm shadow-md hover:shadow-lg"
+                      onClick={buyNowHandler}
+                      disabled={deliveryStatus === "not-available"}
+                      className={`flex-1 flex items-center justify-center px-4 py-3 font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-sm shadow-md ${
+                        deliveryStatus === "not-available"
+                          ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                          : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 focus:ring-orange-500 hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                      }`}
+                      title={
+                        deliveryStatus === "not-available"
+                          ? "Delivery not available to your area"
+                          : ""
+                      }
                     >
-                      <AiOutlineShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
+                      <span className="mr-2">🚀</span>
+                      {deliveryStatus === "not-available"
+                        ? "Not Available"
+                        : "Buy Now"}
                     </button>
                     <button
+                      onClick={() => addToCartHandler(data._id)}
+                      disabled={deliveryStatus === "not-available"}
+                      className={`flex-1 flex items-center justify-center px-4 py-3 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 text-sm shadow-md ${
+                        deliveryStatus === "not-available"
+                          ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 hover:shadow-lg"
+                      }`}
+                      title={
+                        deliveryStatus === "not-available"
+                          ? "Delivery not available to your area"
+                          : ""
+                      }
+                    >
+                      <AiOutlineShoppingCart className="w-4 h-4 mr-2" />
+                      {deliveryStatus === "not-available"
+                        ? "Not Available"
+                        : "Add to Cart"}
+                    </button>
+                  </div>
+
+                  {/* Bottom Row: Write Review and Send Message */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Write Review Button */}
+                    {isAuthenticated && userCanReview ? (
+                      <button
+                        onClick={() => {
+                          // Pre-fill existing review data if editing
+                          if (hasExistingReview && data.reviews) {
+                            const existingReview = data.reviews.find(
+                              (review) => review.user._id === user._id
+                            );
+                            if (existingReview) {
+                              setRating(existingReview.rating);
+                              setComment(existingReview.comment);
+                            }
+                          }
+                          setShowReviewModal(true);
+                        }}
+                        className="flex-1 flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 text-sm shadow-md hover:shadow-lg min-h-[42px]"
+                      >
+                        <AiFillStar className="w-4 h-4 mr-2" />
+                        {hasExistingReview ? "Edit Review" : "Write Review"}
+                      </button>
+                    ) : (
+                      <div className="flex-1"></div>
+                    )}
+
+                    {/* Send Message Button */}
+                    <button
                       onClick={handleMessageSubmit}
-                      className="flex items-center justify-center px-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 text-sm shadow-md hover:shadow-lg"
+                      className="flex-1 flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 text-sm shadow-md hover:shadow-lg min-h-[42px]"
                       title="Send Message"
                     >
-                      <AiOutlineMessage className="w-4 h-4" />
+                      <AiOutlineMessage className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Send Message</span>
+                      <span className="sm:hidden">Message</span>
                     </button>
                   </div>
                 </div>
@@ -355,7 +798,7 @@ const ProductDetails = ({ data }) => {
                           <AiFillStar
                             key={star}
                             className={`w-3 h-3 ${
-                              star <= averageRating
+                              star <= shopAverageRating
                                 ? "text-yellow-400"
                                 : "text-gray-300"
                             }`}
@@ -363,7 +806,7 @@ const ProductDetails = ({ data }) => {
                         ))}
                       </div>
                       <span className="text-xs text-gray-500">
-                        ({averageRating}/5)
+                        ({shopAverageRating}/5)
                       </span>
                     </div>
                   </div>
@@ -383,10 +826,111 @@ const ProductDetails = ({ data }) => {
             data={data}
             products={products}
             totalReviewsLength={totalReviewsLength}
-            averageRating={averageRating}
+            averageRating={shopAverageRating}
           />
         </div>
       )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+            modalClosing ? "animate-fadeOut" : "animate-fadeIn"
+          }`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseModal();
+            }
+          }}
+        >
+          <div
+            className={`bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl ${
+              modalClosing ? "animate-modalSlideOut" : "animate-modalSlideIn"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Write a Review
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 hover:bg-gray-100 rounded-full p-2 hover:rotate-90 transform transition-transform duration-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleReviewSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating
+                </label>
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className={`text-2xl ${
+                        star <= rating ? "text-yellow-400" : "text-gray-300"
+                      } hover:text-yellow-400 transition-colors`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm text-gray-600">
+                    {rating > 0 ? `${rating}/5` : "Select rating"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Review
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={4}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Share your experience with this product..."
+                  required
+                />
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReviewModal(false);
+                    setRating(0);
+                    setComment("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Submit Review
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Media Viewer */}
+      <FullScreenMediaViewer
+        media={allMedia}
+        currentIndex={fullScreenIndex}
+        isOpen={isFullScreenOpen}
+        onClose={() => setIsFullScreenOpen(false)}
+        productName={data?.name || "Product"}
+      />
     </div>
   );
 };
@@ -449,7 +993,7 @@ const ProductDetailsInfo = ({
                 Customer Reviews
               </h3>
 
-              {data && data.reviews.length > 0 ? (
+              {data && data.reviews && data.reviews.length > 0 ? (
                 <div className="space-y-6">
                   {data.reviews.map((item, index) => (
                     <div
@@ -466,7 +1010,7 @@ const ProductDetailsInfo = ({
                           <h4 className="font-medium text-gray-900">
                             {item.user.name}
                           </h4>
-                          <Ratings rating={data?.ratings} />
+                          <Ratings rating={item.rating} />
                         </div>
                         <p className="text-gray-600">{item.comment}</p>
                       </div>

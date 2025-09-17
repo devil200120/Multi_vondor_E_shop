@@ -5,7 +5,7 @@ const router = express.Router();
 const Product = require("../model/product");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
-const { upload } = require("../multer");
+const { upload, uploadFields } = require("../multer");
 const ErrorHandler = require("../utils/ErrorHandler");
 const NotificationService = require("../utils/NotificationService");
 const fs = require("fs");
@@ -13,7 +13,7 @@ const fs = require("fs");
 // create product
 router.post(
   "/create-product",
-  upload.array("images"),
+  uploadFields,
   catchAsyncErrors(async (req, res, next) => {
     try {
       const shopId = req.body.shopId;
@@ -21,11 +21,15 @@ router.post(
       if (!shop) {
         return next(new ErrorHandler("Shop Id is invalid!", 400));
       } else {
-        const files = req.files;
-        const imageUrls = files.map((file) => `${file.filename}`);
+        const imageFiles = req.files['images'] || [];
+        const videoFiles = req.files['videos'] || [];
+        
+        const imageUrls = imageFiles.map((file) => `${file.filename}`);
+        const videoUrls = videoFiles.map((file) => `${file.filename}`);
 
         const productData = req.body;
         productData.images = imageUrls;
+        productData.videos = videoUrls;
         productData.shop = shop;
 
         const product = await Product.create(productData);
@@ -251,13 +255,15 @@ router.put(
       };
 
       const isReviewed = product.reviews.find(
-        (rev) => rev.user._id === req.user._id
+        (rev) => rev.user._id.toString() === req.user._id.toString()
       );
 
       if (isReviewed) {
         product.reviews.forEach((rev) => {
-          if (rev.user._id === req.user._id) {
-            (rev.rating = rating), (rev.comment = comment), (rev.user = user);
+          if (rev.user._id.toString() === req.user._id.toString()) {
+            rev.rating = rating;
+            rev.comment = comment;
+            rev.user = user;
           }
         });
       } else {
@@ -274,11 +280,14 @@ router.put(
 
       await product.save({ validateBeforeSave: false });
 
-      await Order.findByIdAndUpdate(
-        orderId,
-        { $set: { "cart.$[elem].isReviewed": true } },
-        { arrayFilters: [{ "elem._id": productId }], new: true }
-      );
+      // Only update order if orderId is provided and not "direct"
+      if (orderId && orderId !== "direct") {
+        await Order.findByIdAndUpdate(
+          orderId,
+          { $set: { "cart.$[elem].isReviewed": true } },
+          { arrayFilters: [{ "elem._id": productId }], new: true }
+        );
+      }
 
       res.status(200).json({
         success: true,

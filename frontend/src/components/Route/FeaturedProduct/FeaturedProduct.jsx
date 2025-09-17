@@ -14,6 +14,43 @@ const FeaturedProduct = () => {
   const [loading, setLoading] = useState(true);
   const { allProducts } = useSelector((state) => state.products);
 
+  // Add CSS animations
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Hide scrollbar for mobile horizontal scroll */
+      .scrollbar-hide {
+        -ms-overflow-style: none;  /* Internet Explorer 10+ */
+        scrollbar-width: none;  /* Firefox */
+      }
+      .scrollbar-hide::-webkit-scrollbar { 
+        display: none;  /* Safari and Chrome */
+      }
+
+      /* Smooth scrolling for mobile */
+      .scrollbar-hide {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   useEffect(() => {
     const allProductsData = allProducts ? [...allProducts] : [];
     // Get featured products (you can modify this logic based on your criteria)
@@ -43,10 +80,10 @@ const FeaturedProduct = () => {
   }
 
   return (
-    <section className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Modern Header Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-6">
           {/* Badge */}
           <div className="inline-flex items-center mb-4">
             <div className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-md">
@@ -95,24 +132,82 @@ const FeaturedProduct = () => {
         {data && data.length !== 0 ? (
           <>
             {/* Products Grid */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
-              {data.map((product, index) => (
-                <div
-                  key={index}
-                  className="group transform transition-all duration-300 hover:scale-105"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="relative">
-                    {/* Featured Badge */}
-                    {index < 3 && (
-                      <div className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                        FEATURED
+            <div className="mb-6">
+              {/* Mobile View - Horizontal Scroll */}
+              <div className="block md:hidden">
+                <div className="flex space-x-3 overflow-x-auto pb-4 px-3 scrollbar-hide">
+                  {data.map((product, index) => (
+                    <div
+                      key={index}
+                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[200px]"
+                      style={{
+                        animationDelay: `${index * 150}ms`,
+                        animation: "fadeInUp 0.6s ease-out forwards",
+                      }}
+                    >
+                      <div className="relative w-full flex">
+                        {/* Featured Badge */}
+                        {index < 3 && (
+                          <div className="absolute top-2 -right-1 z-20">
+                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
+                              ✨ FEATURED
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Glow Effect on Hover */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-200 to-pink-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+
+                        <ProductCard data={product} />
                       </div>
-                    )}
-                    <ProductCard data={product} />
+                    </div>
+                  ))}
+                </div>
+                {/* Mobile Scroll Indicator */}
+                <div className="flex justify-center mt-3">
+                  <div className="flex items-center space-x-1 bg-white bg-opacity-80 px-3 py-1.5 rounded-full shadow-md">
+                    <span className="text-xs font-medium text-gray-600">
+                      Swipe to see more
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-gray-400 animate-pulse"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Desktop/Tablet View - Grid Layout */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {data.map((product, index) => (
+                  <div
+                    key={index}
+                    className="group transform transition-all duration-300 hover:scale-105"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative">
+                      {/* Featured Badge */}
+                      {index < 3 && (
+                        <div className="absolute top-2 -right-1 z-20">
+                          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            ✨ FEATURED
+                          </div>
+                        </div>
+                      )}
+                      <ProductCard data={product} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* CTA Section */}

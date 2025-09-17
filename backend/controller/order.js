@@ -7,6 +7,8 @@ const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
 const NotificationService = require("../utils/NotificationService");
+const sendMail = require("../utils/sendMail");
+const { generateOrderConfirmationEmail } = require("../utils/emailTemplates");
 
 // create new order
 router.post(
@@ -48,6 +50,34 @@ router.post(
           null,
           [shopId]
         );
+      }
+
+      // Send comprehensive order confirmation email to the user
+      try {
+        // Use the first order for email (they all have the same user and basic info)
+        const firstOrder = orders[0];
+        
+        // Create a combined order object for email template if multiple orders
+        const emailOrder = {
+          ...firstOrder.toObject(),
+          cart: cart, // Use the full cart from all shops
+          totalPrice: totalPrice // Use the total price across all orders
+        };
+
+        const emailHTML = generateOrderConfirmationEmail(emailOrder, user);
+        
+        await sendMail({
+          email: user.email,
+          subject: `Order Confirmation - Order #${firstOrder._id.toString().slice(-8).toUpperCase()}`,
+          message: `Dear ${user.name},\n\nYour order has been successfully placed!\n\nOrder Details:\n- Order Number: #${firstOrder._id.toString().slice(-8).toUpperCase()}\n- Total Amount: ₹${totalPrice}\n- Items: ${cart.length} products\n\nYou can track your order at: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/track-order/${firstOrder._id}\n\nThank you for shopping with us!\n\nBest regards,\nYour Store Team`,
+          html: emailHTML
+        });
+
+        console.log(`Order confirmation email sent successfully to ${user.email}`);
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError);
+        // Don't throw error here as the order was created successfully
+        // Just log the email error and continue
       }
 
       res.status(201).json({

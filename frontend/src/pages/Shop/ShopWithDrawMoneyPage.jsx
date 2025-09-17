@@ -1,20 +1,26 @@
-import React from 'react'
-import DashboardHeader from '../../components/Shop/Layout/DashboardHeader'
+import React from "react";
+import DashboardHeader from "../../components/Shop/Layout/DashboardHeader";
 import WithdrawMoney from "../../components/Shop/WithdrawMoney";
-import DashboardSideBar from '../../components/Shop/Layout/DashboardSideBar';
+import DashboardSideBar from "../../components/Shop/Layout/DashboardSideBar";
 
 const ShopWithDrawMoneyPage = () => {
-    return (
-        <div>
-            <DashboardHeader />
-            <div className="flex items-start justify-between w-full">
-                <div className="w-[80px] 800px:w-[330px]">
-                    <DashboardSideBar active={7} />
-                </div>
-                <WithdrawMoney />
-            </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader />
+      <div className="flex items-start justify-between w-full">
+        <div className="w-[80px] 800px:w-[330px] hidden lg:block">
+          <DashboardSideBar active={10} />
         </div>
-    )
-}
+        <div className="flex-1 mobile-content-padding">
+          <WithdrawMoney />
+        </div>
+      </div>
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden">
+        <DashboardSideBar active={10} />
+      </div>
+    </div>
+  );
+};
 
-export default ShopWithDrawMoneyPage
+export default ShopWithDrawMoneyPage;

@@ -1,8 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import styles from "../../../styles/styles";
+import { server } from "../../../server";
 
 const Hero = () => {
+  const [banner, setBanner] = useState({
+    title: "Best Collection for",
+    subtitle: "Home Decoration",
+    description:
+      "Discover our curated collection of premium home decor items that transform your space into a beautiful sanctuary.",
+    image: "https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg",
+    buttonText: "Shop Now",
+    secondaryButtonText: "View Collections",
+    stats: {
+      customers: { count: "10K+", label: "Happy Customers" },
+      products: { count: "5K+", label: "Products" },
+      satisfaction: { count: "99%", label: "Satisfaction" },
+    },
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchBannerData();
+  }, []);
+
+  const fetchBannerData = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${server}/banner/get-banner`);
+      if (data.success && data.banner) {
+        setBanner(data.banner);
+      }
+    } catch (error) {
+      console.error("Error fetching banner data:", error);
+      // Keep default values if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get image URL - handle both uploaded images and external URLs
+  const getImageUrl = (image) => {
+    if (!image) return banner.image;
+    if (image.startsWith("http")) return image;
+    return `${server}${image}`;
+  };
   return (
     <div className="relative min-h-[70vh] 800px:min-h-[85vh] w-full bg-gradient-to-br from-primary-50 to-secondary-100 overflow-hidden">
       {/* Background Pattern */}
@@ -20,12 +63,13 @@ const Hero = () => {
           <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-Inter text-text-primary leading-tight">
-                Best Collection for
-                <span className="block text-primary-500">Home Decoration</span>
+                {banner.title}
+                <span className="block text-primary-500">
+                  {banner.subtitle}
+                </span>
               </h1>
               <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-lg mx-auto lg:mx-0">
-                Discover our curated collection of premium home decor items that
-                transform your space into a beautiful sanctuary.
+                {banner.description}
               </p>
             </div>
 
@@ -33,14 +77,14 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/products">
                 <button className={`${styles.button} px-8 py-4 text-lg`}>
-                  Shop Now
+                  {banner.buttonText || "Shop Now"}
                 </button>
               </Link>
               <Link to="/best-selling">
                 <button
                   className={`${styles.button_secondary} px-8 py-4 text-lg`}
                 >
-                  View Collections
+                  {banner.secondaryButtonText || "View Collections"}
                 </button>
               </Link>
             </div>
@@ -48,16 +92,28 @@ const Hero = () => {
             {/* Stats */}
             <div className="flex justify-center lg:justify-start space-x-8 pt-8">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-500">10K+</div>
-                <div className="text-sm text-text-muted">Happy Customers</div>
+                <div className="text-2xl font-bold text-primary-500">
+                  {banner.stats?.customers?.count || "10K+"}
+                </div>
+                <div className="text-sm text-text-muted">
+                  {banner.stats?.customers?.label || "Happy Customers"}
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-500">5K+</div>
-                <div className="text-sm text-text-muted">Products</div>
+                <div className="text-2xl font-bold text-primary-500">
+                  {banner.stats?.products?.count || "5K+"}
+                </div>
+                <div className="text-sm text-text-muted">
+                  {banner.stats?.products?.label || "Products"}
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary-500">99%</div>
-                <div className="text-sm text-text-muted">Satisfaction</div>
+                <div className="text-2xl font-bold text-primary-500">
+                  {banner.stats?.satisfaction?.count || "99%"}
+                </div>
+                <div className="text-sm text-text-muted">
+                  {banner.stats?.satisfaction?.label || "Satisfaction"}
+                </div>
               </div>
             </div>
           </div>
@@ -65,11 +121,21 @@ const Hero = () => {
           {/* Right Content - Hero Image */}
           <div className="relative">
             <div className="relative z-10">
-              <img
-                src="https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg"
-                alt="Home Decoration"
-                className="w-full h-auto rounded-2xl shadow-unacademy-xl hover:shadow-unacademy-xl transition-all duration-300 hover:transform hover:scale-105"
-              />
+              {loading ? (
+                <div className="w-full h-96 bg-gray-200 rounded-2xl flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                </div>
+              ) : (
+                <img
+                  src={getImageUrl(banner.image)}
+                  alt="Home Decoration"
+                  className="w-full h-auto rounded-2xl shadow-unacademy-xl hover:shadow-unacademy-xl transition-all duration-300 hover:transform hover:scale-105"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg";
+                  }}
+                />
+              )}
             </div>
 
             {/* Floating Elements */}

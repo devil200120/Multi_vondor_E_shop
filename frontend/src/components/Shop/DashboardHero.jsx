@@ -10,6 +10,7 @@ import { FiPackage, FiDollarSign, FiUsers, FiTrendingUp } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllOrdersOfShop } from "../../redux/actions/order";
 import { getAllProductsShop } from "../../redux/actions/product";
+import { getAllEventsShop } from "../../redux/actions/event";
 import { DataGrid } from "@material-ui/data-grid";
 import { IoStatsChart } from "react-icons/io5";
 import { BsBox, BsGraphUp } from "react-icons/bs";
@@ -24,6 +25,7 @@ const DashboardHero = () => {
     if (seller?._id) {
       dispatch(getAllOrdersOfShop(seller._id));
       dispatch(getAllProductsShop(seller._id));
+      dispatch(getAllEventsShop(seller._id));
     }
   }, [dispatch, seller]);
 
