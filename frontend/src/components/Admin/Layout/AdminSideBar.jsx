@@ -12,6 +12,7 @@ import {
   HiOutlineChartBar,
   HiOutlineLogout,
   HiOutlinePhotograph,
+  HiOutlineCollection,
 } from "react-icons/hi";
 import { logoutUser } from "../../../redux/actions/user";
 import { toast } from "react-toastify";
@@ -86,6 +87,13 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
     },
     {
       id: 9,
+      name: "Categories",
+      icon: HiOutlineCollection,
+      url: "/admin-categories",
+      color: "bg-cyan-500",
+    },
+    {
+      id: 10,
       name: "Analytics",
       icon: HiOutlineChartBar,
       url: "/admin/analytics",
@@ -194,6 +202,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
                         {item.name === "All Events" && "Event management"}
                         {item.name === "Withdraw Request" && "Payment requests"}
                         {item.name === "Home Banner" && "Homepage banners"}
+                        {item.name === "Categories" && "Category management"}
                         {item.name === "Analytics" && "Reports & insights"}
                       </span>
                     )}

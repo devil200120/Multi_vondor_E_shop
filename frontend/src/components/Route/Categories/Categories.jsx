@@ -1,10 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { brandingData, categoriesData } from "../../../static/data";
+import { useDispatch, useSelector } from "react-redux";
+import { brandingData } from "../../../static/data";
+import { getRootCategoriesPublic } from "../../../redux/actions/category";
 import { HiStar, HiCollection, HiArrowRight, HiSparkles } from "react-icons/hi";
 
 const Categories = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { categories, isLoading } = useSelector((state) => state.categories);
+
+  useEffect(() => {
+    dispatch(getRootCategoriesPublic());
+  }, [dispatch]);
+
+  // Use API categories directly - already filtered to root categories
+  const categoriesData = categories || [];
 
   return (
     <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12">
@@ -87,12 +98,12 @@ const Categories = () => {
             {categoriesData &&
               categoriesData.map((category, index) => {
                 const handleSubmit = (cat) => {
-                  navigate(`/products?category=${cat.title}`);
+                  navigate(`/products?category=${cat.name || cat.title}`);
                 };
 
                 return (
                   <div
-                    key={category.id}
+                    key={category._id || category.id || index}
                     className="group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 hover:border-blue-200 transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-2 hover:scale-105"
                     onClick={() => handleSubmit(category)}
                     style={{ animationDelay: `${index * 100}ms` }}
@@ -100,8 +111,8 @@ const Categories = () => {
                     {/* Category Image Container */}
                     <div className="aspect-square p-4 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
                       <img
-                        src={category.image_Url}
-                        alt={category.title}
+                        src={category.image || category.image_Url}
+                        alt={category.name || category.title}
                         className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
                       />
 
@@ -119,7 +130,7 @@ const Categories = () => {
                     {/* Category Info */}
                     <div className="p-3 text-center bg-white">
                       <h3 className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors duration-300 leading-tight mb-1">
-                        {category.title}
+                        {category.name || category.title}
                       </h3>
                       <p className="text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
                         Explore Collection

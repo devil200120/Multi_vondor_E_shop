@@ -60,7 +60,8 @@ router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const products = await Product.find({ shopId: req.params.id });
+      const products = await Product.find({ shopId: req.params.id })
+        .populate('category', 'name _id parent');
 
       res.status(201).json({
         success: true,
@@ -77,7 +78,8 @@ router.get(
   "/get-product/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const product = await Product.findById(req.params.id);
+      const product = await Product.findById(req.params.id)
+        .populate('category', 'name _id parent');
 
       if (!product) {
         return next(new ErrorHandler("Product not found with this id!", 404));
@@ -225,7 +227,9 @@ router.get(
   "/get-all-products",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const products = await Product.find().sort({ createdAt: -1 });
+      const products = await Product.find()
+        .populate('category', 'name _id parent')
+        .sort({ createdAt: -1 });
 
       res.status(201).json({
         success: true,

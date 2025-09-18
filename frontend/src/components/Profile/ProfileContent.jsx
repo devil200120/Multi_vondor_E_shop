@@ -30,7 +30,7 @@ import { Country, State } from "country-state-city";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
 
 // Google Maps Configuration
-const GOOGLE_MAPS_API_KEY = "AIzaSyBWd7BilPU2XqPBawnjoxBFCyRQHgB0kQA";
+const GOOGLE_MAPS_API_KEY = "AIzaSyBecpP3O2kfTa0z-lLIiShmsZE6e1kDmOk";
 
 // Load Google Maps Script
 const loadGoogleMapsScript = (callback) => {

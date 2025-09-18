@@ -44,7 +44,7 @@ const ShopSettings = () => {
   // Google Maps API Key
   const GOOGLE_MAPS_API_KEY =
     process.env.REACT_APP_GOOGLE_MAPS_API_KEY ||
-    "AIzaSyBVeker3NKNQyfAy-XkVDrqodDoU7GYQyk";
+    "AIzaSyBecpP3O2kfTa0z-lLIiShmsZE6e1kDmOk";
 
   // Google Maps functions wrapped in useCallback
   const reverseGeocode = useCallback((lat, lng) => {

@@ -7,7 +7,7 @@ import {
 } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { categoriesData } from "../../static/data";
+import { getAllCategoriesPublic } from "../../redux/actions/category";
 import { toast } from "react-toastify";
 import { createevent } from "../../redux/actions/event";
 import { MdOutlineLocalOffer, MdDateRange } from "react-icons/md";
@@ -16,6 +16,7 @@ import { FiImage, FiDollarSign, FiPackage } from "react-icons/fi";
 const CreateEvent = () => {
   const { seller } = useSelector((state) => state.seller);
   const { success, error } = useSelector((state) => state.events);
+  const { categories } = useSelector((state) => state.categories);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -53,6 +54,11 @@ const CreateEvent = () => {
         .slice(0, 10)
     : "";
 
+  // Fetch categories on component mount
+  useEffect(() => {
+    dispatch(getAllCategoriesPublic());
+  }, [dispatch]);
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -62,7 +68,7 @@ const CreateEvent = () => {
       navigate("/dashboard-events");
       window.location.reload();
     }
-  }, [dispatch, error, success]);
+  }, [dispatch, error, success, navigate]);
 
   const handleImageChange = (e) => {
     e.preventDefault();
@@ -181,12 +187,11 @@ const CreateEvent = () => {
                     required
                   >
                     <option value="">Choose a category</option>
-                    {categoriesData &&
-                      categoriesData.map((i) => (
-                        <option value={i.title} key={i.title}>
-                          {i.title}
-                        </option>
-                      ))}
+                    {(categories || []).map((i) => (
+                      <option value={i.name || i.title} key={i._id || i.id}>
+                        {i.name || i.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

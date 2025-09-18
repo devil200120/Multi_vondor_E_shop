@@ -374,14 +374,14 @@ const DashboardSideBar = ({ active }) => {
                 {isMoreButton ? (
                   <button
                     onClick={() => setIsMobileSidebarOpen(true)}
-                    className={`w-full flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 mobile-nav-item ${
+                    className={`w-full flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition-all duration-200 mobile-nav-item ${
                       isMobileSidebarOpen
                         ? "bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 shadow-sm"
                         : "hover:bg-gray-50 active:bg-gray-100"
                     }`}
                   >
                     <div
-                      className={`relative flex items-center justify-center rounded-lg transition-all duration-200 w-7 h-7 ${
+                      className={`relative flex items-center justify-center rounded-lg transition-all duration-200 w-8 h-8 mb-1 ${
                         isMobileSidebarOpen
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-110"
                           : "text-gray-600 hover:text-blue-600"
@@ -390,7 +390,7 @@ const DashboardSideBar = ({ active }) => {
                       <IconComponent size={16} />
                     </div>
                     <span
-                      className={`text-xs font-medium mt-1 truncate max-w-full ${
+                      className={`text-xs font-medium truncate max-w-full leading-tight ${
                         isMobileSidebarOpen ? "text-blue-700" : "text-gray-600"
                       }`}
                     >
@@ -400,28 +400,31 @@ const DashboardSideBar = ({ active }) => {
                 ) : (
                   <Link
                     to={item.link}
-                    className={`w-full flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 mobile-nav-item ${
+                    className={`w-full flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition-all duration-200 mobile-nav-item relative ${
                       isActive
                         ? "bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 shadow-sm"
                         : "hover:bg-gray-50 active:bg-gray-100"
                     }`}
                   >
+                    {/* Notification Badge - Positioned outside the main content flow */}
+                    {item.badge && (
+                      <span className="absolute -top-1 right-1 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold shadow-sm animate-pulse z-10 border-2 border-white">
+                        {item.badge}
+                      </span>
+                    )}
+
                     <div
-                      className={`relative flex items-center justify-center rounded-lg transition-all duration-200 w-7 h-7 ${
+                      className={`relative flex items-center justify-center rounded-lg transition-all duration-200 w-8 h-8 mb-1 ${
                         isActive
                           ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-110"
                           : "text-gray-600 hover:text-blue-600"
                       }`}
                     >
                       <IconComponent size={16} />
-                      {item.badge && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-4 h-4 flex items-center justify-center font-bold shadow-sm animate-pulse">
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
+
                     <span
-                      className={`text-xs font-medium mt-1 truncate max-w-full ${
+                      className={`text-xs font-medium truncate max-w-full leading-tight ${
                         isActive ? "text-blue-700" : "text-gray-600"
                       }`}
                     >
@@ -449,132 +452,512 @@ const DashboardSideBar = ({ active }) => {
           onClick={() => setIsMobileSidebarOpen(false)}
         />
 
-        {/* Mobile Sidebar - Full menu with improved styling */}
+        {/* Mobile Sidebar - Unacademy Style */}
         <div
-          className={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white/98 backdrop-blur-xl shadow-2xl border-r border-gray-200/50 transform transition-all duration-300 ease-out ${
+          className={`absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-all duration-300 ease-out ${
             isMobileSidebarOpen
               ? "translate-x-0 opacity-100 scale-100"
               : "-translate-x-full opacity-0 scale-95"
           }`}
         >
-          <div className="h-full flex flex-col">
-            {/* Enhanced Header with Close Button */}
-            <div className="p-6 pb-4 border-b border-gray-100/80 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50">
+          <div className="h-full flex flex-col bg-gray-50">
+            {/* Header - Unacademy Style */}
+            <div className="bg-white p-5 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-sm">S</span>
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-lg">S</span>
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-800">
+                    <h1 className="text-lg font-bold text-gray-900">
                       Seller Panel
-                    </h2>
-                    <p className="text-xs text-gray-500">Manage your store</p>
+                    </h1>
+                    <p className="text-sm text-gray-500">Manage your store</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-2 rounded-xl bg-white/70 hover:bg-white border border-gray-200/50 transition-all duration-200 hover:shadow-sm"
+                  className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
-                  <AiOutlineClose size={18} className="text-gray-500" />
+                  <AiOutlineClose size={16} className="text-gray-600" />
                 </button>
               </div>
             </div>
 
-            {/* Navigation Items with improved spacing */}
-            <div className="flex-1 p-6 pt-4 space-y-2 overflow-y-auto">
-              {menuItems.map((item) => {
-                const IconComponent = item.icon;
-                const isActive = active === item.id;
-
-                return (
+            {/* Main Menu Section */}
+            <div className="flex-1 overflow-y-auto px-4 py-6">
+              {/* Dashboard Card */}
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Overview
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <Link
-                    key={item.id}
-                    to={item.link}
+                    to="/dashboard"
                     onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`relative flex items-center p-4 space-x-4 rounded-xl transition-all duration-200 group ${
-                      isActive
-                        ? "bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 shadow-sm"
-                        : "hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50"
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 1
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
                     }`}
                   >
                     <div
-                      className={`relative flex items-center justify-center rounded-lg transition-all duration-200 w-12 h-12 ${
-                        isActive
-                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-110"
-                          : "bg-gray-100 group-hover:bg-blue-100 text-gray-600 group-hover:text-blue-600"
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 1
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      <IconComponent
-                        size={20}
-                        className="transition-all duration-200"
-                      />
+                      <RxDashboard size={20} />
                     </div>
-
-                    <div className="flex-1 flex items-center justify-between min-w-0">
-                      <span
-                        className={`font-semibold transition-colors duration-200 truncate text-base ${
-                          isActive
-                            ? "text-blue-700"
-                            : "text-gray-700 group-hover:text-blue-600"
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 1 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
-                        {item.title}
-                      </span>
+                        Dashboard
+                      </h4>
+                      <p className="text-sm text-gray-500">View analytics</p>
+                    </div>
+                    {active === 1 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+                </div>
+              </div>
 
-                      {item.badge && (
-                        <span
-                          className={`inline-flex items-center justify-center text-xs font-bold rounded-full transition-all duration-200 min-w-6 h-6 px-2 ${
-                            isActive
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-200 text-gray-700 group-hover:bg-blue-100 group-hover:text-blue-700"
-                          }`}
-                        >
-                          {item.badge}
+              {/* Orders & Products Section */}
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Orders & Products
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* All Orders */}
+                  <Link
+                    to="/dashboard-orders"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 2
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 2
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <FiShoppingBag size={18} />
+                      {ordersCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                          {ordersCount}
                         </span>
                       )}
                     </div>
-
-                    {isActive && (
-                      <div className="absolute right-2 w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 2 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        All Orders
+                      </h4>
+                      <p className="text-sm text-gray-500">Manage orders</p>
+                    </div>
+                    {active === 2 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>
-                );
-              })}
+
+                  {/* All Products */}
+                  <Link
+                    to="/dashboard-products"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 3
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 3
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <FiPackage size={18} />
+                      {productsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                          {productsCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 3 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        All Products
+                      </h4>
+                      <p className="text-sm text-gray-500">Product catalog</p>
+                    </div>
+                    {active === 3 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Create Product */}
+                  <Link
+                    to="/dashboard-create-product"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 4
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 4
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <AiOutlineFolderAdd size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 4 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Create Product
+                      </h4>
+                      <p className="text-sm text-gray-500">Add new product</p>
+                    </div>
+                    {active === 4 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Events & Promotions Section */}
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Events & Promotions
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* All Events */}
+                  <Link
+                    to="/dashboard-events"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 5
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 5
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <MdOutlineLocalOffer size={18} />
+                      {eventsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                          {eventsCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 5 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        All Events
+                      </h4>
+                      <p className="text-sm text-gray-500">Event management</p>
+                    </div>
+                    {active === 5 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Create Event */}
+                  <Link
+                    to="/dashboard-create-event"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 6
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 6
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <VscNewFile size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 6 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Create Event
+                      </h4>
+                      <p className="text-sm text-gray-500">New event</p>
+                    </div>
+                    {active === 6 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* All Coupons */}
+                  <Link
+                    to="/dashboard-coupouns"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 7
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 7
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <AiOutlineGift size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 7 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        All Coupons
+                      </h4>
+                      <p className="text-sm text-gray-500">Discount codes</p>
+                    </div>
+                    {active === 7 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Communication Section */}
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Communication
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* Messages */}
+                  <Link
+                    to="/dashboard-messages"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 8
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 8
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <BiMessageSquareDetail size={18} />
+                      {conversationsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                          {conversationsCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 8 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Messages
+                      </h4>
+                      <p className="text-sm text-gray-500">Customer chat</p>
+                    </div>
+                    {active === 8 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Refund Requests */}
+                  <Link
+                    to="/dashboard-refunds"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 9
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 9
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <HiOutlineReceiptRefund size={18} />
+                      {refundRequestsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                          {refundRequestsCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 9 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Refund Requests
+                      </h4>
+                      <p className="text-sm text-gray-500">Handle refunds</p>
+                    </div>
+                    {active === 9 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Financial Section */}
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                  Financial
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* Withdraw Money */}
+                  <Link
+                    to="/dashboard-withdraw-money"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 10
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 10
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <CiMoneyBill size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 10 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Withdraw Money
+                      </h4>
+                      <p className="text-sm text-gray-500">Available: ₹0.00</p>
+                    </div>
+                    {active === 10 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Shop Settings */}
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 11
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 11
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <CiSettings size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 11 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Shop Settings
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Store configuration
+                      </p>
+                    </div>
+                    {active === 11 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+                </div>
+              </div>
             </div>
 
-            {/* Enhanced Footer with Logout Option */}
-            <div className="p-6 pt-4 border-t border-gray-100/80 space-y-4">
+            {/* Footer Section - Unacademy Style */}
+            <div className="p-4 bg-white border-t border-gray-100">
               {/* Logout Button */}
               <button
                 onClick={logoutHandler}
-                className="w-full flex items-center space-x-4 p-4 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 transition-all duration-200 group"
+                className="w-full flex items-center space-x-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 border border-red-100 hover:border-red-200 transition-all duration-200 group mb-3"
               >
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 group-hover:bg-red-200 text-red-600 transition-colors">
-                  <AiOutlineLogout size={20} />
+                <div className="w-10 h-10 rounded-xl bg-red-100 group-hover:bg-red-200 flex items-center justify-center text-red-600 transition-colors">
+                  <AiOutlineLogout size={18} />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-base font-semibold text-red-600 group-hover:text-red-700">
+                  <h4 className="font-semibold text-red-600 group-hover:text-red-700">
                     Logout
-                  </p>
+                  </h4>
                   <p className="text-sm text-red-500">
                     Sign out of your account
                   </p>
                 </div>
               </button>
 
-              {/* Store Status Card */}
-              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 rounded-xl p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-medium text-gray-600">
-                    Store Status: Active
+              {/* Store Status */}
+              <div className="bg-green-50 border border-green-100 rounded-xl p-3">
+                <div className="flex items-center space-x-2 mb-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-semibold text-green-700">
+                    Store Active
                   </span>
                 </div>
-                <div className="text-xs text-gray-500 leading-relaxed">
-                  Your store is live and accepting orders. Keep providing
-                  excellent service!
-                </div>
+                <p className="text-xs text-green-600">
+                  Your store is live and accepting orders
+                </p>
               </div>
             </div>
           </div>

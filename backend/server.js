@@ -60,6 +60,8 @@ const pincode = require("./routes/pincode");
 const shipping = require("./controller/shipping");
 const aiChat = require("./routes/ai-chat");
 const banner = require("./controller/banner");
+const category = require("./routes/category");
+const migration = require("./routes/migration");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -78,6 +80,10 @@ app.use("/api/v2/pincode", pincode);
 app.use("/api/v2/shipping", shipping);
 app.use("/api/v2/ai-chat", aiChat);
 app.use("/api/v2/banner", banner);
+app.use("/api/v2/category", category);
+app.use("/api/v2/migration", migration);
+app.use("/api/v2/migration", migration);
+app.use("/api/v2/migration", migration);
 
 // error handler middleware
 app.use(ErrorHandler);

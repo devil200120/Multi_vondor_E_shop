@@ -9,7 +9,22 @@ const SuggestedProduct = ({ data }) => {
   // Product is filtered when the category is same as the current product when page is loaded
   useEffect(() => {
     const d =
-      allProducts && allProducts.filter((i) => i.category === data.category);
+      allProducts &&
+      allProducts.filter((product) => {
+        // Handle both old string format and new ObjectId format
+        if (
+          typeof product.category === "string" &&
+          typeof data.category === "string"
+        ) {
+          return product.category === data.category;
+        } else if (product.category && data.category) {
+          // Compare ObjectIds or names
+          const productCategoryId = product.category._id || product.category;
+          const dataCategoryId = data.category._id || data.category;
+          return productCategoryId === dataCategoryId;
+        }
+        return false;
+      });
     setProductData(d);
   }, [allProducts, data.category]);
 

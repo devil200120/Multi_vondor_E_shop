@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 const DropDown = ({ categoriesData, setDropDown }) => {
   const navigate = useNavigate();
   const submitHandle = (i) => {
-    navigate(`/products?category=${i.title}`);
+    navigate(`/products?category=${i.name || i.title}`);
     setDropDown(false);
-    window.location.reload();
+    // Remove window.location.reload() as it causes issues
   };
 
   return (
@@ -20,23 +20,23 @@ const DropDown = ({ categoriesData, setDropDown }) => {
 
       {/* Categories List */}
       <div className="max-h-80 overflow-y-auto">
-        {categoriesData &&
+        {categoriesData && Array.isArray(categoriesData) &&
           categoriesData.map((i, index) => (
             <div
-              key={index}
+              key={i._id || i.id || index}
               className="flex items-center px-4 py-3 hover:bg-secondary-50 cursor-pointer transition-colors duration-200 group"
               onClick={() => submitHandle(i)}
             >
               <div className="flex-shrink-0 w-8 h-8 mr-3">
                 <img
-                  src={i.image_Url}
-                  alt={i.title}
+                  src={i.image || i.image_Url}
+                  alt={i.name || i.title}
                   className="w-full h-full object-contain select-none"
                 />
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-text-primary group-hover:text-primary-500 transition-colors duration-200 select-none">
-                  {i.title}
+                  {i.name || i.title}
                 </h3>
               </div>
               <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -61,7 +61,7 @@ const DropDown = ({ categoriesData, setDropDown }) => {
       {/* Footer */}
       <div className="px-4 py-3 border-t border-secondary-100 bg-secondary-50">
         <div className="text-xs text-text-muted text-center">
-          Explore all {categoriesData?.length} categories
+          Explore all {categoriesData?.length || 0} categories
         </div>
       </div>
     </div>

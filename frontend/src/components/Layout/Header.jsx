@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
 import BrandingLogo from "../../Branding_logo.jpg";
-import { categoriesData } from "../../static/data";
 import {
   AiOutlineHeart,
   AiOutlineSearch,
@@ -13,19 +12,22 @@ import { BiMenuAltLeft } from "react-icons/bi";
 import { CgProfile } from "react-icons/cg";
 import DropDown from "./DropDown";
 import Navbar from "./Navbar";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { backend_url } from "../../server";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import GoogleTranslate from "./GoogleTranslate";
 import { RxCross1 } from "react-icons/rx";
+import { getRootCategoriesPublic } from "../../redux/actions/category";
 
 const Header = ({ activeHeading }) => {
+  const dispatch = useDispatch();
   const { isSeller } = useSelector((state) => state.seller);
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const { allProducts } = useSelector((state) => state.products);
+  const { categories } = useSelector((state) => state.categories);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchData, setSearchData] = useState(null);
   const [active, setActive] = useState(false);
@@ -35,6 +37,14 @@ const Header = ({ activeHeading }) => {
   const [open, setOpen] = useState(false); // mobile menu
 
   const dropdownRef = useRef(null);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    dispatch(getRootCategoriesPublic());
+  }, [dispatch]);
+
+  // Use API categories directly - already filtered to root categories
+  const rootCategories = categories || [];
 
   // Handle clicking outside dropdown
   useEffect(() => {
@@ -188,7 +198,7 @@ const Header = ({ activeHeading }) => {
 
               {dropDown && (
                 <DropDown
-                  categoriesData={categoriesData}
+                  categoriesData={rootCategories}
                   setDropDown={setDropDown}
                 />
               )}

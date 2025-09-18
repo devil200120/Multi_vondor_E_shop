@@ -57,6 +57,7 @@ import {
   AdminDashboardEvents,
   AdminDashboardWithdraw,
   AdminDashboardBanner,
+  AdminDashboardCategories,
 } from "./routes/AdminRoutes";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import AdminOrderDetailsPage from "./pages/AdminOrderDetailsPage";
@@ -451,6 +452,14 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminDashboardBanner />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-categories"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardCategories />
             </ProtectedAdminRoute>
           }
         />

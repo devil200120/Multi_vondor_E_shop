@@ -10,7 +10,7 @@ import { MdMyLocation, MdLocationOn } from "react-icons/md";
 import { FiMapPin, FiGlobe, FiArrowLeft } from "react-icons/fi";
 
 // Google Maps Configuration
-const GOOGLE_MAPS_API_KEY = "AIzaSyBWd7BilPU2XqPBawnjoxBFCyRQHgB0kQA";
+const GOOGLE_MAPS_API_KEY = "AIzaSyBecpP3O2kfTa0z-lLIiShmsZE6e1kDmOk";
 
 // Load Google Maps Script
 const loadGoogleMapsScript = (callback) => {

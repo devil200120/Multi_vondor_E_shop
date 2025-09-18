@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import Footer from "../components/Layout/Footer";
 import Header from "../components/Layout/Header";
 import Loader from "../components/Layout/Loader";
 import ProductCard from "../components/Route/ProductCard/ProductCard";
-import { categoriesData } from "../static/data";
+import {
+  getAllCategoriesPublic,
+  getSubcategoriesPublic,
+} from "../redux/actions/category";
 import {
   HiAdjustments,
   HiX,
@@ -15,9 +18,20 @@ import {
 } from "react-icons/hi";
 
 const ProductsPage = () => {
+  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryData = searchParams.get("category");
   const { allProducts, isLoading } = useSelector((state) => state.products);
+  const { categories, subcategories, subcategoriesLoading, parentCategory } =
+    useSelector((state) => state.categories);
+    
+  // Debug: Log the products when they change
+  useEffect(() => {
+    if (allProducts && allProducts.length > 0) {
+      console.log("Products loaded from Redux:", allProducts.length);
+      console.log("First product from Redux:", JSON.stringify(allProducts[0], null, 2));
+    }
+  }, [allProducts]);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -25,39 +39,225 @@ const ProductsPage = () => {
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState(categoryData || "");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [selectedParentCategory, setSelectedParentCategory] = useState(null);
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [sortBy, setSortBy] = useState("default");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch categories on component mount
+  useEffect(() => {
+    dispatch(getAllCategoriesPublic());
+  }, [dispatch]);
+
+  // Use API categories - all categories including subcategories
+  const allCategoriesData = useMemo(() => categories || [], [categories]);
+  const rootCategories = useMemo(() => allCategoriesData.filter(cat => !cat.parent), [allCategoriesData]);
+
+  // Helper function to get all subcategory IDs for a given category
+  const getAllSubcategoryIds = useCallback((categoryName) => {
+    console.log("Getting subcategory IDs for:", categoryName);
+    console.log("Available categories:", allCategoriesData);
+    
+    const category = allCategoriesData.find(cat => cat.name === categoryName);
+    console.log("Found category:", category);
+    
+    if (!category) return [];
+    
+    const subcategoryIds = [category._id];
+    const subcategories = allCategoriesData.filter(cat => cat.parent === category._id);
+    console.log("Found subcategories:", subcategories);
+    
+    subcategories.forEach(subcat => {
+      subcategoryIds.push(subcat._id);
+      // Also get sub-subcategories if any
+      const subSubcategories = allCategoriesData.filter(cat => cat.parent === subcat._id);
+      subSubcategories.forEach(subSubcat => {
+        subcategoryIds.push(subSubcat._id);
+      });
+    });
+    
+    console.log("Final subcategory IDs:", subcategoryIds);
+    return subcategoryIds;
+  }, [allCategoriesData]);
+
   useEffect(() => {
     if (categoryData === null) {
-      const d = allProducts;
+      const d = allProducts || [];
+      console.log("No category filter, loading all products:", d.length);
       setData(d);
+      setFilteredData(d); // Also set filteredData for all products
     } else {
+      console.log("=== FILTERING BY CATEGORY ===");
+      console.log("Category to filter:", categoryData);
+      console.log("Total products available:", allProducts ? allProducts.length : 0);
+      
+      if (!allProducts || allProducts.length === 0) {
+        console.log("❌ No products available to filter");
+        setData([]);
+        setFilteredData([]); // Clear filteredData when no products available
+        return;
+      }
+      
+      // Get all category and subcategory IDs that should be included
+      const allowedCategoryIds = getAllSubcategoryIds(categoryData);
+      console.log("Allowed category IDs for filtering:", allowedCategoryIds);
+      
       const d =
-        allProducts && allProducts.filter((i) => i.category === categoryData);
-      setData(d);
+        allProducts &&
+        allProducts.filter((product, index) => {
+          console.log(`--- Product ${index + 1}: ${product.name} ---`);
+          console.log("Product category:", product.category);
+          
+          // Handle different category formats
+          if (typeof product.category === "string") {
+            // Old format: category is stored as string name
+            // Check if it matches the selected category directly
+            if (product.category === categoryData) {
+              console.log("✅ Direct string match found");
+              return true;
+            }
+            
+            // Check if this product's category is a subcategory of the selected category
+            const productCategoryObj = allCategoriesData.find(cat => cat.name === product.category);
+            if (productCategoryObj && allowedCategoryIds.includes(productCategoryObj._id)) {
+              console.log("✅ String category is subcategory of selected:", product.category);
+              return true;
+            }
+            
+            console.log("❌ String category doesn't match");
+            return false;
+          } else if (product.category && product.category._id) {
+            // New format: category is populated object
+            // Check if product's category ID matches directly
+            if (allowedCategoryIds.includes(product.category._id)) {
+              console.log("Direct ObjectId match found");
+              return true;
+            }
+            
+            // Check if product's category name matches
+            if (product.category.name === categoryData) {
+              console.log("Category name matches selected");
+              return true;
+            }
+            
+            // Check if product's category is a subcategory and its parent matches
+            if (product.category.parent && allowedCategoryIds.includes(product.category.parent)) {
+              console.log("✅ Product category parent matches selected category");
+              console.log("Product category parent:", product.category.parent);
+              console.log("Allowed category IDs:", allowedCategoryIds);
+              console.log("Parent in allowed list:", allowedCategoryIds.includes(product.category.parent));
+              return true;
+            }
+            
+            // Add detailed debugging for why it's not matching
+            console.log("❌ No match found for product:");
+            console.log("  Product category ID:", product.category._id);
+            console.log("  Product category name:", product.category.name);
+            console.log("  Product category parent:", product.category.parent);
+            console.log("  Selected category:", categoryData);
+            console.log("  Allowed category IDs:", allowedCategoryIds);
+            console.log("  Direct ID match:", allowedCategoryIds.includes(product.category._id));
+            console.log("  Name match:", product.category.name === categoryData);
+            console.log("  Parent match:", product.category.parent && allowedCategoryIds.includes(product.category.parent));
+            
+            return false;
+          } else if (product.category && product.category.name) {
+            // Partial object format
+            const result = product.category.name === categoryData;
+            console.log("Name comparison result:", result);
+            return result;
+          }
+          
+          console.log("❌ Product has undefined/invalid category");
+          return false;
+        });
+      
+      console.log("=== FILTERING COMPLETE ===");
+      console.log("Filtered products count:", d ? d.length : 0);
+      if (d && d.length > 0) {
+        console.log("Found products:", d.map(p => p.name));
+      } else {
+        console.log("No products found for this category");
+      }
+      console.log("About to set data state with:", d ? d.length : 0, "products");
+      setData(d || []);
+      
+      // ALWAYS set filteredData regardless of whether products were found or not
+      console.log("Setting filteredData to URL filtering results:", d ? d.length : 0);
+      setFilteredData(d || []);
     }
-    setSelectedCategory(categoryData || "");
-  }, [allProducts, categoryData]);
+    // Don't set selectedCategory here to avoid double filtering with sidebar
+    // setSelectedCategory(categoryData || "");
+  }, [allProducts, categoryData, getAllSubcategoryIds, allCategoriesData]);
 
   // Apply filters
   useEffect(() => {
-    let filtered = [...data];
+    // Don't run sidebar filtering if we have a URL category parameter
+    // The URL filtering already handles this correctly
+    if (categoryData) {
+      console.log("=== SIDEBAR FILTERING SKIPPED ===");
+      console.log("Reason: URL category parameter exists:", categoryData);
+      console.log("Using URL filtering results instead");
+      return;
+    }
+    
+    // Don't run sidebar filtering if data is empty or not yet loaded
+    if (!data || data.length === 0) {
+      console.log("=== SIDEBAR FILTERING SKIPPED ===");
+      console.log("Reason: data is empty or not loaded yet");
+      console.log("Data length:", data ? data.length : 'undefined');
+      setFilteredData([]);
+      return;
+    }
+    
+    console.log("=== SIDEBAR FILTERING ===");
+    console.log("Input data for sidebar filtering:", data ? data.length : 0);
+    console.log("selectedCategory:", selectedCategory);
+    console.log("selectedSubcategory:", selectedSubcategory);
+    
+    let filtered = [...(data || [])];
+    console.log("Starting with filtered array:", filtered.length);
 
-    // Category filter
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (product) => product.category === selectedCategory
-      );
+    // Category filter (including subcategory)
+    const categoryToFilter = selectedSubcategory || selectedCategory;
+    if (categoryToFilter) {
+      console.log("Filtering by category:", categoryToFilter);
+      // If it's a subcategory, filter exactly by that subcategory
+      if (selectedSubcategory) {
+        console.log("Filtering by subcategory");
+        filtered = filtered.filter((product) => {
+          if (typeof product.category === "string") {
+            return product.category === categoryToFilter;
+          } else if (product.category && product.category._id) {
+            return product.category._id === categoryToFilter;
+          } else if (product.category && product.category.name) {
+            return product.category.name === categoryToFilter;
+          }
+          return false;
+        });
+      } else {
+        // If it's a parent category, include all its subcategories
+        const allowedCategoryIds = getAllSubcategoryIds(categoryToFilter);
+        filtered = filtered.filter((product) => {
+          if (typeof product.category === "string") {
+            return product.category === categoryToFilter;
+          } else if (product.category && product.category._id) {
+            return allowedCategoryIds.includes(product.category._id);
+          } else if (product.category && product.category.name) {
+            return product.category.name === categoryToFilter;
+          }
+          return false;
+        });
+      }
     }
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+          (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -93,11 +293,35 @@ const ProductsPage = () => {
         break;
     }
 
+    console.log("=== SIDEBAR FILTERING COMPLETE ===");
+    console.log("Final filtered data:", filtered.length);
+    if (filtered.length > 0) {
+      console.log("Final filtered products:", filtered.map(p => p.name));
+    }
     setFilteredData(filtered);
-  }, [data, selectedCategory, priceRange, sortBy, searchTerm]);
+  }, [
+    data,
+    selectedCategory,
+    selectedSubcategory,
+    priceRange,
+    sortBy,
+    searchTerm,
+    getAllSubcategoryIds,
+  ]);
 
-  const handleCategoryChange = (category) => {
+  const handleCategoryChange = (category, categoryObj = null) => {
     setSelectedCategory(category);
+    setSelectedSubcategory(""); // Reset subcategory when parent changes
+
+    if (category && categoryObj) {
+      // Set parent category and fetch subcategories
+      setSelectedParentCategory(categoryObj);
+      dispatch(getSubcategoriesPublic(categoryObj._id));
+    } else {
+      // Clear parent category and subcategories
+      setSelectedParentCategory(null);
+    }
+
     if (category) {
       setSearchParams({ category });
     } else {
@@ -105,8 +329,22 @@ const ProductsPage = () => {
     }
   };
 
+  const handleSubcategoryChange = (subcategory) => {
+    setSelectedSubcategory(subcategory);
+    setSelectedCategory(subcategory); // Use subcategory as the main filter
+    if (subcategory) {
+      setSearchParams({ category: subcategory });
+    } else if (selectedParentCategory) {
+      setSearchParams({ category: selectedParentCategory.name });
+    } else {
+      setSearchParams({});
+    }
+  };
+
   const clearFilters = () => {
     setSelectedCategory("");
+    setSelectedSubcategory("");
+    setSelectedParentCategory(null);
     setPriceRange([0, 10000]);
     setSortBy("default");
     setSearchTerm("");
@@ -130,7 +368,7 @@ const ProductsPage = () => {
                   {selectedCategory ? selectedCategory : "All Products"}
                 </h1>
                 <p className="text-gray-600">
-                  {filteredData.length} products found
+                  {filteredData?.length || 0} products found
                 </p>
               </div>
 
@@ -185,37 +423,123 @@ const ProductsPage = () => {
                       <label className="block text-xs font-medium text-gray-700 mb-2">
                         Categories
                       </label>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
                         <label className="flex items-center py-1">
                           <input
                             type="radio"
                             name="category"
-                            checked={selectedCategory === ""}
-                            onChange={() => handleCategoryChange("")}
+                            checked={
+                              selectedCategory === "" &&
+                              selectedSubcategory === ""
+                            }
+                            onChange={() => {
+                              handleCategoryChange("");
+                              setSelectedSubcategory("");
+                              setSelectedParentCategory(null);
+                            }}
                             className="w-3 h-3 text-blue-600"
                           />
                           <span className="ml-2 text-xs text-gray-700">
                             All Categories
                           </span>
                         </label>
-                        {categoriesData.map((category) => (
-                          <label
-                            key={category.id}
-                            className="flex items-center py-1"
-                          >
-                            <input
-                              type="radio"
-                              name="category"
-                              checked={selectedCategory === category.title}
-                              onChange={() =>
-                                handleCategoryChange(category.title)
-                              }
-                              className="w-3 h-3 text-blue-600"
-                            />
-                            <span className="ml-2 text-xs text-gray-700">
-                              {category.title}
-                            </span>
-                          </label>
+
+                        {/* Root Categories */}
+                        {rootCategories.map((category) => (
+                          <div key={category._id || category.id}>
+                            <label className="flex items-center py-1">
+                              <input
+                                type="radio"
+                                name="category"
+                                checked={
+                                  selectedCategory ===
+                                    (category.name || category.title) &&
+                                  selectedSubcategory === ""
+                                }
+                                onChange={() =>
+                                  handleCategoryChange(
+                                    category.name || category.title,
+                                    category
+                                  )
+                                }
+                                className="w-3 h-3 text-blue-600"
+                              />
+                              <span className="ml-2 text-xs text-gray-700 font-medium">
+                                {category.name || category.title}
+                              </span>
+                            </label>
+
+                            {/* Show subcategories if this category is selected */}
+                            {selectedParentCategory &&
+                              selectedParentCategory._id === category._id && (
+                                <div className="ml-4 mt-1 space-y-1">
+                                  {subcategoriesLoading ? (
+                                    <div className="text-xs text-gray-500 py-1">
+                                      Loading subcategories...
+                                    </div>
+                                  ) : subcategories &&
+                                    subcategories.length > 0 ? (
+                                    <>
+                                      <label className="flex items-center py-1">
+                                        <input
+                                          type="radio"
+                                          name="subcategory"
+                                          checked={
+                                            selectedCategory ===
+                                              (category.name ||
+                                                category.title) &&
+                                            selectedSubcategory === ""
+                                          }
+                                          onChange={() =>
+                                            handleCategoryChange(
+                                              category.name || category.title,
+                                              category
+                                            )
+                                          }
+                                          className="w-3 h-3 text-gray-400"
+                                        />
+                                        <span className="ml-2 text-xs text-gray-500 italic">
+                                          All in{" "}
+                                          {category.name || category.title}
+                                        </span>
+                                      </label>
+                                      {subcategories.map((subcategory) => (
+                                        <label
+                                          key={subcategory._id}
+                                          className="flex items-center py-1"
+                                        >
+                                          <input
+                                            type="radio"
+                                            name="subcategory"
+                                            checked={
+                                              selectedSubcategory ===
+                                              (subcategory.name ||
+                                                subcategory.title)
+                                            }
+                                            onChange={() =>
+                                              handleSubcategoryChange(
+                                                subcategory.name ||
+                                                  subcategory.title
+                                              )
+                                            }
+                                            className="w-3 h-3 text-blue-500"
+                                          />
+                                          <span className="ml-2 text-xs text-gray-600">
+                                            {subcategory.name ||
+                                              subcategory.title}
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </>
+                                  ) : selectedParentCategory._id ===
+                                    category._id ? (
+                                    <div className="text-xs text-gray-500 py-1 italic">
+                                      No subcategories found
+                                    </div>
+                                  ) : null}
+                                </div>
+                              )}
+                          </div>
                         ))}
                       </div>
                     </div>

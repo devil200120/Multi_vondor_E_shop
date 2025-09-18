@@ -10,8 +10,9 @@ const productSchema = new mongoose.Schema({
     required: [true, "Please enter your product description!"],
   },
   category: {
-    type: String,
-    required: [true, "Please enter your product category!"],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: [true, "Please select a product category!"],
   },
   tags: {
     type: String,
