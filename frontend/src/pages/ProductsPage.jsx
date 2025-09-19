@@ -24,12 +24,15 @@ const ProductsPage = () => {
   const { allProducts, isLoading } = useSelector((state) => state.products);
   const { categories, subcategories, subcategoriesLoading, parentCategory } =
     useSelector((state) => state.categories);
-    
+
   // Debug: Log the products when they change
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       console.log("Products loaded from Redux:", allProducts.length);
-      console.log("First product from Redux:", JSON.stringify(allProducts[0], null, 2));
+      console.log(
+        "First product from Redux:",
+        JSON.stringify(allProducts[0], null, 2)
+      );
     }
   }, [allProducts]);
   const [data, setData] = useState([]);
@@ -52,34 +55,46 @@ const ProductsPage = () => {
 
   // Use API categories - all categories including subcategories
   const allCategoriesData = useMemo(() => categories || [], [categories]);
-  const rootCategories = useMemo(() => allCategoriesData.filter(cat => !cat.parent), [allCategoriesData]);
+  const rootCategories = useMemo(
+    () => allCategoriesData.filter((cat) => !cat.parent),
+    [allCategoriesData]
+  );
 
   // Helper function to get all subcategory IDs for a given category
-  const getAllSubcategoryIds = useCallback((categoryName) => {
-    console.log("Getting subcategory IDs for:", categoryName);
-    console.log("Available categories:", allCategoriesData);
-    
-    const category = allCategoriesData.find(cat => cat.name === categoryName);
-    console.log("Found category:", category);
-    
-    if (!category) return [];
-    
-    const subcategoryIds = [category._id];
-    const subcategories = allCategoriesData.filter(cat => cat.parent === category._id);
-    console.log("Found subcategories:", subcategories);
-    
-    subcategories.forEach(subcat => {
-      subcategoryIds.push(subcat._id);
-      // Also get sub-subcategories if any
-      const subSubcategories = allCategoriesData.filter(cat => cat.parent === subcat._id);
-      subSubcategories.forEach(subSubcat => {
-        subcategoryIds.push(subSubcat._id);
+  const getAllSubcategoryIds = useCallback(
+    (categoryName) => {
+      console.log("Getting subcategory IDs for:", categoryName);
+      console.log("Available categories:", allCategoriesData);
+
+      const category = allCategoriesData.find(
+        (cat) => cat.name === categoryName
+      );
+      console.log("Found category:", category);
+
+      if (!category) return [];
+
+      const subcategoryIds = [category._id];
+      const subcategories = allCategoriesData.filter(
+        (cat) => cat.parent === category._id
+      );
+      console.log("Found subcategories:", subcategories);
+
+      subcategories.forEach((subcat) => {
+        subcategoryIds.push(subcat._id);
+        // Also get sub-subcategories if any
+        const subSubcategories = allCategoriesData.filter(
+          (cat) => cat.parent === subcat._id
+        );
+        subSubcategories.forEach((subSubcat) => {
+          subcategoryIds.push(subSubcat._id);
+        });
       });
-    });
-    
-    console.log("Final subcategory IDs:", subcategoryIds);
-    return subcategoryIds;
-  }, [allCategoriesData]);
+
+      console.log("Final subcategory IDs:", subcategoryIds);
+      return subcategoryIds;
+    },
+    [allCategoriesData]
+  );
 
   useEffect(() => {
     if (categoryData === null) {
@@ -90,25 +105,28 @@ const ProductsPage = () => {
     } else {
       console.log("=== FILTERING BY CATEGORY ===");
       console.log("Category to filter:", categoryData);
-      console.log("Total products available:", allProducts ? allProducts.length : 0);
-      
+      console.log(
+        "Total products available:",
+        allProducts ? allProducts.length : 0
+      );
+
       if (!allProducts || allProducts.length === 0) {
         console.log("❌ No products available to filter");
         setData([]);
         setFilteredData([]); // Clear filteredData when no products available
         return;
       }
-      
+
       // Get all category and subcategory IDs that should be included
       const allowedCategoryIds = getAllSubcategoryIds(categoryData);
       console.log("Allowed category IDs for filtering:", allowedCategoryIds);
-      
+
       const d =
         allProducts &&
         allProducts.filter((product, index) => {
           console.log(`--- Product ${index + 1}: ${product.name} ---`);
           console.log("Product category:", product.category);
-          
+
           // Handle different category formats
           if (typeof product.category === "string") {
             // Old format: category is stored as string name
@@ -117,14 +135,22 @@ const ProductsPage = () => {
               console.log("✅ Direct string match found");
               return true;
             }
-            
+
             // Check if this product's category is a subcategory of the selected category
-            const productCategoryObj = allCategoriesData.find(cat => cat.name === product.category);
-            if (productCategoryObj && allowedCategoryIds.includes(productCategoryObj._id)) {
-              console.log("✅ String category is subcategory of selected:", product.category);
+            const productCategoryObj = allCategoriesData.find(
+              (cat) => cat.name === product.category
+            );
+            if (
+              productCategoryObj &&
+              allowedCategoryIds.includes(productCategoryObj._id)
+            ) {
+              console.log(
+                "✅ String category is subcategory of selected:",
+                product.category
+              );
               return true;
             }
-            
+
             console.log("❌ String category doesn't match");
             return false;
           } else if (product.category && product.category._id) {
@@ -134,22 +160,30 @@ const ProductsPage = () => {
               console.log("Direct ObjectId match found");
               return true;
             }
-            
+
             // Check if product's category name matches
             if (product.category.name === categoryData) {
               console.log("Category name matches selected");
               return true;
             }
-            
+
             // Check if product's category is a subcategory and its parent matches
-            if (product.category.parent && allowedCategoryIds.includes(product.category.parent)) {
-              console.log("✅ Product category parent matches selected category");
+            if (
+              product.category.parent &&
+              allowedCategoryIds.includes(product.category.parent)
+            ) {
+              console.log(
+                "✅ Product category parent matches selected category"
+              );
               console.log("Product category parent:", product.category.parent);
               console.log("Allowed category IDs:", allowedCategoryIds);
-              console.log("Parent in allowed list:", allowedCategoryIds.includes(product.category.parent));
+              console.log(
+                "Parent in allowed list:",
+                allowedCategoryIds.includes(product.category.parent)
+              );
               return true;
             }
-            
+
             // Add detailed debugging for why it's not matching
             console.log("❌ No match found for product:");
             console.log("  Product category ID:", product.category._id);
@@ -157,10 +191,20 @@ const ProductsPage = () => {
             console.log("  Product category parent:", product.category.parent);
             console.log("  Selected category:", categoryData);
             console.log("  Allowed category IDs:", allowedCategoryIds);
-            console.log("  Direct ID match:", allowedCategoryIds.includes(product.category._id));
-            console.log("  Name match:", product.category.name === categoryData);
-            console.log("  Parent match:", product.category.parent && allowedCategoryIds.includes(product.category.parent));
-            
+            console.log(
+              "  Direct ID match:",
+              allowedCategoryIds.includes(product.category._id)
+            );
+            console.log(
+              "  Name match:",
+              product.category.name === categoryData
+            );
+            console.log(
+              "  Parent match:",
+              product.category.parent &&
+                allowedCategoryIds.includes(product.category.parent)
+            );
+
             return false;
           } else if (product.category && product.category.name) {
             // Partial object format
@@ -168,23 +212,33 @@ const ProductsPage = () => {
             console.log("Name comparison result:", result);
             return result;
           }
-          
+
           console.log("❌ Product has undefined/invalid category");
           return false;
         });
-      
+
       console.log("=== FILTERING COMPLETE ===");
       console.log("Filtered products count:", d ? d.length : 0);
       if (d && d.length > 0) {
-        console.log("Found products:", d.map(p => p.name));
+        console.log(
+          "Found products:",
+          d.map((p) => p.name)
+        );
       } else {
         console.log("No products found for this category");
       }
-      console.log("About to set data state with:", d ? d.length : 0, "products");
+      console.log(
+        "About to set data state with:",
+        d ? d.length : 0,
+        "products"
+      );
       setData(d || []);
-      
+
       // ALWAYS set filteredData regardless of whether products were found or not
-      console.log("Setting filteredData to URL filtering results:", d ? d.length : 0);
+      console.log(
+        "Setting filteredData to URL filtering results:",
+        d ? d.length : 0
+      );
       setFilteredData(d || []);
     }
     // Don't set selectedCategory here to avoid double filtering with sidebar
@@ -201,21 +255,21 @@ const ProductsPage = () => {
       console.log("Using URL filtering results instead");
       return;
     }
-    
+
     // Don't run sidebar filtering if data is empty or not yet loaded
     if (!data || data.length === 0) {
       console.log("=== SIDEBAR FILTERING SKIPPED ===");
       console.log("Reason: data is empty or not loaded yet");
-      console.log("Data length:", data ? data.length : 'undefined');
+      console.log("Data length:", data ? data.length : "undefined");
       setFilteredData([]);
       return;
     }
-    
+
     console.log("=== SIDEBAR FILTERING ===");
     console.log("Input data for sidebar filtering:", data ? data.length : 0);
     console.log("selectedCategory:", selectedCategory);
     console.log("selectedSubcategory:", selectedSubcategory);
-    
+
     let filtered = [...(data || [])];
     console.log("Starting with filtered array:", filtered.length);
 
@@ -256,8 +310,12 @@ const ProductsPage = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (product) =>
-          (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+          (product.name &&
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (product.description &&
+            product.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -296,7 +354,10 @@ const ProductsPage = () => {
     console.log("=== SIDEBAR FILTERING COMPLETE ===");
     console.log("Final filtered data:", filtered.length);
     if (filtered.length > 0) {
-      console.log("Final filtered products:", filtered.map(p => p.name));
+      console.log(
+        "Final filtered products:",
+        filtered.map((p) => p.name)
+      );
     }
     setFilteredData(filtered);
   }, [

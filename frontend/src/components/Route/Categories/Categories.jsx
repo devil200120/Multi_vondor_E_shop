@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { brandingData } from "../../../static/data";
 import { getRootCategoriesPublic } from "../../../redux/actions/category";
+import { backend_url } from "../../../server";
 import { HiStar, HiCollection, HiArrowRight, HiSparkles } from "react-icons/hi";
 
 const Categories = () => {
@@ -111,7 +112,11 @@ const Categories = () => {
                     {/* Category Image Container */}
                     <div className="aspect-square p-4 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
                       <img
-                        src={category.image || category.image_Url}
+                        src={
+                          category.image ||
+                          category.image_Url ||
+                          `${backend_url}/placeholder.jpg`
+                        }
                         alt={category.name || category.title}
                         className="w-full h-full object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
                       />

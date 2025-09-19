@@ -15,6 +15,7 @@ import {
   HiOutlineTruck,
   HiOutlineRefresh,
 } from "react-icons/hi";
+import { FiMapPin } from "react-icons/fi";
 import { BiStore } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -30,6 +31,7 @@ import { addTocart } from "../../redux/actions/cart";
 import { toast } from "react-toastify";
 import Ratings from "./Ratings";
 import FullScreenMediaViewer from "./FullScreenImageViewer";
+import PincodeValidationDialog from "../PincodeService/PincodeValidationDialog";
 import { usePincodeService } from "../../hooks/usePincodeService";
 import axios from "axios";
 
@@ -56,6 +58,7 @@ const ProductDetails = ({ data }) => {
   const [userPincode, setUserPincode] = useState(null);
   const [deliveryStatus, setDeliveryStatus] = useState(null); // 'available', 'not-available', 'checking'
   const [deliveryMessage, setDeliveryMessage] = useState("");
+  const [showPincodeDialog, setShowPincodeDialog] = useState(false);
   const { validatePincode, loading: pincodeLoading } = usePincodeService();
 
   // Combine images and videos into a single media array for viewer
@@ -130,11 +133,11 @@ const ProductDetails = ({ data }) => {
     checkUserEligibility();
   }, [isAuthenticated, user, data]);
 
-  // Auto-check pincode delivery for logged-in users
+  // Auto-check pincode delivery for logged-in users or show dialog for guests
   useEffect(() => {
-    const checkDeliveryForUser = async () => {
+    if (data) {
       if (isAuthenticated && user?.addresses && user.addresses.length > 0) {
-        // Get the primary address or first address
+        // Check delivery for logged-in users with addresses
         const primaryAddress =
           user.addresses.find((addr) => addr.addressType === "default") ||
           user.addresses[0];
@@ -144,30 +147,55 @@ const ProductDetails = ({ data }) => {
           setUserPincode(pincode);
           setDeliveryStatus("checking");
 
-          try {
-            const result = await validatePincode(pincode);
-            if (result.isValid) {
-              setDeliveryStatus("available");
-              setDeliveryMessage(
-                `✅ Delivery available to ${primaryAddress.city}, ${pincode}`
-              );
-            } else {
+          validatePincode(pincode)
+            .then((result) => {
+              if (result.isValid) {
+                setDeliveryStatus("available");
+                setDeliveryMessage(
+                  `✅ Delivery available to ${primaryAddress.city}, ${pincode}`
+                );
+              } else {
+                setDeliveryStatus("not-available");
+                setDeliveryMessage(
+                  `❌ ${
+                    result.message || "Delivery not available to your area"
+                  }`
+                );
+              }
+            })
+            .catch((error) => {
+              console.error("Error checking pincode:", error);
               setDeliveryStatus("not-available");
-              setDeliveryMessage(
-                `❌ ${result.message || "Delivery not available to your area"}`
-              );
-            }
-          } catch (error) {
-            console.error("Error checking pincode:", error);
-            setDeliveryStatus("not-available");
-            setDeliveryMessage("❌ Unable to check delivery availability");
-          }
+              setDeliveryMessage("❌ Unable to check delivery availability");
+            });
         }
-      }
-    };
+      } else {
+        // Show pincode dialog for guests or users without addresses
+        const timer = setTimeout(() => {
+          setShowPincodeDialog(true);
+        }, 1500); // Show dialog after 1.5 seconds
 
-    checkDeliveryForUser();
-  }, [isAuthenticated, user, validatePincode]);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isAuthenticated, user, validatePincode, data]);
+
+  // Handle pincode validation result from dialog
+  const handlePincodeValidationResult = (result) => {
+    if (result.isValid) {
+      setDeliveryStatus("available");
+      setDeliveryMessage(
+        `✅ Delivery available to ${result.data.area}, ${result.pincode}`
+      );
+      setUserPincode(result.pincode);
+    } else {
+      setDeliveryStatus("not-available");
+      setDeliveryMessage(
+        `❌ ${result.message || "Delivery not available to this area"}`
+      );
+      setUserPincode(result.pincode);
+    }
+  };
 
   // Handle smooth modal closing
   const handleCloseModal = () => {
@@ -337,17 +365,15 @@ const ProductDetails = ({ data }) => {
       : 0;
 
   // This is for the overall products rating calculation (not used for shop rating)
-  const totalRatings =
-    products &&
-    products.reduce(
-      (acc, product) =>
-        acc + product.reviews.reduce((sum, review) => sum + review.rating, 0),
-      0
-    );
+  // const totalRatings =
+  //   products &&
+  //   products.reduce(
+  //     (acc, product) =>
+  //       acc + product.reviews.reduce((sum, review) => sum + review.rating, 0),
+  //     0
+  //   );
 
-  const avg = totalRatings / totalReviewsLength || 0;
-
-  const averageRating = avg.toFixed(2);
+  // const avg = totalRatings / totalReviewsLength || 0;
 
   // Sand message
   const handleMessageSubmit = async () => {
@@ -558,11 +584,12 @@ const ProductDetails = ({ data }) => {
               {/* Price Section */}
               <div className="flex items-center space-x-2">
                 <span className="text-xl lg:text-2xl font-bold text-gray-900">
-                  ${data.discountPrice}
+                  ₹{data.discountPrice}
+
                 </span>
                 {data.originalPrice && (
                   <span className="text-base text-gray-500 line-through">
-                    ${data.originalPrice}
+                    ₹{data.originalPrice}
                   </span>
                 )}
               </div>
@@ -593,54 +620,89 @@ const ProductDetails = ({ data }) => {
                       : "bg-blue-50 border-blue-400"
                   }`}
                 >
-                  <div className="flex items-center">
-                    {pincodeLoading || deliveryStatus === "checking" ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                    ) : (
-                      <HiOutlineTruck
-                        className={`w-5 h-5 mr-3 ${
-                          deliveryStatus === "available"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      />
-                    )}
-                    <div>
-                      <p
-                        className={`text-sm font-medium ${
-                          deliveryStatus === "available"
-                            ? "text-green-800"
-                            : deliveryStatus === "not-available"
-                            ? "text-red-800"
-                            : "text-blue-800"
-                        }`}
-                      >
-                        {pincodeLoading || deliveryStatus === "checking"
-                          ? "Checking delivery availability..."
-                          : deliveryStatus === "available"
-                          ? "Delivery Available"
-                          : "Delivery Not Available"}
-                      </p>
-                      <p
-                        className={`text-xs ${
-                          deliveryStatus === "available"
-                            ? "text-green-700"
-                            : deliveryStatus === "not-available"
-                            ? "text-red-700"
-                            : "text-blue-700"
-                        }`}
-                      >
-                        {deliveryMessage ||
-                          (userPincode
-                            ? `For pincode: ${userPincode}`
-                            : "Based on your saved address")}
-                      </p>
-                      {deliveryStatus === "not-available" && (
-                        <p className="text-xs text-gray-600 mt-1">
-                          * We currently only deliver to Karnataka areas
-                        </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      {pincodeLoading || deliveryStatus === "checking" ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                      ) : (
+                        <HiOutlineTruck
+                          className={`w-5 h-5 mr-3 ${
+                            deliveryStatus === "available"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        />
                       )}
+                      <div>
+                        <p
+                          className={`text-sm font-medium ${
+                            deliveryStatus === "available"
+                              ? "text-green-800"
+                              : deliveryStatus === "not-available"
+                              ? "text-red-800"
+                              : "text-blue-800"
+                          }`}
+                        >
+                          {pincodeLoading || deliveryStatus === "checking"
+                            ? "Checking delivery availability..."
+                            : deliveryStatus === "available"
+                            ? "Delivery Available"
+                            : "Delivery Not Available"}
+                        </p>
+                        <p
+                          className={`text-xs ${
+                            deliveryStatus === "available"
+                              ? "text-green-700"
+                              : deliveryStatus === "not-available"
+                              ? "text-red-700"
+                              : "text-blue-700"
+                          }`}
+                        >
+                          {deliveryMessage ||
+                            (userPincode
+                              ? `For pincode: ${userPincode}`
+                              : "Based on your saved address")}
+                        </p>
+                        {deliveryStatus === "not-available" && (
+                          <p className="text-xs text-gray-600 mt-1">
+                            * We currently only deliver to Karnataka areas
+                          </p>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Check Pincode Button */}
+                    <button
+                      onClick={() => setShowPincodeDialog(true)}
+                      className="ml-4 px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    >
+                      {deliveryStatus ? "Change" : "Check"} Pincode
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Show pincode button for users without delivery status */}
+              {!deliveryStatus && !pincodeLoading && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start space-x-2">
+                      <FiMapPin className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-yellow-800 text-sm">
+                          Check Delivery Availability
+                        </h4>
+                        <p className="text-yellow-700 text-xs mt-1">
+                          Enter your pincode to check if we deliver to your area
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPincodeDialog(true)}
+                      className="px-4 py-2 bg-yellow-600 text-white font-medium rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                    >
+                      Check Pincode
+                    </button>
                   </div>
                 </div>
               )}
@@ -930,6 +992,15 @@ const ProductDetails = ({ data }) => {
         isOpen={isFullScreenOpen}
         onClose={() => setIsFullScreenOpen(false)}
         productName={data?.name || "Product"}
+      />
+
+      {/* Pincode Validation Dialog */}
+      <PincodeValidationDialog
+        show={showPincodeDialog}
+        onClose={() => setShowPincodeDialog(false)}
+        onValidationResult={handlePincodeValidationResult}
+        userAddresses={user?.addresses || []}
+        productName={data?.name || "this product"}
       />
     </div>
   );

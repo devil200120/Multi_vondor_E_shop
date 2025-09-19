@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import styles from "../../../styles/styles";
-import { server } from "../../../server";
+import { server, backend_url } from "../../../server";
 
 const Hero = () => {
   const [banner, setBanner] = useState({
@@ -25,11 +25,43 @@ const Hero = () => {
     fetchBannerData();
   }, []);
 
+  // Also refresh banner data when component becomes visible (e.g., user navigates back to home)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("Page became visible, refreshing banner data");
+        fetchBannerData();
+      }
+    };
+
+    const handleBannerUpdate = (event) => {
+      console.log("Received banner update event:", event.detail);
+      setBanner(event.detail);
+      // Force image reload by updating the state
+      setTimeout(() => {
+        setBanner((prev) => ({ ...prev, _imageRefresh: Date.now() }));
+      }, 100);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("bannerUpdated", handleBannerUpdate);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("bannerUpdated", handleBannerUpdate);
+    };
+  }, []);
+
   const fetchBannerData = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${server}/banner/get-banner`);
+      // Add cache-busting parameter to force fresh data
+      const { data } = await axios.get(
+        `${server}/banner/get-banner?t=${Date.now()}`
+      );
+      console.log("Banner data received:", data);
       if (data.success && data.banner) {
+        console.log("Setting banner data:", data.banner);
         setBanner(data.banner);
       }
     } catch (error) {
@@ -44,7 +76,14 @@ const Hero = () => {
   const getImageUrl = (image) => {
     if (!image) return banner.image;
     if (image.startsWith("http")) return image;
-    return `${server}${image}`;
+    // Add multiple cache-busting parameters to force image refresh
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(7);
+    const imageUrl = `${backend_url}${image}?t=${timestamp}&r=${random}&v=${
+      banner.updatedAt || timestamp
+    }`;
+    console.log("Constructed image URL:", imageUrl);
+    return imageUrl;
   };
   return (
     <div className="relative min-h-[70vh] 800px:min-h-[85vh] w-full bg-gradient-to-br from-primary-50 to-secondary-100 overflow-hidden">
@@ -130,9 +169,14 @@ const Hero = () => {
                   src={getImageUrl(banner.image)}
                   alt="Home Decoration"
                   className="w-full h-auto rounded-2xl shadow-unacademy-xl hover:shadow-unacademy-xl transition-all duration-300 hover:transform hover:scale-105"
+                  key={`banner-image-${banner._imageRefresh || Date.now()}`} // Force re-render when banner updates
                   onError={(e) => {
+                    console.log("Image failed to load, trying fallback");
                     e.target.src =
                       "https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg";
+                  }}
+                  onLoad={() => {
+                    console.log("Banner image loaded successfully");
                   }}
                 />
               )}

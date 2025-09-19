@@ -146,7 +146,7 @@ const AdminDashboardMain = () => {
       row.push({
         id: item._id,
         itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: "US$ " + item?.totalPrice,
+        total: "₹" + item?.totalPrice,
         status: item?.status,
       });
     });
@@ -182,7 +182,7 @@ const AdminDashboardMain = () => {
                     Total Earnings
                   </p>
                   <p className="text-2xl font-bold text-primary-600">
-                    ${adminBalance}
+                    ₹{adminBalance}
                   </p>
                   <div className="flex items-center mt-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

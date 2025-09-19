@@ -316,7 +316,7 @@ const AdminCategoryManager = () => {
         <div className="flex items-center">
           {params.row.image && (
             <img
-              src={`${backend_url}${params.row.image}`}
+              src={params.row.image}
               alt={params.row.name}
               className="w-8 h-8 rounded object-cover mr-2"
             />

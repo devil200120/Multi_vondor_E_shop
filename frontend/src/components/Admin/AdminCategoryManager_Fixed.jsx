@@ -242,7 +242,7 @@ const AdminCategoryManager = () => {
                   <div className="flex items-center">
                     {category.image && (
                       <img
-                        src={`http://localhost:8000/${category.image}`}
+                        src={category.image}
                         alt={category.name}
                         className="w-12 h-12 rounded object-cover mr-4"
                       />

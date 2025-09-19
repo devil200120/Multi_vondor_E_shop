@@ -20,7 +20,8 @@ const DropDown = ({ categoriesData, setDropDown }) => {
 
       {/* Categories List */}
       <div className="max-h-80 overflow-y-auto">
-        {categoriesData && Array.isArray(categoriesData) &&
+        {categoriesData &&
+          Array.isArray(categoriesData) &&
           categoriesData.map((i, index) => (
             <div
               key={i._id || i.id || index}

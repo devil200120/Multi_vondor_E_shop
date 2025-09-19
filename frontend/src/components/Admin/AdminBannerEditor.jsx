@@ -120,6 +120,17 @@ const AdminBannerEditor = () => {
         toast.success("Banner updated successfully!");
         setBanner(data.banner);
         setImageFile(null);
+
+        // Clear any cached data to ensure home page gets fresh data
+        console.log("Banner updated - clearing cache");
+
+        // Optional: You can add a mechanism to notify other components
+        // that the banner has been updated
+        window.dispatchEvent(
+          new CustomEvent("bannerUpdated", {
+            detail: data.banner,
+          })
+        );
       }
     } catch (error) {
       toast.error("Failed to update banner");

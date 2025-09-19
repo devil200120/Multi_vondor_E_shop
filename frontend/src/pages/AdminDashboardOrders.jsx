@@ -200,7 +200,8 @@ const AdminDashboardOrders = () => {
       row.push({
         id: item._id,
         itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: "$" + item?.totalPrice?.toFixed(2),
+                total: "₹" + item?.totalPrice?.toFixed(2),
+
         status: item?.status,
         createdAt: item?.createdAt.slice(0, 10),
       });
@@ -333,7 +334,8 @@ const AdminDashboardOrders = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Revenue</p>
                     <p className="text-2xl font-bold text-blue-600">
-                      ${totalRevenue.toFixed(2)}
+                          ₹{totalRevenue.toFixed(2)}
+
                     </p>
                     <div className="flex items-center mt-2">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

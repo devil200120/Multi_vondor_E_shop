@@ -143,7 +143,7 @@ const CategoryForm = ({ open, onClose, category }) => {
       });
 
       if (category.image) {
-        setImagePreview(`${backend_url}${category.image}`);
+        setImagePreview(category.image);
       }
     } else {
       setFormData({
