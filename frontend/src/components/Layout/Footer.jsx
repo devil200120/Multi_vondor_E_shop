@@ -235,7 +235,7 @@ const Footer = () => {
                     <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-blue-500 rounded-lg flex items-center justify-center">
                       <AiOutlineMail className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-gray-300">support@wanttar.com</span>
+                    <span className="text-gray-300">support@wanttar.in</span>
                   </div>
                 </div>
 
