@@ -415,10 +415,16 @@ const Footer = () => {
                     Privacy Policy
                   </Link>
                   <Link
-                    to="/cookies"
-                    className="text-gray-400 hover:text-teal-400 text-sm transition-colors duration-300 hover:underline"
+                    to="/refund"
+                    className="text-gray-400 hover:text-green-400 text-sm transition-colors duration-300 hover:underline"
                   >
-                    Cookie Policy
+                    Return & Refund
+                  </Link>
+                  <Link
+                    to="/shipping"
+                    className="text-gray-400 hover:text-orange-400 text-sm transition-colors duration-300 hover:underline"
+                  >
+                    Shipping Policy
                   </Link>
                 </div>
               </div>

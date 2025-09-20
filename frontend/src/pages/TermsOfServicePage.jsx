@@ -12,82 +12,77 @@ const TermsOfServicePage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-8">Terms of Service</h1>
             
             <div className="prose max-w-none">
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Agreement to Terms</h2>
-                <p className="text-gray-600 mb-4">
-                  By accessing and using WANTTAR platform, you accept and agree to be bound by the terms and provision of this agreement.
+              <div className="mb-6">
+                <p className="text-lg text-gray-700 mb-2"><strong>Effective Date:</strong> 20.09.2025</p>
+                <p className="text-lg text-gray-700 mb-6"><strong>Last Updated:</strong> 20.09.2025</p>
+                <p className="text-lg text-gray-700 mb-6">
+                  Welcome to Wanttar ("Website" and "App"), operated by Wanttar. By accessing or using www.wanttar.in
                 </p>
-              </section>
+              </div>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Use License</h2>
-                <p className="text-gray-600 mb-4">
-                  Permission is granted to temporarily download one copy of the materials on WANTTAR's website for personal, non-commercial transitory viewing only.
-                </p>
-                <ul className="list-disc list-inside text-gray-600 mb-4">
-                  <li>This is the grant of a license, not a transfer of title</li>
-                  <li>Under this license you may not modify or copy the materials</li>
-                  <li>Use the materials for any commercial purpose or for any public display</li>
-                  <li>Attempt to reverse engineer any software contained on the website</li>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Use of the Platform</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>You must be at least 18 years old to use our services.</li>
+                  <li>Vendors are responsible for listing accurate product details.</li>
+                  <li>Customers are responsible for providing correct delivery and payment information.</li>
                 </ul>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. Disclaimer</h2>
-                <p className="text-gray-600 mb-4">
-                  The materials on WANTTAR's website are provided on an 'as is' basis. WANTTAR makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Account Terms</h2>
-                <p className="text-gray-600 mb-4">
-                  When you create an account with us, you must provide information that is accurate, complete, and current at all times.
-                </p>
-                <ul className="list-disc list-inside text-gray-600 mb-4">
-                  <li>You are responsible for safeguarding the password</li>
-                  <li>You are responsible for all activities that occur under your account</li>
-                  <li>You must notify us immediately of any unauthorized use</li>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Account Registration</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>You agree to provide true, accurate, and complete information during registration.</li>
+                  <li>You are responsible for maintaining the confidentiality of your account.</li>
                 </ul>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Payment Terms</h2>
-                <p className="text-gray-600 mb-4">
-                  All payments are processed securely through our payment partners. By making a purchase, you agree to provide accurate payment information.
-                </p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. Multivendor Marketplace</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>Wanttar is a platform connecting buyers and sellers.</li>
+                  <li>We are not the manufacturer of products; vendors are responsible for product quality, warranty, and compliance.</li>
+                  <li>Any disputes must be resolved between buyer and vendor, though Wanttar may assist in mediation.</li>
+                </ul>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. Refund Policy</h2>
-                <p className="text-gray-600 mb-4">
-                  Refunds are handled on a case-by-case basis. Please contact our customer support team for refund requests.
-                </p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Payments</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>Payments are processed through secure gateways.</li>
+                  <li>Orders will only be confirmed after successful payment.</li>
+                </ul>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">7. Limitations</h2>
-                <p className="text-gray-600 mb-4">
-                  In no event shall WANTTAR or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on WANTTAR's website.
-                </p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Limitation of Liability</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>Wanttar shall not be liable for indirect, incidental, or consequential damages.</li>
+                  <li>We do not guarantee uninterrupted access or error-free operation.</li>
+                </ul>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. Contact Information</h2>
-                <p className="text-gray-600 mb-4">
-                  If you have any questions about these Terms of Service, please contact us at:
-                </p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. Governing Law</h2>
+                <ul className="list-disc list-inside text-gray-600 mb-4 space-y-2">
+                  <li>These terms shall be governed by Indian law.</li>
+                  <li>Any disputes shall be subject to the jurisdiction of courts in Bengaluru, India.</li>
+                </ul>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Contact Us</h2>
                 <div className="bg-gray-100 p-4 rounded-lg">
                   <p className="text-gray-700">Business: Manohar Enterprises</p>
-                  <p className="text-gray-700">Email: support@wanttar.com</p>
-                  <p className="text-gray-700">Phone: +91 7349727270</p>
+                  <p className="text-gray-700">📞 +91 7349727270</p>
+                  <p className="text-gray-700">📧 support@wanttar.in</p>
                   <p className="text-gray-700">Address: 5-25 , 15th main road,3rd stage,4th block, Basaveswaranagar,near Guru sagar hotel, Bangalore 560079</p>
                 </div>
               </section>
 
               <div className="border-t pt-6 mt-8">
                 <p className="text-sm text-gray-500">
-                  Last updated: {new Date().toLocaleDateString()}
+                  Last updated: 20.09.2025
                 </p>
               </div>
             </div>

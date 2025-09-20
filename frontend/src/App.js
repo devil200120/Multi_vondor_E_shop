@@ -8,6 +8,8 @@ import BanProtection from "./components/BanDetection/BanProtection";
 import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import RefundPolicyPage from "./pages/RefundPolicyPage";
+import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import {
   LoginPage,
   SignupPage,
@@ -158,6 +160,8 @@ const App = () => {
         <Route path="/sign-up" element={<SignupPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/refund" element={<RefundPolicyPage />} />
+        <Route path="/shipping" element={<ShippingPolicyPage />} />
         <Route path="/forgot-password" element={<UserForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<UserResetPasswordPage />} />
         <Route
