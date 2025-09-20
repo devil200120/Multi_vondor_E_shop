@@ -14,7 +14,7 @@ import {
 import { logoutUser } from "../../redux/actions/user";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
-import BrandingLogo from "../../WANTTA (2).png";
+import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 import AdminSideBar from "../Admin/Layout/AdminSideBar";
 import AdminNotifications from "./AdminNotifications";
 

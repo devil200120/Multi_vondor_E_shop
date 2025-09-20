@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import BrandingLogo from "../../WANTTA (2).png";
+import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 
 const UserResetPassword = () => {
   const navigate = useNavigate();

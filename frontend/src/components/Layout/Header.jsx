@@ -96,10 +96,10 @@ const Header = ({ activeHeading }) => {
               <img
                 src={BrandingLogo}
                 alt="Brand Logo"
-                className="h-36 w-auto object-contain transition-all duration-300"
+                className="h-44 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  maxWidth: "220px",
+                  maxWidth: "280px",
                 }}
               />
             </Link>
@@ -114,6 +114,10 @@ const Header = ({ activeHeading }) => {
                 placeholder="Search for products, courses..."
                 value={searchTerm}
                 onChange={handleSearchChange}
+                onBlur={() => {
+                  // Use setTimeout to allow clicks on search results to register first
+                  setTimeout(() => setSearchData(null), 150);
+                }}
                 className={`${styles.search_input}`}
               />
             </div>
@@ -290,10 +294,10 @@ const Header = ({ activeHeading }) => {
               <img
                 src={BrandingLogo}
                 alt="Brand Logo"
-                className="h-24 w-auto object-contain transition-all duration-300"
+                className="h-32 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  maxWidth: "160px",
+                  maxWidth: "200px",
                 }}
               />
             </Link>
@@ -403,6 +407,10 @@ const Header = ({ activeHeading }) => {
                   className="w-full pl-10 pr-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   value={searchTerm}
                   onChange={handleSearchChange}
+                  onBlur={() => {
+                    // Use setTimeout to allow clicks on search results to register first
+                    setTimeout(() => setSearchData(null), 150);
+                  }}
                 />
               </div>
 

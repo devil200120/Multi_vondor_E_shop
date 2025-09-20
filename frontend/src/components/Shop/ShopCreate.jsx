@@ -618,7 +618,10 @@ const ShopCreate = () => {
                     required
                     className="h-4 w-4 mt-1 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
+                  <label
+                    htmlFor="terms"
+                    className="text-sm text-gray-700 leading-relaxed"
+                  >
                     I agree to the{" "}
                     <Link
                       to="/terms"
@@ -635,7 +638,8 @@ const ShopCreate = () => {
                     >
                       Privacy Policy
                     </Link>
-                    . I understand that by creating a seller account, I agree to comply with all platform policies and guidelines.
+                    . I understand that by creating a seller account, I agree to
+                    comply with all platform policies and guidelines.
                   </label>
                 </div>
               </div>

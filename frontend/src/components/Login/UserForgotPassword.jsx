@@ -4,7 +4,7 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import BrandingLogo from "../../WANTTA (2).png";
+import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 
 const UserForgotPassword = () => {
   const navigate = useNavigate();

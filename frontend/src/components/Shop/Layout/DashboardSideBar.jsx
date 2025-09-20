@@ -283,7 +283,9 @@ const DashboardSideBar = ({ active }) => {
                   {item.badge && (
                     <span
                       className={`inline-flex items-center justify-center text-xs font-medium rounded-full transition-all duration-200 leading-none ${
-                        mobile ? "min-w-[22px] h-[22px] px-2" : "min-w-5 h-5 px-1.5"
+                        mobile
+                          ? "min-w-[22px] h-[22px] px-2"
+                          : "min-w-5 h-5 px-1.5"
                       } ${
                         isActive
                           ? "bg-blue-600 text-white"

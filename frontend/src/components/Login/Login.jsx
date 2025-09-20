@@ -10,7 +10,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { loadUser } from "../../redux/actions/user";
-import BrandingLogo from "../../WANTTA (2).png";
+import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -34,19 +34,18 @@ const Login = () => {
 
       // Load user data and get the user info
       await dispatch(loadUser());
-      
+
       // Fetch user data directly to check role
       const { data } = await axios.get(`${server}/user/getuser`, {
         withCredentials: true,
       });
-      
+
       // Check user role and redirect accordingly
       if (data.user && data.user.role === "Admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/");
       }
-      
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
