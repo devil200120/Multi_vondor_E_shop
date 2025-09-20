@@ -10,7 +10,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { loadUser } from "../../redux/actions/user";
-import BrandingLogo from "../../Branding_logo.jpg";
+import BrandingLogo from "../../WANTTA (2).png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -32,10 +32,21 @@ const Login = () => {
       );
       toast.success("Login Successful!");
 
-      // Load user data into Redux store
-      dispatch(loadUser());
-
-      navigate("/");
+      // Load user data and get the user info
+      await dispatch(loadUser());
+      
+      // Fetch user data directly to check role
+      const { data } = await axios.get(`${server}/user/getuser`, {
+        withCredentials: true,
+      });
+      
+      // Check user role and redirect accordingly
+      if (data.user && data.user.role === "Admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+      
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
@@ -58,14 +69,13 @@ const Login = () => {
       {/* Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
-          <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-50 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-100 p-3 hover:scale-105 transition-all duration-300">
+          <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-50 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-100 p-1 hover:scale-105 transition-all duration-300">
             <img
               src={BrandingLogo}
               alt="Brand Logo"
-              className="h-full w-full object-contain filter drop-shadow-lg"
+              className="h-full w-full object-contain"
               style={{
-                filter:
-                  "drop-shadow(0 4px 8px rgba(0,0,0,0.1)) brightness(1.1) contrast(1.1)",
+                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))",
               }}
             />
           </div>
@@ -99,7 +109,7 @@ const Login = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 placeholder-text-muted bg-white text-text-primary"
+                className="w-full px-4 py-3 border border-secondary-300 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 hover:border-secondary-400 transition-all duration-300 ease-in-out placeholder-text-muted bg-white text-text-primary shadow-sm focus:shadow-md outline-none"
               />
             </div>
 
@@ -121,7 +131,7 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 placeholder-text-muted bg-white text-text-primary"
+                  className="w-full px-4 py-3 pr-12 border border-secondary-300 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 hover:border-secondary-400 transition-all duration-300 ease-in-out placeholder-text-muted bg-white text-text-primary shadow-sm focus:shadow-md outline-none"
                 />
                 <button
                   type="button"

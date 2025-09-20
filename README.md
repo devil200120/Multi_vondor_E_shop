@@ -318,7 +318,7 @@ The MERN Marketplace application will allow users to become sellers, who can man
 
 ## Project description 📝
 
-🌟 Introducing MERN Marketplace: A Revolutionary Multi-Vendor Website 🌟
+🌟 Introducing WANTTAR: A Revolutionary E-Commerce Platform 🌟
 
 🚀 Dear LinkedIn Network, I am thrilled to announce the completion of my latest project, the MERN Marketplace! 🌟 This dynamic platform brings together buyers and sellers, offering a seamless online shopping experience with a plethora of innovative features.
 
@@ -432,7 +432,7 @@ Withdrawal Management: Provide admins with the ability to verify seller withdraw
 
 Image Management: Enable admins to delete images, ensuring data integrity and storage optimization. <Br/>
 
-🚀 With the power of these cutting-edge technologies, the MERN Marketplace delivers a robust and feature-rich multi-vendor website. It ensures a seamless user experience, efficient data management, real-time communication, and secure transactions. Join me in revolutionizing the e-commerce experience by connecting buyers and sellers in a dynamic and user-friendly environment.
+🚀 With the power of these cutting-edge technologies, WANTTAR delivers a robust and feature-rich e-commerce platform. It ensures a seamless user experience, efficient data management, real-time communication, and secure transactions. Join us in revolutionizing the e-commerce experience by connecting buyers and sellers in a dynamic and user-friendly environment.
 
 Feel free to reach out to me for more information or to explore collaboration opportunities.
 

@@ -14,7 +14,7 @@ import {
 import { logoutUser } from "../../redux/actions/user";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
-import BrandingLogo from "../../Branding_logo.jpg";
+import BrandingLogo from "../../WANTTA (2).png";
 import AdminSideBar from "../Admin/Layout/AdminSideBar";
 import AdminNotifications from "./AdminNotifications";
 
@@ -58,16 +58,19 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
   return (
     <div className="w-full h-20 bg-white shadow-sm border-b border-gray-200 sticky top-0 left-0 z-30 flex items-center justify-between px-6">
       {/* Left Side - Logo */}
-      <div className="flex items-center space-x-4">
-        <Link to="/" className="flex items-center space-x-3">
+      <div className="flex items-center space-x-5">
+        <Link to="/" className="flex items-center space-x-4">
           <img
             src={BrandingLogo}
             alt="Brand Logo"
-            className="h-12 w-auto object-contain enhanced-logo"
+            className="h-24 w-auto object-contain transition-all duration-300 hover:scale-105"
+            style={{
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+            }}
           />
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-sm text-gray-500">Management Dashboard</p>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+            <p className="text-base text-gray-500">Management Dashboard</p>
           </div>
         </Link>
       </div>

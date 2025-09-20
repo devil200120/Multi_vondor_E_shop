@@ -6,6 +6,8 @@ import { useGoogleTranslate } from "./hooks/useGoogleTranslate";
 import BanModal from "./components/BanDetection/BanModal";
 import BanProtection from "./components/BanDetection/BanProtection";
 import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import {
   LoginPage,
   SignupPage,
@@ -154,6 +156,8 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/forgot-password" element={<UserForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<UserResetPasswordPage />} />
         <Route

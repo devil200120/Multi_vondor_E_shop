@@ -804,7 +804,7 @@ const FloatingAIChatbot = () => {
         }
       } else {
         // For non-product queries, use AI service
-        const enhancedQuery = `${inputMessage}\n\nContext: This is a multi-vendor e-commerce platform. If this is about products, I have access to product data and can provide specific recommendations.`;
+        const enhancedQuery = `${inputMessage}\n\nContext: This is Wanttar e-commerce platform. If this is about products, I have access to product data and can provide specific recommendations.`;
         const botResponse = await geminiService.generateResponse(enhancedQuery);
 
         setTimeout(() => {

@@ -608,6 +608,38 @@ const ShopCreate = () => {
                 </div>
               </div>
 
+              {/* Terms and Conditions */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-start space-x-3">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    required
+                    className="h-4 w-4 mt-1 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      className="font-medium text-purple-600 hover:text-purple-500 underline"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      className="font-medium text-purple-600 hover:text-purple-500 underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                    . I understand that by creating a seller account, I agree to comply with all platform policies and guidelines.
+                  </label>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <button

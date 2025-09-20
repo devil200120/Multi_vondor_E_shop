@@ -99,10 +99,10 @@ const CreateEvent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-red-50/20 p-3 md:p-6 lg:ml-56">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-red-50/20 p-3 md:p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-6 md:mb-8">
+        <div className="mb-4 md:mb-6">
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
               <MdOutlineLocalOffer className="text-white" size={20} />
@@ -122,11 +122,11 @@ const CreateEvent = () => {
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl">
           <form
             onSubmit={handleSubmit}
-            className="p-4 md:p-8 space-y-6 md:space-y-8"
+            className="p-4 md:p-6 space-y-4 md:space-y-6"
           >
             {/* Basic Information Section */}
-            <div className="space-y-4 md:space-y-6">
-              <div className="border-b border-gray-200/50 pb-3 md:pb-4">
+            <div className="space-y-3 md:space-y-4">
+              <div className="border-b border-gray-200/50 pb-2 md:pb-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                     <MdOutlineLocalOffer className="text-white" size={16} />

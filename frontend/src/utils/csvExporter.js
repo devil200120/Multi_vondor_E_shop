@@ -71,10 +71,12 @@ export const generateInvoiceCSV = (order) => {
 
     // Additional information
     csvData.push(['Additional Information']);
-    csvData.push(['Company', 'MultiShop']);
-    csvData.push(['Website', 'www.multishop.com']);
-    csvData.push(['Support Email', 'support@multishop.com']);
-    csvData.push(['Support Phone', '+1 (555) 123-4567']);
+    csvData.push(['Company', 'Wanttar']);
+    csvData.push(['Website', 'www.wanttar.com']);
+    csvData.push(['Support Email', 'support@wanttar.com']);
+    csvData.push(['Support Phone', '+91 7349727270']);
+    csvData.push(['Business Address', 'Manohar Enterprises, 5-25 , 15th main road,3rd stage,4th block, Basaveswaranagar,near Guru sagar hotel, Bangalore 560079']);
+    csvData.push(['Support Phone', '+91 7349727270']);
 
     return csvData;
   } catch (error) {

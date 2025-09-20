@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
-import BrandingLogo from "../../Branding_logo.jpg";
+import BrandingLogo from "../../WANTTA (2).png";
 import {
   AiOutlineHeart,
   AiOutlineSearch,
@@ -88,7 +88,7 @@ const Header = ({ activeHeading }) => {
       <div className={`${styles.section} border-b border-secondary-200`}>
         <div className="hidden 800px:h-16 800px:my-4 800px:flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center mr-4">
             <Link
               to="/"
               className="group hover:scale-105 transition-all duration-300 ease-in-out"
@@ -96,25 +96,17 @@ const Header = ({ activeHeading }) => {
               <img
                 src={BrandingLogo}
                 alt="Brand Logo"
-                className="h-20 w-auto object-contain transition-all duration-300"
+                className="h-36 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  WebkitMaskImage: `url(${BrandingLogo})`,
-                  maskImage: `url(${BrandingLogo})`,
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  backgroundColor: "#1a202c",
+                  maxWidth: "220px",
                 }}
               />
             </Link>
           </div>
 
           {/* Search Box */}
-          <div className={`${styles.search_container} mx-8`}>
+          <div className={`${styles.search_container} mx-6 flex-1`}>
             <div className="relative">
               <AiOutlineSearch size={20} className={`${styles.search_icon}`} />
               <input
@@ -157,7 +149,7 @@ const Header = ({ activeHeading }) => {
           </div>
 
           {/* Become Seller Button */}
-          <div>
+          <div className="ml-4">
             <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
               <button className={`${styles.button_secondary} text-sm`}>
                 {isSeller ? "Dashboard" : "Become Seller"}
@@ -298,18 +290,10 @@ const Header = ({ activeHeading }) => {
               <img
                 src={BrandingLogo}
                 alt="Brand Logo"
-                className="h-16 w-auto object-contain transition-all duration-300"
+                className="h-24 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  WebkitMaskImage: `url(${BrandingLogo})`,
-                  maskImage: `url(${BrandingLogo})`,
-                  WebkitMaskRepeat: "no-repeat",
-                  maskRepeat: "no-repeat",
-                  WebkitMaskSize: "contain",
-                  maskSize: "contain",
-                  WebkitMaskPosition: "center",
-                  maskPosition: "center",
-                  backgroundColor: "#1a202c",
+                  maxWidth: "160px",
                 }}
               />
             </Link>

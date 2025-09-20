@@ -46,7 +46,7 @@ router.post(
       try {
         await sendMail({
           email: email,
-          subject: "Welcome to Multi Vendor E-Shop Newsletter!",
+          subject: "Welcome to Wanttar Newsletter!",
           message: `Dear Subscriber,
 
 Thank you for subscribing to our newsletter! 🎉
@@ -60,7 +60,7 @@ You'll now receive:
 We're excited to have you as part of our community!
 
 Best regards,
-The Multi Vendor E-Shop Team
+Wanttar Team
 
 If you wish to unsubscribe, please contact our support team.`,
         });

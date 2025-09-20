@@ -36,7 +36,7 @@ export const generateInvoice = (order) => {
     doc.setTextColor(...primaryPurple);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('Multi', 25, 22);
+    doc.text('Manohar Enterprises', 30, 95);
     doc.setTextColor(...secondaryBlue);
     doc.text('Shop', 25, 30);
     
@@ -74,16 +74,15 @@ export const generateInvoice = (order) => {
     doc.setTextColor(...darkGray);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Multi Vendor E-Shop', 30, 95);
+    doc.text('Manohar Enterprises', 30, 95);
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...mediumGray);
-    doc.text('123 Business Avenue', 30, 103);
-    doc.text('Tech Hub, Suite 200', 30, 110);
-    doc.text('Digital City, DC 12345', 30, 117);
-    doc.text('+1 (555) 123-4567', 30, 124);
-    doc.text('hello@multishop.com', 30, 131);
+    doc.text('5-25 , 15th main road,3rd stage,4th block, Basaveswaranagar,', 30, 103);
+    doc.text('near Guru sagar hotel, Bangalore 560079', 30, 110);
+    doc.text('+91 7349727270', 30, 124);
+    doc.text('support@wanttar.com', 30, 131);
     
     // Date Info Card
     doc.setFillColor(248, 252, 255); // Very light blue
@@ -291,7 +290,7 @@ export const generateInvoice = (order) => {
     doc.setTextColor(...white);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Thank you for choosing MultiShop! 🎉', pageWidth / 2, footerY + 15, { align: 'center' });
+    doc.text('Thank you for choosing Wanttar! 🎉', pageWidth / 2, footerY + 15, { align: 'center' });
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -299,7 +298,7 @@ export const generateInvoice = (order) => {
     
     // Contact info with icons
     doc.setFontSize(9);
-    doc.text('📧 support@multishop.com  |  📞 +1 (555) 123-4567  |  🌐 www.multishop.com', pageWidth / 2, footerY + 35, { align: 'center' });
+    doc.text('📧 support@wanttar.com  |  📞 +91 7349727270  |  � Manohar Enterprises, Bangalore', pageWidth / 2, footerY + 35, { align: 'center' });
     
     return doc;
   } catch (error) {

@@ -221,21 +221,21 @@ const Footer = () => {
                       <HiOutlineLocationMarker className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-gray-300">
-                      123 Business Street, Innovation City, State 12345
+                      5-25 , 15th main road,3rd stage,4th block, Basaveswaranagar,near Guru sagar hotel, Bangalore 560079
                     </span>
                   </div>
                   <div className="flex items-center space-x-3 group hover:translate-x-2 transition-transform duration-300">
                     <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-teal-500 rounded-lg flex items-center justify-center">
                       <HiOutlinePhone className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-gray-300">+1 (555) 123-4567</span>
+                    <span className="text-gray-300">+91 7349727270</span>
                   </div>
                   <div className="flex items-center space-x-3 group hover:translate-x-2 transition-transform duration-300">
                     <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-blue-500 rounded-lg flex items-center justify-center">
                       <AiOutlineMail className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-gray-300">
-                      support@multivendor.com
+                      support@wanttar.com
                     </span>
                   </div>
                 </div>
@@ -398,7 +398,7 @@ const Footer = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
               <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-8">
                 <p className="text-gray-400 text-sm">
-                  © 2024 Multi Vendor E-Shop. All rights reserved. Made with ❤️
+                  Manohar Enterprises All rights reserved. Made with ❤️
                   for amazing shopping experiences.
                 </p>
                 <div className="flex flex-wrap gap-6">

@@ -282,15 +282,15 @@ const DashboardSideBar = ({ active }) => {
 
                   {item.badge && (
                     <span
-                      className={`inline-flex items-center justify-center text-xs font-bold rounded-full transition-all duration-200 ${
-                        mobile ? "min-w-6 h-6 px-2" : "min-w-5 h-5 px-1.5"
+                      className={`inline-flex items-center justify-center text-xs font-medium rounded-full transition-all duration-200 leading-none ${
+                        mobile ? "min-w-[22px] h-[22px] px-2" : "min-w-5 h-5 px-1.5"
                       } ${
                         isActive
                           ? "bg-blue-600 text-white"
-                          : "bg-gray-200 text-gray-700 group-hover:bg-blue-100 group-hover:text-blue-700"
+                          : "bg-red-500 text-white shadow-lg"
                       }`}
                     >
-                      {item.badge}
+                      {item.badge > 99 ? "99+" : item.badge}
                     </span>
                   )}
                 </div>
@@ -406,10 +406,10 @@ const DashboardSideBar = ({ active }) => {
                         : "hover:bg-gray-50 active:bg-gray-100"
                     }`}
                   >
-                    {/* Notification Badge - Positioned outside the main content flow */}
+                    {/* Notification Badge - Properly sized and centered */}
                     {item.badge && (
-                      <span className="absolute -top-1 right-1 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold shadow-sm animate-pulse z-10 border-2 border-white">
-                        {item.badge}
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-medium shadow-lg z-10 border-2 border-white px-1">
+                        {item.badge > 99 ? "99+" : item.badge}
                       </span>
                     )}
 

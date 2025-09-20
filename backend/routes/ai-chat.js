@@ -24,7 +24,7 @@ router.post("/chat", async (req, res) => {
         {
           parts: [
             {
-              text: `You are a helpful AI assistant for a multi-vendor e-commerce platform called "Multi Vendor E-Shop". You can help users with:
+              text: `You are a helpful AI assistant for a multi-vendor e-commerce platform called "Wanttar". You can help users with:
               - Product recommendations and shopping guidance
               - Order information and tracking
               - General e-commerce queries and platform navigation
