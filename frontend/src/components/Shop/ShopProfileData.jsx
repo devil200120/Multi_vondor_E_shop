@@ -5,6 +5,7 @@ import ProductCard from "../Route/ProductCard/ProductCard";
 import { backend_url } from "../../server";
 import Ratings from "../Products/Ratings";
 import { getAllEventsShop } from "../../redux/actions/event";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import {
   MdStore,
   MdEvent,
@@ -243,7 +244,7 @@ const ShopProfileData = ({ isOwner }) => {
                   >
                     <div className="flex gap-4">
                       <img
-                        src={`${backend_url}/${item.user.avatar}`}
+                        src={getAvatarUrl(item.user.avatar, backend_url)}
                         className="w-12 h-12 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                         alt={item.user.name}
                       />

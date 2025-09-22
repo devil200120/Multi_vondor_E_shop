@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { backend_url, server } from "../../server";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import { AiOutlineCamera } from "react-icons/ai";
 import { FiMapPin, FiSave } from "react-icons/fi";
 import { HiOutlineLocationMarker } from "react-icons/hi";
@@ -340,7 +341,7 @@ const ShopSettings = () => {
               src={
                 avatar
                   ? URL.createObjectURL(avatar)
-                  : `${backend_url}/${seller.avatar}`
+                  : getAvatarUrl(seller.avatar, backend_url)
               }
               alt=""
               className="w-[200px] h-[200px] rounded-full cursor-pointer"

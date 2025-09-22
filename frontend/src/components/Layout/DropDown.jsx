@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { getCategoryImageUrl } from "../../utils/mediaUtils";
+import { backend_url } from "../../server";
 
 const DropDown = ({ categoriesData, setDropDown }) => {
   const navigate = useNavigate();
@@ -30,7 +32,7 @@ const DropDown = ({ categoriesData, setDropDown }) => {
             >
               <div className="flex-shrink-0 w-8 h-8 mr-3">
                 <img
-                  src={i.image || i.image_Url}
+                  src={getCategoryImageUrl(i.image || i.image_Url, backend_url)}
                   alt={i.name || i.title}
                   className="w-full h-full object-contain select-none"
                 />

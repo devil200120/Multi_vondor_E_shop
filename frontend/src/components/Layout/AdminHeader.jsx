@@ -14,6 +14,7 @@ import {
 import { logoutUser } from "../../redux/actions/user";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 import AdminSideBar from "../Admin/Layout/AdminSideBar";
 import AdminNotifications from "./AdminNotifications";
@@ -122,7 +123,7 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
             </div>
             <div className="relative">
               <img
-                src={`${backend_url}${user?.avatar}`}
+                src={getAvatarUrl(user?.avatar, backend_url)}
                 alt="Admin Avatar"
                 className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-blue-400 transition-colors"
               />
@@ -142,7 +143,7 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
               <div className="px-4 py-3 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
                   <img
-                    src={`${backend_url}${user?.avatar}`}
+                    src={getAvatarUrl(user?.avatar, backend_url)}
                     alt="Admin Avatar"
                     className="w-12 h-12 rounded-full object-cover"
                   />

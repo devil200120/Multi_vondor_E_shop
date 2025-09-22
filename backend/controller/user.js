@@ -10,6 +10,7 @@ const sendMail = require("../utils/sendMail");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { uploadImageToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -27,9 +28,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
     if (userEmail) {
       // if user already exits account is not created and file is deleted
       if (req.file) {
-        const filename = req.file.filename;
-        const filePath = `uploads/${filename}`;
-        fs.unlink(filePath, (err) => {
+        fs.unlink(req.file.path, (err) => {
           if (err) {
             console.log(err);
           }
@@ -38,17 +37,43 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    let fileUrl = null;
+    let avatarData = null;
     if (req.file) {
-      const filename = req.file.filename;
-      fileUrl = path.join(filename);
+      try {
+        console.log(`Uploading user avatar: ${req.file.originalname} from ${req.file.path}`);
+        const result = await uploadImageToCloudinary(req.file.path, {
+          folder: 'users/avatars',
+          transformation: {
+            width: 300,
+            height: 300,
+            crop: 'fill',
+            gravity: 'face'
+          }
+        });
+        console.log(`User avatar uploaded successfully: ${result.url}`);
+        
+        avatarData = {
+          url: result.url,
+          public_id: result.public_id
+        };
+        
+        // Delete local file after successful upload
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.error('Avatar upload error:', error);
+        // Clean up local file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return next(new ErrorHandler(`Avatar upload failed: ${error.message}`, 400));
+      }
     }
 
     const user = {
       name: name,
       email: email,
       password: password,
-      avatar: fileUrl,
+      avatar: avatarData,
     };
 
     const activationToken = createActivationToken(user);
@@ -255,30 +280,51 @@ router.put(
 
       const existsUser = await User.findById(req.user.id);
       
-      // Delete previous avatar if it exists
-      if (existsUser.avatar) {
-        const existAvatarPath = path.join(__dirname, "../uploads", existsUser.avatar);
-        
-        // Check if file exists before trying to delete it
-        if (fs.existsSync(existAvatarPath)) {
-          try {
-            fs.unlinkSync(existAvatarPath);
-          } catch (deleteError) {
-            console.log("Error deleting previous avatar:", deleteError.message);
-            // Continue with the update even if old file deletion fails
+      // Upload new avatar to Cloudinary
+      let avatarData = null;
+      try {
+        console.log(`Uploading updated user avatar: ${req.file.originalname} from ${req.file.path}`);
+        const result = await uploadImageToCloudinary(req.file.path, {
+          folder: 'users/avatars',
+          transformation: {
+            width: 300,
+            height: 300,
+            crop: 'fill',
+            gravity: 'face'
           }
+        });
+        console.log(`Updated user avatar uploaded successfully: ${result.url}`);
+        
+        avatarData = {
+          url: result.url,
+          public_id: result.public_id
+        };
+        
+        // Delete local file after successful upload
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.error('Avatar update upload error:', error);
+        // Clean up local file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return next(new ErrorHandler(`Avatar upload failed: ${error.message}`, 400));
+      }
+
+      // Delete previous avatar from Cloudinary if it exists
+      if (existsUser.avatar && existsUser.avatar.public_id) {
+        try {
+          await deleteFromCloudinary(existsUser.avatar.public_id, 'image');
+          console.log(`Deleted old user avatar: ${existsUser.avatar.public_id}`);
+        } catch (error) {
+          console.error('Error deleting previous avatar from Cloudinary:', error.message);
+          // Continue with the update even if old file deletion fails
         }
       }
 
-      const fileUrl = req.file.filename; // new image filename
-
-      /* The code `const user = await User.findByIdAndUpdate(req.user.id, { avatar: fileUrl });` is
-        updating the avatar field of the user with the specified `req.user.id`. It uses the
-        `User.findByIdAndUpdate()` method to find the user by their id and update the avatar field
-        with the new `fileUrl` value. The updated user object is then stored in the `user` variable. */
       const user = await User.findByIdAndUpdate(
         req.user.id, 
-        { avatar: fileUrl },
+        { avatar: avatarData },
         { new: true } // Return the updated user
       );
 
@@ -289,14 +335,11 @@ router.put(
       });
     } catch (error) {
       // If there's an error and we have a new file, clean it up
-      if (req.file) {
-        const newFilePath = path.join(__dirname, "../uploads", req.file.filename);
-        if (fs.existsSync(newFilePath)) {
-          try {
-            fs.unlinkSync(newFilePath);
-          } catch (cleanupError) {
-            console.log("Error cleaning up new file:", cleanupError.message);
-          }
+      if (req.file && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.log("Error cleaning up failed upload:", cleanupError.message);
         }
       }
       return next(new ErrorHandler(error.message, 500));

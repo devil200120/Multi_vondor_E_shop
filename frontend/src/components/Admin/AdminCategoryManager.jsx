@@ -18,6 +18,8 @@ import { toast } from "react-toastify";
 import styles from "../../styles/styles";
 import Loader from "../Layout/Loader";
 import CategoryForm from "./CategoryForm";
+import { getCategoryImageUrl } from "../../utils/mediaUtils";
+import { backend_url } from "../../server";
 
 const AdminCategoryManager = () => {
   const dispatch = useDispatch();
@@ -236,62 +238,86 @@ const AdminCategoryManager = () => {
           </div>
         ) : categories && categories.length > 0 ? (
           <div className="space-y-4">
-            {categories.map((category) => (
-              <div key={category._id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {category.image && (
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="w-12 h-12 rounded object-cover mr-4"
-                      />
-                    )}
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Level {category.level} • {category.productCount || 0}{" "}
-                        products
-                      </p>
-                      {category.description && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          {category.description}
-                        </p>
+            {categories.map((category) => {
+              console.log("Category data:", category);
+              console.log("Category image:", category.image);
+              console.log(
+                "Image URL result:",
+                getCategoryImageUrl(category.image, backend_url)
+              );
+
+              return (
+                <div key={category._id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      {category.image && (
+                        <img
+                          src={getCategoryImageUrl(category.image, backend_url)}
+                          alt={category.name}
+                          className="w-12 h-12 rounded object-cover mr-4"
+                          onError={(e) => {
+                            console.log("Image failed to load:", e.target.src);
+                            console.log("Image data:", category.image);
+                          }}
+                          onLoad={() => {
+                            console.log(
+                              "Image loaded successfully:",
+                              getCategoryImageUrl(category.image, backend_url)
+                            );
+                          }}
+                        />
                       )}
-                      {category.parent && (
-                        <p className="text-xs text-blue-600 mt-1">
-                          Parent: {category.parent.name}
-                        </p>
+                      {!category.image && (
+                        <div className="w-12 h-12 bg-gray-200 rounded mr-4 flex items-center justify-center text-gray-500 text-xs">
+                          No Image
+                        </div>
                       )}
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          {category.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Level {category.level} • {category.productCount || 0}{" "}
+                          products
+                        </p>
+                        {category.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {category.description}
+                          </p>
+                        )}
+                        {category.parent && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Parent: {category.parent.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          category.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {category.isActive ? "Active" : "Inactive"}
+                      </span>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setShowForm(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        category.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {category.isActive ? "Active" : "Inactive"}
-                    </span>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => {
-                        setEditingCategory(category);
-                        setShowForm(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Pagination */}
             <div className="flex justify-between items-center mt-6 pt-4 border-t">

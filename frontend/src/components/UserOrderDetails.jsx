@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { backend_url, server } from "../server";
+import { getProductImageUrl } from "../utils/mediaUtils";
 import { RxCross1 } from "react-icons/rx";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { useDispatch, useSelector } from "react-redux";
@@ -239,7 +240,7 @@ const UserOrderDetails = () => {
                   >
                     <div className="flex-shrink-0">
                       <img
-                        src={`${backend_url}${item.images[0]}`}
+                        src={getProductImageUrl(item.images, 0, backend_url)}
                         alt={item.name}
                         className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-200 shadow-sm"
                         onError={(e) => {
@@ -495,7 +496,7 @@ const UserOrderDetails = () => {
               {/* Product Info */}
               <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <img
-                  src={`${backend_url}${selectedItem?.images[0]}`}
+                  src={getProductImageUrl(selectedItem?.images, 0, backend_url)}
                   alt={selectedItem?.name}
                   className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm"
                   onError={(e) => {

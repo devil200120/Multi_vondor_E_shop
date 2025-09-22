@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { backend_url, server } from "../../server";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import {
   AiOutlineArrowRight,
   AiOutlineSend,
@@ -399,7 +400,7 @@ const MessageList = ({
     >
       <div className="relative flex-shrink-0">
         <img
-          src={`${backend_url}${user?.avatar}`}
+          src={getAvatarUrl(user?.avatar, backend_url)}
           alt={user?.name || "User"}
           className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
         />
@@ -468,7 +469,7 @@ const SellerInbox = ({
           <div className="flex items-center">
             <div className="relative">
               <img
-                src={`${backend_url}${userData?.avatar}`}
+                src={getAvatarUrl(userData?.avatar, backend_url)}
                 alt={userData?.name}
                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
               />
@@ -517,7 +518,7 @@ const SellerInbox = ({
               {item.sender !== sellerId && (
                 <div className="flex-shrink-0 mr-3">
                   <img
-                    src={`${backend_url}${userData?.avatar}`}
+                    src={getAvatarUrl(userData?.avatar, backend_url)}
                     className="w-8 h-8 rounded-full object-cover"
                     alt={userData?.name}
                   />

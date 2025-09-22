@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+import { getBannerImageUrl } from "../../utils/mediaUtils";
 import {
   HiOutlinePhotograph,
   HiOutlineSave,
@@ -60,7 +61,7 @@ const AdminBannerEditor = () => {
           satisfactionCount: data.banner.stats?.satisfaction?.count || "",
           satisfactionLabel: data.banner.stats?.satisfaction?.label || "",
         });
-        setImagePreview(data.banner.image);
+        setImagePreview(getBannerImageUrl(data.banner.image, server));
       }
     } catch (error) {
       toast.error("Failed to fetch banner data");
@@ -280,7 +281,9 @@ const AdminBannerEditor = () => {
                 {/* Right Content - Hero Image */}
                 <div className="relative">
                   <img
-                    src={imagePreview || banner.image}
+                    src={
+                      imagePreview || getBannerImageUrl(banner.image, server)
+                    }
                     alt="Banner"
                     className="w-full h-auto rounded-2xl shadow-lg"
                   />

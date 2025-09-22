@@ -17,9 +17,15 @@ const bannerSchema = new mongoose.Schema({
     default: "Discover our curated collection of premium home decor items that transform your space into a beautiful sanctuary."
   },
   image: {
-    type: String,
-    required: [true, "Please provide banner image!"],
-    default: "https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg"
+    url: {
+      type: String,
+      required: [true, "Please provide banner image URL!"],
+      default: "https://themes.rslahmed.dev/rafcart/assets/images/banner-2.jpg"
+    },
+    public_id: {
+      type: String,
+      default: ""
+    }
   },
   buttonText: {
     type: String,

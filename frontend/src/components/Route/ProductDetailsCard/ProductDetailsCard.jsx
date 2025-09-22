@@ -18,6 +18,7 @@ import {
   addToWishlist,
   removeFromWishlist,
 } from "../../../redux/actions/wishlist";
+import { getProductImageUrl, getAvatarUrl } from "../../../utils/mediaUtils";
 
 const ProductDetailsCard = ({ setOpen, data }) => {
   const { cart } = useSelector((state) => state.cart);
@@ -129,7 +130,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                   {/* Product Image */}
                   <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden">
                     <img
-                      src={`${backend_url}${data.images && data.images[0]}`}
+                      src={getProductImageUrl(data.images, 0, backend_url)}
                       alt={data.name}
                       className="w-full h-full object-cover"
                     />
@@ -142,7 +143,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                       className="flex items-center space-x-3 group"
                     >
                       <img
-                        src={`${backend_url}${data?.shop?.avatar}`}
+                        src={getAvatarUrl(data?.shop?.avatar, backend_url)}
                         alt={data.shop.name}
                         className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
                       />

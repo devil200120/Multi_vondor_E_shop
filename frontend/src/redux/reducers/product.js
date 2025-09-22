@@ -38,7 +38,13 @@ export const productReducer = createReducer(initialState, {
   },
   deleteProductSuccess: (state, action) => {
     state.isLoading = false;
-    state.message = action.payload;
+    state.message = action.payload.message;
+    // Remove the deleted product from the products array
+    if (state.products && action.payload.productId) {
+      state.products = state.products.filter(
+        product => product._id !== action.payload.productId
+      );
+    }
   },
   deleteProductFailed: (state, action) => {
     state.isLoading = false;
@@ -92,5 +98,10 @@ export const productReducer = createReducer(initialState, {
 
   clearSuccess: (state) => {
     state.success = false;
+  },
+  
+  clearMessages: (state) => {
+    state.message = null;
+    state.error = null;
   },
 });

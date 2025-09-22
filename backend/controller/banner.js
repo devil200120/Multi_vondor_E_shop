@@ -4,34 +4,8 @@ const Banner = require("../model/banner");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAdmin, isAuthenticated } = require("../middleware/auth");
-const multer = require("multer");
-const path = require("path");
-
-// Configure multer for image upload
-const storage = multer.diskStorage({
-  destination: function (req, res, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ 
-  storage: storage,
-  fileFilter: function (req, file, cb) {
-    // Check file type
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Please upload only image files'), false);
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
-});
+const { upload } = require("../multer");
+const { uploadImageToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
 
 // Get active banner content
 router.get(
@@ -93,7 +67,29 @@ router.put(
 
       // Update image if uploaded
       if (req.file) {
-        banner.image = `/${req.file.filename}`;
+        try {
+          // Delete old image from Cloudinary if exists
+          if (banner.image && banner.image.public_id) {
+            console.log('Deleting old banner image from Cloudinary:', banner.image.public_id);
+            await deleteFromCloudinary(banner.image.public_id);
+          }
+          
+          // Upload new image to Cloudinary
+          console.log('Uploading new banner image to Cloudinary:', req.file.originalname);
+          const result = await uploadImageToCloudinary(req.file.path, {
+            folder: 'banners',
+            resource_type: 'image'
+          });
+          
+          banner.image = {
+            url: result.url,
+            public_id: result.public_id
+          };
+          console.log('Banner image uploaded successfully to Cloudinary:', result.public_id);
+        } catch (uploadError) {
+          console.error('Error uploading banner image to Cloudinary:', uploadError);
+          return next(new ErrorHandler(`Failed to upload image: ${uploadError.message}`, 500));
+        }
       }
 
       // Update stats

@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
 import { addTocart, removeFromCart } from "../../redux/actions/cart";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 
 const Cart = ({ setOpenCart }) => {
   const { cart } = useSelector((state) => state.cart);
@@ -140,7 +141,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
         {/* Product Image */}
         <div className="flex-shrink-0">
           <img
-            src={`${backend_url}${data?.images[0]}`}
+            src={getProductImageUrl(data?.images, 0, backend_url)}
             className="w-16 h-16 object-cover rounded-lg border border-secondary-200"
             alt={data.name}
           />

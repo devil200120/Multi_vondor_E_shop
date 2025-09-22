@@ -6,6 +6,7 @@ import { format } from "timeago.js";
 import { backend_url, server } from "../server";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { getAvatarUrl } from "../utils/mediaUtils";
 import {
   AiOutlineArrowRight,
   AiOutlineSend,
@@ -488,11 +489,7 @@ const MessageList = ({
         {/* Avatar with Online Status */}
         <div className="relative flex-shrink-0">
           <img
-            src={
-              user?.avatar
-                ? `${backend_url}${user.avatar}`
-                : "/api/placeholder/50/50"
-            }
+            src={getAvatarUrl(user?.avatar, backend_url)}
             alt={user?.name || "User"}
             className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
           />
@@ -645,11 +642,7 @@ const SellerInbox = ({
 
             <div className="relative">
               <img
-                src={
-                  userData?.avatar
-                    ? `${backend_url}${userData.avatar}`
-                    : "/api/placeholder/40/40"
-                }
+                src={getAvatarUrl(userData?.avatar, backend_url)}
                 alt={userData?.name || "User"}
                 className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
               />
@@ -712,11 +705,7 @@ const SellerInbox = ({
               >
                 {item.sender !== sellerId && (
                   <img
-                    src={
-                      userData?.avatar
-                        ? `${backend_url}${userData.avatar}`
-                        : "/api/placeholder/32/32"
-                    }
+                    src={getAvatarUrl(userData?.avatar, backend_url)}
                     className="w-8 h-8 rounded-full mb-1"
                     alt=""
                   />

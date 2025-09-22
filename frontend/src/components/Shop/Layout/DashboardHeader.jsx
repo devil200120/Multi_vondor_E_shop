@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
 import { backend_url } from "../../../server";
+import { getAvatarUrl } from "../../../utils/mediaUtils";
 
 const DashboardHeader = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -105,7 +106,7 @@ const DashboardHeader = () => {
               className="flex items-center space-x-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 rounded-xl p-3 transition-all duration-200 group transform hover:scale-105 shadow-sm hover:shadow-md"
             >
               <img
-                src={`${backend_url}${seller.avatar}`}
+                src={getAvatarUrl(seller.avatar, backend_url)}
                 alt=""
                 className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-200"
               />
@@ -128,7 +129,7 @@ const DashboardHeader = () => {
             className="hover:scale-105 transition-transform duration-200"
           >
             <img
-              src={`${backend_url}${seller.avatar}`}
+              src={getAvatarUrl(seller.avatar, backend_url)}
               alt=""
               className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 hover:border-blue-300 transition-colors duration-200"
             />
@@ -186,7 +187,7 @@ const DashboardHeader = () => {
               <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-100">
                 <div className="relative">
                   <img
-                    src={`${backend_url}${seller.avatar}`}
+                    src={getAvatarUrl(seller.avatar, backend_url)}
                     alt=""
                     className="w-12 h-12 rounded-full object-cover border-3 border-white shadow-md"
                   />

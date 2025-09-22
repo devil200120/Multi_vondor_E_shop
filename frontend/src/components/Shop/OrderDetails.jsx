@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { backend_url, server } from "../../server";
 import { getAllOrdersOfShop } from "../../redux/actions/order";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 import { useDispatch, useSelector } from "react-redux";
 import OrderLocationMap from "./OrderLocationMap";
 import socketIO from "socket.io-client";
@@ -582,7 +583,7 @@ const OrderDetails = () => {
                 >
                   <div className="flex-shrink-0">
                     <img
-                      src={`${backend_url}/${item.images[0]}`}
+                      src={getProductImageUrl(item.images, 0, backend_url)}
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                     />

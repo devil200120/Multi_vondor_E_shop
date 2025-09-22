@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
 import { backend_url } from "../../server";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 
 const Wishlist = ({ setOpenWishlist }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -96,7 +97,7 @@ const CartSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
         {/* Product Image */}
         <div className="flex-shrink-0">
           <img
-            src={`${backend_url}${data?.images[0]}`}
+            src={getProductImageUrl(data?.images, 0, backend_url)}
             alt={data.name}
             className="w-16 h-16 object-cover rounded-lg border border-secondary-200"
           />

@@ -8,6 +8,7 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const { isSeller, isAdmin, isAuthenticated } = require("../middleware/auth");
 const router = express.Router();
 const fs = require("fs");
+const { uploadToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
 
 // create event
 router.post(
@@ -21,21 +22,45 @@ router.post(
         return next(new ErrorHandler("Shop Id is invalid!", 400));
       } else {
         const files = req.files;
-        const imageUrls = files.map((file) => `${file.filename}`);
+        console.log('Files received for event:', files?.length || 0);
+        
+        // Upload images to Cloudinary
+        const imageUploads = [];
+        if (files && files.length > 0) {
+          for (const file of files) {
+            try {
+              console.log('Uploading event image to Cloudinary:', file.originalname);
+              const result = await uploadToCloudinary(file.buffer, {
+                folder: 'events',
+                resource_type: 'image'
+              });
+              imageUploads.push({
+                url: result.secure_url,
+                public_id: result.public_id
+              });
+              console.log('Event image uploaded successfully:', result.public_id);
+            } catch (uploadError) {
+              console.error('Error uploading event image to Cloudinary:', uploadError);
+              return next(new ErrorHandler(`Failed to upload image: ${uploadError.message}`, 500));
+            }
+          }
+        }
 
         const eventData = req.body;
-        eventData.images = imageUrls;
+        eventData.images = imageUploads;
         eventData.shop = shop;
 
-        const product = await Event.create(eventData);
+        const event = await Event.create(eventData);
+        console.log('Event created successfully with Cloudinary images');
 
         res.status(201).json({
           success: true,
-          product,
+          event,
         });
       }
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      console.error('Error creating event:', error);
+      return next(new ErrorHandler(error.message || error, 400));
     }
   })
 );
@@ -76,33 +101,42 @@ router.delete(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const productId = req.params.id;
+      const eventId = req.params.id;
+      console.log('Attempting to delete event:', eventId);
 
-      const eventData = await Event.findById(productId);
+      const eventData = await Event.findById(eventId);
 
-      eventData.images.forEach((imageUrl) => {
-        const filename = imageUrl;
-        const filePath = `uploads/${filename}`;
-
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.log(err);
-          }
-        });
-      });
-
-      const event = await Event.findByIdAndDelete(productId);
-
-      if (!event) {
-        return next(new ErrorHandler("Event not found with this id!", 500));
+      if (!eventData) {
+        return next(new ErrorHandler("Event not found with this id!", 404));
       }
 
-      res.status(201).json({
+      // Delete images from Cloudinary
+      if (eventData.images && eventData.images.length > 0) {
+        for (const image of eventData.images) {
+          try {
+            if (image.public_id) {
+              console.log('Deleting event image from Cloudinary:', image.public_id);
+              await deleteFromCloudinary(image.public_id);
+              console.log('Event image deleted successfully from Cloudinary');
+            }
+          } catch (deleteError) {
+            console.error('Error deleting event image from Cloudinary:', deleteError);
+            // Continue with event deletion even if image deletion fails
+          }
+        }
+      }
+
+      const event = await Event.findByIdAndDelete(eventId);
+      console.log('Event deleted successfully from database');
+
+      res.status(200).json({
         success: true,
         message: "Event Deleted successfully!",
+        eventId: eventId
       });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      console.error('Error deleting event:', error);
+      return next(new ErrorHandler(error.message || error, 400));
     }
   })
 );

@@ -18,6 +18,8 @@ import { toast } from "react-toastify";
 import styles from "../../styles/styles";
 import Loader from "../Layout/Loader";
 import CategoryForm from "./CategoryForm";
+import { backend_url } from "../../server";
+import { getCategoryImageUrl } from "../../utils/mediaUtils";
 
 const AdminCategoryManager = () => {
   const dispatch = useDispatch();
@@ -236,7 +238,7 @@ const AdminCategoryManager = () => {
                   <div className="flex items-center">
                     {category.image && (
                       <img
-                        src={category.image}
+                        src={getCategoryImageUrl(category.image, backend_url)}
                         alt={category.name}
                         className="w-12 h-12 rounded object-cover mr-4"
                       />

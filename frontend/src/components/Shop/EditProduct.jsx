@@ -12,7 +12,7 @@ import {
   getSubcategoriesPublic,
 } from "../../redux/actions/category";
 import { toast } from "react-toastify";
-import { FiPackage, FiDollarSign, FiImage } from "react-icons/fi";
+import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
 import { backend_url } from "../../server";
 import Loader from "../Layout/Loader";
 
@@ -29,7 +29,9 @@ const EditProduct = () => {
   const { id } = useParams();
 
   const [images, setImages] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [existingVideos, setExistingVideos] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -63,6 +65,7 @@ const EditProduct = () => {
         setDiscountPrice(product.discountPrice);
         setStock(product.stock);
         setExistingImages(product.images || []);
+        setExistingVideos(product.videos || []);
         setProductLoading(false);
 
         // If the product has a category, check if it's a subcategory
@@ -125,8 +128,42 @@ const EditProduct = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const handleVideoChange = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.target.files);
+
+    // Validate video files
+    const validFiles = files.filter((file) => {
+      if (file.type.startsWith("video/")) {
+        if (file.size > 100 * 1024 * 1024) {
+          // 100MB limit
+          toast.error(
+            `Video ${file.name} is too large. Maximum size is 100MB.`
+          );
+          return false;
+        }
+        return true;
+      } else {
+        toast.error(`${file.name} is not a valid video file.`);
+        return false;
+      }
+    });
+
+    if (validFiles.length > 0) {
+      setVideos((prevVideos) => [...prevVideos, ...validFiles]);
+    }
+  };
+
+  const removeNewVideo = (index) => {
+    setVideos(videos.filter((_, i) => i !== index));
+  };
+
   const removeExistingImage = (index) => {
     setExistingImages(existingImages.filter((_, i) => i !== index));
+  };
+
+  const removeExistingVideo = (index) => {
+    setExistingVideos(existingVideos.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e) => {
@@ -137,6 +174,11 @@ const EditProduct = () => {
     // Add new images if any
     images.forEach((image) => {
       newForm.append("images", image);
+    });
+
+    // Add new videos if any
+    videos.forEach((video) => {
+      newForm.append("videos", video);
     });
 
     newForm.append("name", name);
@@ -471,6 +513,132 @@ const EditProduct = () => {
                           >
                             <AiOutlineClose size={12} />
                           </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Product Videos Section */}
+            <div className="space-y-4 md:space-y-6">
+              <div className="border-b border-gray-200/50 pb-3 md:pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <FiVideo className="text-white" size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold text-gray-900">
+                      Product Videos
+                    </h2>
+                    <p className="text-xs md:text-sm text-gray-600">
+                      Upload new videos or keep existing ones
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Existing Videos */}
+                {existingVideos && existingVideos.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-gray-700">
+                      Current Videos
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                      {existingVideos.map((video, index) => (
+                        <div key={index} className="relative group">
+                          <video
+                            className="w-full h-20 md:h-24 object-cover rounded-xl border border-gray-300 shadow-sm group-hover:shadow-lg transition-all duration-200"
+                            preload="metadata"
+                          >
+                            <source
+                              src={
+                                typeof video === "string"
+                                  ? `${backend_url}${video}`
+                                  : video.url
+                              }
+                              type="video/mp4"
+                            />
+                          </video>
+                          <button
+                            type="button"
+                            onClick={() => removeExistingVideo(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
+                          >
+                            <AiOutlineClose size={12} />
+                          </button>
+                          {/* Video play indicator */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                              <div className="w-0 h-0 border-l-4 border-l-white border-t-2 border-b-2 border-t-transparent border-b-transparent ml-1"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Video Upload */}
+                <div>
+                  <label className="cursor-pointer">
+                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 md:p-8 hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-200 text-center space-y-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                        <FiVideo className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm md:text-base font-bold text-gray-700">
+                          Upload Video Files
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-500 mt-1">
+                          MP4, AVI, MOV up to 100MB each
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      name="upload"
+                      className="hidden"
+                      multiple
+                      onChange={handleVideoChange}
+                    />
+                  </label>
+                </div>
+
+                {/* New Video Preview */}
+                {videos && videos.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-gray-700">
+                      New Videos to Upload
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                      {videos.map((video, index) => (
+                        <div key={index} className="relative group">
+                          <video
+                            className="w-full h-20 md:h-24 object-cover rounded-xl border border-gray-300 shadow-sm group-hover:shadow-lg transition-all duration-200"
+                            preload="metadata"
+                          >
+                            <source
+                              src={URL.createObjectURL(video)}
+                              type="video/mp4"
+                            />
+                          </video>
+                          <button
+                            type="button"
+                            onClick={() => removeNewVideo(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
+                          >
+                            <AiOutlineClose size={12} />
+                          </button>
+                          {/* Video play indicator */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                              <div className="w-0 h-0 border-l-4 border-l-white border-t-2 border-b-2 border-t-transparent border-b-transparent ml-1"></div>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>

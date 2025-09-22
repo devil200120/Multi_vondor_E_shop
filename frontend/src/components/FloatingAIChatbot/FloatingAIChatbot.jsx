@@ -15,6 +15,7 @@ import { HiOutlineSparkles } from "react-icons/hi";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { backend_url } from "../../server";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 import geminiService from "../../services/geminiService";
 
 const FloatingAIChatbot = () => {
@@ -692,7 +693,7 @@ const FloatingAIChatbot = () => {
         name: product.name,
         price: product.discountPrice,
         originalPrice: product.originalPrice,
-        image: product.images?.[0],
+        image: getProductImageUrl(product.images, 0, backend_url),
         rating:
           product.reviews?.length > 0
             ? (
@@ -749,7 +750,7 @@ const FloatingAIChatbot = () => {
             name: product.name,
             price: product.discountPrice,
             originalPrice: product.originalPrice,
-            image: product.images?.[0],
+            image: getProductImageUrl(product.images, 0, backend_url),
             rating:
               product.reviews?.length > 0
                 ? (
@@ -1063,7 +1064,7 @@ const FloatingAIChatbot = () => {
                             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                               {product.image ? (
                                 <img
-                                  src={`${backend_url}${product.image}`}
+                                  src={product.image}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                 />

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { AiOutlineCamera, AiOutlineClose } from "react-icons/ai";
+import {
+  AiOutlineCamera,
+  AiOutlineClose,
+  AiOutlineLoading3Quarters,
+} from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { createProduct, clearSuccess } from "../../redux/actions/product";
@@ -12,7 +16,7 @@ import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
-  const { success, error } = useSelector((state) => state.products);
+  const { success, error, isLoading } = useSelector((state) => state.products);
   const { categories, subcategories } = useSelector(
     (state) => state.categories
   );
@@ -126,6 +130,14 @@ const CreateProduct = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Show upload start toast
+    toast.info(
+      "Starting product creation and uploading media to cloud storage...",
+      {
+        autoClose: 3000,
+      }
+    );
+
     const newForm = new FormData();
 
     images.forEach((image) => {
@@ -168,7 +180,25 @@ const CreateProduct = () => {
         </div>
 
         {/* Form Container */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl relative">
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl z-10 flex items-center justify-center">
+              <div className="text-center">
+                <AiOutlineLoading3Quarters
+                  className="animate-spin text-blue-600 mx-auto mb-4"
+                  size={48}
+                />
+                <p className="text-lg font-semibold text-gray-700">
+                  Creating Product...
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Please wait, uploading images and videos to cloud storage
+                </p>
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={handleSubmit}
             className="p-4 md:p-8 space-y-6 md:space-y-8"
@@ -508,16 +538,36 @@ const CreateProduct = () => {
             <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-8 border-t border-gray-200/50">
               <button
                 type="button"
-                onClick={() => navigate("/dashboard")}
-                className="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                onClick={() => !isLoading && navigate("/dashboard")}
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 border font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md ${
+                  isLoading
+                    ? "border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500"
+                }`}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                disabled={isLoading}
+                className={`flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform active:scale-95 flex items-center justify-center gap-2 ${
+                  isLoading
+                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 hover:scale-105"
+                }`}
               >
-                Create Product
+                {isLoading ? (
+                  <>
+                    <AiOutlineLoading3Quarters
+                      className="animate-spin"
+                      size={20}
+                    />
+                    Creating Product...
+                  </>
+                ) : (
+                  "Create Product"
+                )}
               </button>
             </div>
           </form>

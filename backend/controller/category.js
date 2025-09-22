@@ -6,6 +6,7 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const fs = require("fs");
 const path = require("path");
+const { uploadImageToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -79,8 +80,31 @@ router.post(
         updatedBy: req.user._id
       };
 
+      // Upload image to Cloudinary if provided
       if (req.file) {
-        categoryData.image = req.file.filename;
+        try {
+          console.log('Uploading category image to Cloudinary:', req.file.originalname);
+          const result = await uploadImageToCloudinary(req.file.path, {
+            folder: 'categories'
+          });
+          categoryData.image = {
+            url: result.url,
+            public_id: result.public_id
+          };
+          console.log('Category image uploaded successfully to Cloudinary:', result.public_id);
+          
+          // Delete the temporary file from uploads folder
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+        } catch (uploadError) {
+          console.error('Error uploading category image to Cloudinary:', uploadError);
+          // Clean up temporary file on error
+          if (req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return next(new ErrorHandler(`Failed to upload image: ${uploadError.message}`, 500));
+        }
       }
 
       const category = await Category.create(categoryData);
@@ -157,25 +181,10 @@ router.get(
         // Return hierarchical tree structure
         const categoryTree = await Category.getCategoryTree();
         
-        // Transform tree to include full image URLs recursively
-        const transformCategoryTree = (categories) => {
-          return categories.map(category => {
-            if (category.image) {
-              category.image = `${req.protocol}://${req.get('host')}/${category.image}`;
-            }
-            if (category.children && category.children.length > 0) {
-              category.children = transformCategoryTree(category.children);
-            }
-            return category;
-          });
-        };
-        
-        const treeWithImageUrls = transformCategoryTree(categoryTree);
-        
         return res.status(200).json({
           success: true,
-          categories: treeWithImageUrls,
-          total: treeWithImageUrls.length
+          categories: categoryTree,
+          total: categoryTree.length
         });
       }
 
@@ -193,18 +202,11 @@ router.get(
         .skip(skip)
         .limit(limitNum);
 
-      // Transform categories to include full image URLs
-      const categoriesWithImageUrls = categories.map(category => {
-        const categoryObj = category.toObject();
-        if (categoryObj.image) {
-          categoryObj.image = `${req.protocol}://${req.get('host')}/${categoryObj.image}`;
-        }
-        return categoryObj;
-      });
+      console.log('Categories from DB:', categories.map(c => ({ id: c._id, name: c.name, image: c.image })));
 
       res.status(200).json({
         success: true,
-        categories: categoriesWithImageUrls,
+        categories: categories,
         total,
         page: pageNum,
         totalPages: Math.ceil(total / limitNum)
@@ -253,18 +255,9 @@ router.get(
         .skip(skip)
         .limit(limitNum);
 
-      // Transform categories to include full image URLs
-      const categoriesWithImageUrls = categories.map(category => {
-        const categoryObj = category.toObject();
-        if (categoryObj.image) {
-          categoryObj.image = `${req.protocol}://${req.get('host')}/${categoryObj.image}`;
-        }
-        return categoryObj;
-      });
-
       res.status(200).json({
         success: true,
-        categories: categoriesWithImageUrls,
+        categories: categories,
         total,
         page: pageNum,
         totalPages: Math.ceil(total / limitNum)
@@ -320,18 +313,9 @@ router.get(
         .skip(skip)
         .limit(limitNum);
 
-      // Transform subcategories to include full image URLs
-      const subcategoriesWithImageUrls = subcategories.map(category => {
-        const categoryObj = category.toObject();
-        if (categoryObj.image) {
-          categoryObj.image = `${req.protocol}://${req.get('host')}/${categoryObj.image}`;
-        }
-        return categoryObj;
-      });
-
       res.status(200).json({
         success: true,
-        subcategories: subcategoriesWithImageUrls,
+        subcategories: subcategories,
         parentCategory: {
           _id: parentCategory._id,
           name: parentCategory.name,
@@ -368,42 +352,16 @@ router.get(
 
       let result = { category };
 
-      // Transform category to include full image URL
-      const categoryObj = category.toObject();
-      if (categoryObj.image) {
-        categoryObj.image = `${req.protocol}://${req.get('host')}/${categoryObj.image}`;
-      }
-      result.category = categoryObj;
-
       if (includeChildren === 'true') {
         const children = await Category.find({ parent: category._id, isActive: true })
           .sort({ sortOrder: 1, name: 1 });
         
-        // Transform children to include full image URLs
-        const childrenWithImageUrls = children.map(child => {
-          const childObj = child.toObject();
-          if (childObj.image) {
-            childObj.image = `${req.protocol}://${req.get('host')}/${childObj.image}`;
-          }
-          return childObj;
-        });
-        
-        result.children = childrenWithImageUrls;
+        result.children = children;
       }
 
       if (includeAncestors === 'true') {
         const ancestors = await category.getAncestors();
-        
-        // Transform ancestors to include full image URLs
-        const ancestorsWithImageUrls = ancestors.map(ancestor => {
-          const ancestorObj = ancestor.toObject();
-          if (ancestorObj.image) {
-            ancestorObj.image = `${req.protocol}://${req.get('host')}/${ancestorObj.image}`;
-          }
-          return ancestorObj;
-        });
-        
-        result.ancestors = ancestorsWithImageUrls;
+        result.ancestors = ancestors;
       }
 
       res.status(200).json({
@@ -500,14 +458,36 @@ router.put(
 
       // Handle image update
       if (req.file) {
-        // Delete old image if exists
-        if (category.image) {
-          const oldImagePath = path.join(__dirname, "../uploads", category.image);
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
+        try {
+          // Delete old image from Cloudinary if exists
+          if (category.image && category.image.public_id) {
+            console.log('Deleting old category image from Cloudinary:', category.image.public_id);
+            await deleteFromCloudinary(category.image.public_id);
           }
+          
+          // Upload new image to Cloudinary
+          console.log('Uploading new category image to Cloudinary:', req.file.originalname);
+          const result = await uploadImageToCloudinary(req.file.path, {
+            folder: 'categories'
+          });
+          category.image = {
+            url: result.url,
+            public_id: result.public_id
+          };
+          console.log('New category image uploaded successfully to Cloudinary:', result.public_id);
+          
+          // Delete the temporary file from uploads folder
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+        } catch (uploadError) {
+          console.error('Error uploading category image to Cloudinary:', uploadError);
+          // Clean up temporary file on error
+          if (req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return next(new ErrorHandler(`Failed to upload image: ${uploadError.message}`, 500));
         }
-        category.image = req.file.filename;
       }
 
       // Generate new slug if name changed
@@ -583,11 +563,15 @@ router.delete(
         return next(new ErrorHandler(`Category has ${productCount} associated products. Use force=true to proceed.`, 400));
       }
 
-      // Delete category image if exists
-      if (category.image) {
-        const imagePath = path.join(__dirname, "../uploads", category.image);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
+      // Delete category image from Cloudinary if exists
+      if (category.image && category.image.public_id) {
+        try {
+          console.log('Deleting category image from Cloudinary:', category.image.public_id);
+          await deleteFromCloudinary(category.image.public_id);
+          console.log('Category image deleted successfully from Cloudinary');
+        } catch (deleteError) {
+          console.error('Error deleting category image from Cloudinary:', deleteError);
+          // Continue with category deletion even if image deletion fails
         }
       }
 
@@ -595,12 +579,14 @@ router.delete(
       if (force) {
         const descendants = await category.getDescendants();
         
-        // Delete all descendant images
+        // Delete all descendant images from Cloudinary
         for (const descendant of descendants) {
-          if (descendant.image) {
-            const imagePath = path.join(__dirname, "../uploads", descendant.image);
-            if (fs.existsSync(imagePath)) {
-              fs.unlinkSync(imagePath);
+          if (descendant.image && descendant.image.public_id) {
+            try {
+              console.log('Deleting descendant category image from Cloudinary:', descendant.image.public_id);
+              await deleteFromCloudinary(descendant.image.public_id);
+            } catch (deleteError) {
+              console.error('Error deleting descendant category image from Cloudinary:', deleteError);
             }
           }
         }

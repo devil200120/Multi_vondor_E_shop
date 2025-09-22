@@ -9,6 +9,8 @@ const { upload, uploadFields } = require("../multer");
 const ErrorHandler = require("../utils/ErrorHandler");
 const NotificationService = require("../utils/NotificationService");
 const fs = require("fs");
+const path = require("path");
+const { uploadImageToCloudinary, uploadVideoToCloudinary, deleteFromCloudinary, uploadFileToCloudinary } = require("../config/cloudinary");
 
 // create product
 router.post(
@@ -24,15 +26,74 @@ router.post(
         const imageFiles = req.files['images'] || [];
         const videoFiles = req.files['videos'] || [];
         
-        const imageUrls = imageFiles.map((file) => `${file.filename}`);
-        const videoUrls = videoFiles.map((file) => `${file.filename}`);
+        console.log(`Processing ${imageFiles.length} image files and ${videoFiles.length} video files`);
+
+        // Upload images to Cloudinary
+        const uploadedImages = [];
+        for (const file of imageFiles) {
+          try {
+            console.log(`Uploading image: ${file.originalname} (${file.mimetype}) from ${file.path}`);
+            const result = await uploadImageToCloudinary(file.path);
+            console.log(`Image uploaded successfully: ${result.url}`);
+            uploadedImages.push({
+              url: result.url,
+              public_id: result.public_id
+            });
+            // Delete local file after successful upload
+            fs.unlinkSync(file.path);
+          } catch (error) {
+            console.error('Image upload error:', error);
+            // Clean up any uploaded files before throwing error
+            for (const uploaded of uploadedImages) {
+              await deleteFromCloudinary(uploaded.public_id, 'image');
+            }
+            return next(new ErrorHandler(`Image upload failed: ${error.message}`, 400));
+          }
+        }
+
+        // Upload videos to Cloudinary
+        const uploadedVideos = [];
+        for (const file of videoFiles) {
+          try {
+            console.log(`Uploading video: ${file.originalname} (${file.mimetype}) from ${file.path}`);
+            const result = await uploadVideoToCloudinary(file.path);
+            console.log(`Video uploaded successfully: ${result.url}`);
+            uploadedVideos.push({
+              url: result.url,
+              public_id: result.public_id
+            });
+            // Delete local file after successful upload
+            fs.unlinkSync(file.path);
+          } catch (error) {
+            console.error('Video upload error:', error);
+            // Clean up any uploaded files before throwing error
+            for (const uploaded of uploadedImages) {
+              await deleteFromCloudinary(uploaded.public_id, 'image');
+            }
+            for (const uploaded of uploadedVideos) {
+              await deleteFromCloudinary(uploaded.public_id, 'video');
+            }
+            return next(new ErrorHandler(`Video upload failed: ${error.message}`, 400));
+          }
+        }
 
         const productData = req.body;
-        productData.images = imageUrls;
-        productData.videos = videoUrls;
+        productData.images = uploadedImages;
+        productData.videos = uploadedVideos;
         productData.shop = shop;
 
+        console.log('Creating product with Cloudinary URLs:');
+        console.log('Images:', uploadedImages);
+        console.log('Videos:', uploadedVideos);
+
         const product = await Product.create(productData);
+
+        console.log('Product created successfully:', {
+          id: product._id,
+          name: product.name,
+          images: product.images,
+          videos: product.videos
+        });
 
         // Create notification for new product
         await NotificationService.createProductNotification(
@@ -98,7 +159,7 @@ router.get(
 // update product of a shop
 router.put(
   "/update-shop-product/:id",
-  upload.array("images"),
+  uploadFields,
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -114,27 +175,99 @@ router.put(
         return next(new ErrorHandler("You are not authorized to update this product!", 403));
       }
 
-      const files = req.files;
-      let imageUrls = [];
+      const imageFiles = req.files['images'] || [];
+      const videoFiles = req.files['videos'] || [];
+      let newImages = [];
+      let newVideos = [];
 
-      // If new images are uploaded, use them; otherwise keep existing images
-      if (files && files.length > 0) {
-        // Delete old images if new ones are uploaded
+      // Handle image uploads
+      if (imageFiles && imageFiles.length > 0) {
+        console.log(`Processing ${imageFiles.length} new image files for update`);
+        
+        // Delete old images from Cloudinary
         if (product.images && product.images.length > 0) {
-          product.images.forEach((imageUrl) => {
-            const filename = imageUrl;
-            const filePath = `uploads/${filename}`;
-            fs.unlink(filePath, (err) => {
-              if (err) {
-                console.log(err);
+          for (const image of product.images) {
+            if (image.public_id) {
+              try {
+                await deleteFromCloudinary(image.public_id, 'image');
+                console.log(`Deleted old image: ${image.public_id}`);
+              } catch (error) {
+                console.error(`Failed to delete old image ${image.public_id}:`, error);
               }
-            });
-          });
+            }
+          }
         }
-        imageUrls = files.map((file) => `${file.filename}`);
+
+        // Upload new images to Cloudinary
+        for (const file of imageFiles) {
+          try {
+            console.log(`Uploading new image: ${file.originalname} (${file.mimetype}) from ${file.path}`);
+            const result = await uploadImageToCloudinary(file.path);
+            console.log(`New image uploaded successfully: ${result.url}`);
+            newImages.push({
+              url: result.url,
+              public_id: result.public_id
+            });
+            // Delete local file after successful upload
+            fs.unlinkSync(file.path);
+          } catch (error) {
+            console.error('Image upload error during update:', error);
+            // Clean up any uploaded files before throwing error
+            for (const uploaded of newImages) {
+              await deleteFromCloudinary(uploaded.public_id, 'image');
+            }
+            return next(new ErrorHandler(`Image upload failed: ${error.message}`, 400));
+          }
+        }
       } else {
         // Keep existing images if no new images are uploaded
-        imageUrls = product.images;
+        newImages = product.images;
+        console.log(`Keeping ${newImages.length} existing images`);
+      }
+
+      // Handle video uploads
+      if (videoFiles && videoFiles.length > 0) {
+        console.log(`Processing ${videoFiles.length} new video files for update`);
+        
+        // Delete old videos from Cloudinary
+        if (product.videos && product.videos.length > 0) {
+          for (const video of product.videos) {
+            if (video.public_id) {
+              try {
+                await deleteFromCloudinary(video.public_id, 'video');
+                console.log(`Deleted old video: ${video.public_id}`);
+              } catch (error) {
+                console.error(`Failed to delete old video ${video.public_id}:`, error);
+              }
+            }
+          }
+        }
+
+        // Upload new videos to Cloudinary
+        for (const file of videoFiles) {
+          try {
+            console.log(`Uploading new video: ${file.originalname} (${file.mimetype}) from ${file.path}`);
+            const result = await uploadVideoToCloudinary(file.path);
+            console.log(`New video uploaded successfully: ${result.url}`);
+            newVideos.push({
+              url: result.url,
+              public_id: result.public_id
+            });
+            // Delete local file after successful upload
+            fs.unlinkSync(file.path);
+          } catch (error) {
+            console.error('Video upload error during update:', error);
+            // Clean up any uploaded files before throwing error
+            for (const uploaded of newVideos) {
+              await deleteFromCloudinary(uploaded.public_id, 'video');
+            }
+            return next(new ErrorHandler(`Video upload failed: ${error.message}`, 400));
+          }
+        }
+      } else {
+        // Keep existing videos if no new videos are uploaded
+        newVideos = product.videos;
+        console.log(`Keeping ${newVideos.length} existing videos`);
       }
 
       const updateData = {
@@ -145,7 +278,8 @@ router.put(
         originalPrice: req.body.originalPrice || product.originalPrice,
         discountPrice: req.body.discountPrice || product.discountPrice,
         stock: req.body.stock || product.stock,
-        images: imageUrls,
+        images: newImages,
+        videos: newVideos,
       };
 
       const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, {
@@ -195,16 +329,27 @@ router.delete(
 
       const productData = await Product.findById(productId);
 
-      productData.images.forEach((imageUrl) => {
-        const filename = imageUrl;
-        const filePath = `uploads/${filename}`;
+      if (!productData) {
+        return next(new ErrorHandler("Product not found with this id!", 404));
+      }
 
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.log(err);
+      // Delete images from Cloudinary
+      if (productData.images && productData.images.length > 0) {
+        for (const image of productData.images) {
+          if (image.public_id) {
+            await deleteFromCloudinary(image.public_id, 'image');
           }
-        });
-      });
+        }
+      }
+
+      // Delete videos from Cloudinary
+      if (productData.videos && productData.videos.length > 0) {
+        for (const video of productData.videos) {
+          if (video.public_id) {
+            await deleteFromCloudinary(video.public_id, 'video');
+          }
+        }
+      }
 
       const product = await Product.findByIdAndDelete(productId);
 

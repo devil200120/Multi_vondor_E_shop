@@ -20,8 +20,14 @@ const categorySchema = new mongoose.Schema({
     trim: true
   },
   image: {
-    type: String,
-    default: ""
+    url: {
+      type: String,
+      default: ""
+    },
+    public_id: {
+      type: String,
+      default: ""
+    }
   },
   parent: {
     type: mongoose.Schema.Types.ObjectId,

@@ -7,10 +7,13 @@ import { Link } from "react-router-dom";
 import { deleteEvent, getAllEventsShop } from "../../redux/actions/event";
 import { getAllProductsShop } from "../../redux/actions/product";
 import { deleteProduct } from "../../redux/actions/product";
+import { toast } from "react-toastify";
 import Loader from "../Layout/Loader";
 
 const AllEvents = () => {
-  const { events, isLoading } = useSelector((state) => state.events);
+  const { events, isLoading, message, error } = useSelector(
+    (state) => state.events
+  );
   const { seller } = useSelector((state) => state.seller);
 
   const dispatch = useDispatch();
@@ -19,9 +22,30 @@ const AllEvents = () => {
     dispatch(getAllEventsShop(seller._id));
   }, [dispatch]);
 
-  const handleDelete = (id) => {
-    dispatch(deleteEvent(id));
-    window.location.reload();
+  // Handle delete success/error messages
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      // Clear the message after showing
+      dispatch({ type: "clearMessages" });
+    }
+    if (error) {
+      toast.error(error);
+      // Clear the error after showing
+      dispatch({ type: "clearMessages" });
+    }
+  }, [message, error, dispatch]);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await dispatch(deleteEvent(id));
+        // Success message will be handled by useEffect when message state updates
+      } catch (error) {
+        // Error message will be handled by useEffect when error state updates
+        console.error("Delete failed:", error);
+      }
+    }
   };
 
   const columns = [

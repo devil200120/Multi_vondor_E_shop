@@ -18,7 +18,9 @@ import { DataGrid } from "@material-ui/data-grid";
 import { toast } from "react-toastify";
 
 const AllProducts = () => {
-  const { products, isLoading } = useSelector((state) => state.products);
+  const { products, isLoading, message, error } = useSelector(
+    (state) => state.products
+  );
   const { seller } = useSelector((state) => state.seller);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStock, setFilterStock] = useState("all");
@@ -31,10 +33,29 @@ const AllProducts = () => {
     }
   }, [dispatch, seller?._id]);
 
-  const handleDelete = (id) => {
+  // Handle delete success/error messages
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      // Clear the message after showing
+      dispatch({ type: "clearMessages" });
+    }
+    if (error) {
+      toast.error(error);
+      // Clear the error after showing
+      dispatch({ type: "clearMessages" });
+    }
+  }, [message, error, dispatch]);
+
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      dispatch(deleteProduct(id));
-      toast.success("Product deleted successfully!");
+      try {
+        await dispatch(deleteProduct(id));
+        // Success message will be handled by useEffect when message state updates
+      } catch (error) {
+        // Error message will be handled by useEffect when error state updates
+        console.error("Delete failed:", error);
+      }
     }
   };
 

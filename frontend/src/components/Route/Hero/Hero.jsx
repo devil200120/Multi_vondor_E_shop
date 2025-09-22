@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import styles from "../../../styles/styles";
 import { server, backend_url } from "../../../server";
+import { getBannerImageUrl } from "../../../utils/mediaUtils";
 
 const Hero = () => {
   const [banner, setBanner] = useState({
@@ -72,18 +73,9 @@ const Hero = () => {
     }
   };
 
-  // Get image URL - handle both uploaded images and external URLs
+  // Get image URL using utility function
   const getImageUrl = (image) => {
-    if (!image) return banner.image;
-    if (image.startsWith("http")) return image;
-    // Add multiple cache-busting parameters to force image refresh
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(7);
-    const imageUrl = `${backend_url}${image}?t=${timestamp}&r=${random}&v=${
-      banner.updatedAt || timestamp
-    }`;
-    console.log("Constructed image URL:", imageUrl);
-    return imageUrl;
+    return getBannerImageUrl(image, backend_url);
   };
   return (
     <div className="relative min-h-[70vh] 800px:min-h-[85vh] w-full bg-gradient-to-br from-primary-50 to-secondary-100 overflow-hidden">

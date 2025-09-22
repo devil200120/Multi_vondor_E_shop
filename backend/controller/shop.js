@@ -11,6 +11,7 @@ const { upload } = require("../multer");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const NotificationService = require("../utils/NotificationService");
+const { uploadImageToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
 
 const sendShopToken = require("../utils/shopToken");
 
@@ -21,25 +22,52 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
     const sellerEmail = await Shop.findOne({ email });
 
     if (sellerEmail) {
-      const filename = req.file.filename;
-      const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.log(err);
-          res.status(500).json({ message: "Error deleting file" });
-        }
-      });
+      if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    const filename = req.file.filename;
-    const fileUrl = path.join(filename);
+    let avatarData = null;
+    if (req.file) {
+      try {
+        console.log(`Uploading shop avatar: ${req.file.originalname} from ${req.file.path}`);
+        const result = await uploadImageToCloudinary(req.file.path, {
+          folder: 'shops/avatars',
+          transformation: {
+            width: 300,
+            height: 300,
+            crop: 'fill'
+          }
+        });
+        console.log(`Shop avatar uploaded successfully: ${result.url}`);
+        
+        avatarData = {
+          url: result.url,
+          public_id: result.public_id
+        };
+        
+        // Delete local file after successful upload
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.error('Shop avatar upload error:', error);
+        // Clean up local file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return next(new ErrorHandler(`Avatar upload failed: ${error.message}`, 400));
+      }
+    }
 
     const seller = {
       name: req.body.name,
       email: email,
       password: req.body.password,
-      avatar: fileUrl,
+      avatar: avatarData,
       address: req.body.address,
       phoneNumber: req.body.phoneNumber,
       zipCode: req.body.zipCode,
@@ -223,23 +251,72 @@ router.put(
   upload.single("image"),
   catchAsyncErrors(async (req, res, next) => {
     try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return next(new ErrorHandler("No file uploaded", 400));
+      }
+
       const existsUser = await Shop.findById(req.seller._id);
 
-      const existAvatarPath = `uploads/${existsUser.avatar}`;
+      // Upload new avatar to Cloudinary
+      let avatarData = null;
+      try {
+        console.log(`Uploading updated shop avatar: ${req.file.originalname} from ${req.file.path}`);
+        const result = await uploadImageToCloudinary(req.file.path, {
+          folder: 'shops/avatars',
+          transformation: {
+            width: 300,
+            height: 300,
+            crop: 'fill'
+          }
+        });
+        console.log(`Updated shop avatar uploaded successfully: ${result.url}`);
+        
+        avatarData = {
+          url: result.url,
+          public_id: result.public_id
+        };
+        
+        // Delete local file after successful upload
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.error('Shop avatar update upload error:', error);
+        // Clean up local file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return next(new ErrorHandler(`Avatar upload failed: ${error.message}`, 400));
+      }
 
-      fs.unlinkSync(existAvatarPath);
-
-      const fileUrl = path.join(req.file.filename);
+      // Delete previous avatar from Cloudinary if it exists
+      if (existsUser.avatar && existsUser.avatar.public_id) {
+        try {
+          await deleteFromCloudinary(existsUser.avatar.public_id, 'image');
+          console.log(`Deleted old shop avatar: ${existsUser.avatar.public_id}`);
+        } catch (error) {
+          console.error('Error deleting previous shop avatar from Cloudinary:', error.message);
+          // Continue with the update even if old file deletion fails
+        }
+      }
 
       const seller = await Shop.findByIdAndUpdate(req.seller._id, {
-        avatar: fileUrl,
-      });
+        avatar: avatarData,
+      }, { new: true });
 
       res.status(200).json({
         success: true,
         seller,
+        message: "Avatar updated successfully",
       });
     } catch (error) {
+      // If there's an error and we have a new file, clean it up
+      if (req.file && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.log("Error cleaning up failed upload:", cleanupError.message);
+        }
+      }
       return next(new ErrorHandler(error.message, 500));
     }
   })

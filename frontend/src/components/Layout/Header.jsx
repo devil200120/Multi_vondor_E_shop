@@ -14,6 +14,7 @@ import DropDown from "./DropDown";
 import Navbar from "./Navbar";
 import { useSelector, useDispatch } from "react-redux";
 import { backend_url } from "../../server";
+import { getAvatarUrl, getProductImageUrl } from "../../utils/mediaUtils";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import GoogleTranslate from "./GoogleTranslate";
@@ -22,7 +23,7 @@ import { getRootCategoriesPublic } from "../../redux/actions/category";
 
 const Header = ({ activeHeading }) => {
   const dispatch = useDispatch();
-  const { isSeller } = useSelector((state) => state.seller);
+  const { isSeller, seller } = useSelector((state) => state.seller);
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -114,10 +115,6 @@ const Header = ({ activeHeading }) => {
                 placeholder="Search for products, courses..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                onBlur={() => {
-                  // Use setTimeout to allow clicks on search results to register first
-                  setTimeout(() => setSearchData(null), 150);
-                }}
                 className={`${styles.search_input}`}
               />
             </div>
@@ -133,7 +130,7 @@ const Header = ({ activeHeading }) => {
                   >
                     <div className="flex items-center p-4 hover:bg-secondary-50 transition-colors duration-200 border-b border-secondary-100 last:border-b-0">
                       <img
-                        src={`${backend_url}${product.images[0]}`}
+                        src={getProductImageUrl(product.images, 0, backend_url)}
                         alt={product.name}
                         className="w-12 h-12 object-cover rounded-md mr-4"
                       />
@@ -245,10 +242,16 @@ const Header = ({ activeHeading }) => {
 
             {/* Profile */}
             <div className="cursor-pointer">
-              {isAuthenticated ? (
-                <Link to="/profile" className="block">
+              {isAuthenticated || isSeller ? (
+                <Link
+                  to={isSeller ? "/dashboard" : "/profile"}
+                  className="block"
+                >
                   <img
-                    src={`${backend_url}${user.avatar}`}
+                    src={getAvatarUrl(
+                      isSeller ? seller?.avatar : user?.avatar,
+                      backend_url
+                    )}
                     className="w-8 h-8 rounded-full object-cover border-2 border-secondary-200 hover:border-primary-500 transition-colors duration-200"
                     alt="Profile"
                   />
@@ -307,10 +310,13 @@ const Header = ({ activeHeading }) => {
           <div className="flex items-center space-x-3">
             {/* Profile/Login */}
             <div className="cursor-pointer">
-              {isAuthenticated ? (
-                <Link to="/profile">
+              {isAuthenticated || isSeller ? (
+                <Link to={isSeller ? "/dashboard" : "/profile"}>
                   <img
-                    src={`${backend_url}${user.avatar}`}
+                    src={getAvatarUrl(
+                      isSeller ? seller?.avatar : user?.avatar,
+                      backend_url
+                    )}
                     className="w-8 h-8 rounded-full object-cover border-2 border-secondary-200 hover:border-primary-500 transition-colors duration-200"
                     alt="Profile"
                   />
@@ -407,10 +413,6 @@ const Header = ({ activeHeading }) => {
                   className="w-full pl-10 pr-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  onBlur={() => {
-                    // Use setTimeout to allow clicks on search results to register first
-                    setTimeout(() => setSearchData(null), 150);
-                  }}
                 />
               </div>
 
@@ -427,7 +429,11 @@ const Header = ({ activeHeading }) => {
                     >
                       <div className="flex items-center p-3 hover:bg-secondary-50 border-b border-secondary-100 last:border-b-0">
                         <img
-                          src={`${backend_url}${product.images[0]}`}
+                          src={getProductImageUrl(
+                            product.images,
+                            0,
+                            backend_url
+                          )}
                           alt={product.name}
                           className="w-10 h-10 object-cover rounded mr-3"
                         />
@@ -467,25 +473,35 @@ const Header = ({ activeHeading }) => {
               className="p-4 border-t border-secondary-200 mt-4 animate-slideIn"
               style={{ animationDelay: "0.4s" }}
             >
-              {isAuthenticated ? (
+              {isAuthenticated || isSeller ? (
                 <div className="flex flex-col items-center space-y-3">
-                  <Link to="/profile" onClick={() => setOpen(false)}>
+                  <Link
+                    to={isSeller ? "/dashboard" : "/profile"}
+                    onClick={() => setOpen(false)}
+                  >
                     <img
-                      src={`${backend_url}${user.avatar}`}
+                      src={getAvatarUrl(
+                        isSeller ? seller?.avatar : user?.avatar,
+                        backend_url
+                      )}
                       alt="Profile"
                       className="w-16 h-16 rounded-full object-cover border-4 border-primary-500"
                     />
                   </Link>
                   <div className="text-center">
-                    <p className="text-text-primary font-medium">{user.name}</p>
-                    <p className="text-text-muted text-sm">{user.email}</p>
+                    <p className="text-text-primary font-medium">
+                      {isSeller ? seller?.name : user?.name}
+                    </p>
+                    <p className="text-text-muted text-sm">
+                      {isSeller ? seller?.email : user?.email}
+                    </p>
                   </div>
                   <Link
-                    to="/profile"
+                    to={isSeller ? "/dashboard" : "/profile"}
                     onClick={() => setOpen(false)}
                     className="w-full bg-primary-500 text-white font-medium py-2 rounded-lg hover:bg-primary-600 transition-colors duration-200 text-center"
                   >
-                    View Profile
+                    {isSeller ? "Dashboard" : "View Profile"}
                   </Link>
                 </div>
               ) : (

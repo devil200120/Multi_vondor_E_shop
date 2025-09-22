@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/actions/user";
 import { backend_url } from "../../server";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 
 const ProfileSidebar = ({ setActive, active }) => {
   const navigate = useNavigate();
@@ -86,9 +87,8 @@ const ProfileSidebar = ({ setActive, active }) => {
           <div className="relative mb-4">
             <img
               src={
-                user?.avatar
-                  ? `${backend_url}${user.avatar}`
-                  : "/api/placeholder/80/80"
+                getAvatarUrl(user?.avatar, backend_url) ||
+                "/api/placeholder/80/80"
               }
               alt={user?.name || "User"}
               className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"

@@ -13,6 +13,7 @@ import {
 import { addTocart } from "../../../redux/actions/cart";
 import { toast } from "react-toastify";
 import Ratings from "../../Products/Ratings";
+import { getProductImageUrl } from "../../../utils/mediaUtils";
 
 const ProductCard = ({ data, isEvent, isCompact = false }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -130,7 +131,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
               } w-full`}
             >
               <img
-                src={`${backend_url}${data.images && data.images[0]}`}
+                src={getProductImageUrl(data.images, 0, backend_url)}
                 alt={data.name}
                 className={`w-full h-full object-cover transition-transform duration-500 ${
                   isCompact ? "group-hover:scale-105" : "group-hover:scale-110"

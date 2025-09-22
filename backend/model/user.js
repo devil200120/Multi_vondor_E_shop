@@ -53,8 +53,14 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
   avatar: {
-    type: String,
-    required: true,
+    url: {
+      type: String,
+      required: true,
+    },
+    public_id: {
+      type: String,
+      required: true,
+    },
   },
   // Ban system fields
   isBanned: {

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { getAllProductsShop } from "../../redux/actions/product";
 import { backend_url, server } from "../../server";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import Loader from "../Layout/Loader";
 import { toast } from "react-toastify";
 import { logoutSeller } from "../../redux/actions/user";
@@ -90,7 +91,7 @@ const ShopInfo = ({ isOwner }) => {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img
-                    src={`${backend_url}${data.avatar}`}
+                    src={getAvatarUrl(data.avatar, backend_url)}
                     alt={data.name}
                     className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full border-4 border-white shadow-lg"
                   />

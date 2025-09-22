@@ -28,6 +28,7 @@ import {
 } from "../../redux/actions/category";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
+import { getCategoryImageUrl } from "../../utils/mediaUtils";
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -143,7 +144,7 @@ const CategoryForm = ({ open, onClose, category }) => {
       });
 
       if (category.image) {
-        setImagePreview(category.image);
+        setImagePreview(getCategoryImageUrl(category.image, backend_url));
       }
     } else {
       setFormData({

@@ -19,6 +19,12 @@ import { FiMapPin } from "react-icons/fi";
 import { BiStore } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  getProductImageUrl,
+  getProductVideoUrl,
+  getAllProductMedia,
+  getAvatarUrl,
+} from "../../utils/mediaUtils";
+import {
   getAllProductsShop,
   getAllProducts,
 } from "../../redux/actions/product";
@@ -438,7 +444,7 @@ const ProductDetails = ({ data }) => {
                   {/* Display current selected media (image or video) */}
                   {data && data.images && data.images[select] ? (
                     <img
-                      src={`${backend_url}${data.images[select]}`}
+                      src={getProductImageUrl(data.images, select, backend_url)}
                       alt={data.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -451,9 +457,11 @@ const ProductDetails = ({ data }) => {
                       preload="metadata"
                     >
                       <source
-                        src={`${backend_url}${
-                          data.videos[select - (data.images?.length || 0)]
-                        }`}
+                        src={getProductVideoUrl(
+                          data.videos,
+                          select - (data.images?.length || 0),
+                          backend_url
+                        )}
                         type="video/mp4"
                       />
                       Your browser does not support the video tag.
@@ -515,7 +523,11 @@ const ProductDetails = ({ data }) => {
                       title="Click to select, double-click to view fullscreen"
                     >
                       <img
-                        src={`${backend_url}${image}`}
+                        src={getProductImageUrl(
+                          data.images,
+                          index,
+                          backend_url
+                        )}
                         alt={`${data.name} ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -548,7 +560,11 @@ const ProductDetails = ({ data }) => {
                           preload="metadata"
                         >
                           <source
-                            src={`${backend_url}${video}`}
+                            src={getProductVideoUrl(
+                              data.videos,
+                              index,
+                              backend_url
+                            )}
                             type="video/mp4"
                           />
                         </video>
@@ -585,7 +601,6 @@ const ProductDetails = ({ data }) => {
               <div className="flex items-center space-x-2">
                 <span className="text-xl lg:text-2xl font-bold text-gray-900">
                   ₹{data.discountPrice}
-
                 </span>
                 {data.originalPrice && (
                   <span className="text-base text-gray-500 line-through">
@@ -846,7 +861,7 @@ const ProductDetails = ({ data }) => {
                   className="flex items-center space-x-3 group"
                 >
                   <img
-                    src={`${backend_url}${data?.shop?.avatar}`}
+                    src={getAvatarUrl(data?.shop?.avatar, backend_url)}
                     alt={data?.shop?.name}
                     className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-blue-300 transition-colors"
                   />
@@ -1072,7 +1087,7 @@ const ProductDetailsInfo = ({
                       className="flex space-x-4 p-4 bg-gray-50 rounded-lg"
                     >
                       <img
-                        src={`${backend_url}/${item.user.avatar}`}
+                        src={getAvatarUrl(item.user.avatar, backend_url)}
                         alt={item.user.name}
                         className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                       />
@@ -1117,7 +1132,7 @@ const ProductDetailsInfo = ({
                 >
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
                     <img
-                      src={`${backend_url}${data?.shop?.avatar}`}
+                      src={getAvatarUrl(data?.shop?.avatar, backend_url)}
                       className="w-10 h-10 rounded-full object-cover border border-gray-200"
                       alt={data.shop.name}
                     />

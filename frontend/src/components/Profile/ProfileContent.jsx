@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { backend_url, server } from "../../server";
+import { getAvatarUrl } from "../../utils/mediaUtils";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteUserAddress,
@@ -130,7 +131,7 @@ const ProfileContent = ({ active }) => {
                 <img
                   src={
                     user?.avatar
-                      ? `${backend_url}${user.avatar}`
+                      ? getAvatarUrl(user.avatar, backend_url)
                       : "/api/placeholder/120/120"
                   }
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"

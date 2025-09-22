@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "../../redux/actions/cart";
 import { toast } from "react-toastify";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 import {
   HiOutlineShoppingCart,
   HiOutlineEye,
@@ -77,7 +78,7 @@ const EventCard = ({ active, data, compact = false }) => {
       <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-200 overflow-hidden">
         <div className="relative overflow-hidden">
           <img
-            src={`${backend_url}${data.images[0]}`}
+            src={getProductImageUrl(data.images, 0, backend_url)}
             alt={data.name}
             className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-500"
           />
@@ -176,7 +177,7 @@ const EventCard = ({ active, data, compact = false }) => {
       <div className="lg:flex">
         <div className="lg:w-1/2 relative overflow-hidden">
           <img
-            src={`${backend_url}${data.images[0]}`}
+            src={getProductImageUrl(data.images, 0, backend_url)}
             alt={data.name}
             className="w-full h-40 lg:h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
