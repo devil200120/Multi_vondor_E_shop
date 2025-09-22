@@ -11,6 +11,7 @@ import {
   HiOutlineVolumeUp,
   HiOutlineVolumeOff,
 } from "react-icons/hi";
+import { getProductVideoUrl, getProductImageUrl } from "../../utils/mediaUtils";
 
 const FullScreenMediaViewer = ({
   media,
@@ -29,8 +30,35 @@ const FullScreenMediaViewer = ({
   const [isVideoMuted, setIsVideoMuted] = useState(false);
 
   // Helper function to determine if media item is a video
-  const isVideo = (url) => {
-    return /\.(mp4|webm|ogg)$/i.test(url);
+  const isVideo = (mediaItem) => {
+    console.log('isVideo check for:', mediaItem);
+    
+    // Handle Cloudinary object format
+    if (typeof mediaItem === 'object' && mediaItem?.url) {
+      const url = mediaItem.url;
+      console.log('Checking Cloudinary URL:', url);
+      
+      // Check for Cloudinary video resource type in URL
+      if (url.includes('/video/upload/') || url.includes('resource_type=video')) {
+        console.log('Detected Cloudinary video');
+        return true;
+      }
+      
+      // Fallback to extension check
+      const isVideoExt = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i.test(url);
+      console.log('Extension check result:', isVideoExt);
+      return isVideoExt;
+    }
+    
+    // Handle legacy string format
+    if (typeof mediaItem === 'string') {
+      const isVideoExt = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i.test(mediaItem);
+      console.log('Legacy string video check:', isVideoExt);
+      return isVideoExt;
+    }
+    
+    console.log('Not a video:', mediaItem);
+    return false;
   };
 
   // Get current media item
@@ -43,6 +71,16 @@ const FullScreenMediaViewer = ({
     setMediaLoaded(false);
     setIsVideoPlaying(false);
   }, [currentIndex, isOpen]);
+
+  // Reset video state when changing media
+  useEffect(() => {
+    const videoElement = document.getElementById("fullscreen-video");
+    if (videoElement) {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+      setIsVideoPlaying(false);
+    }
+  }, [selectedIndex]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -129,17 +167,46 @@ const FullScreenMediaViewer = ({
     setImagePosition({ x: 0, y: 0 });
     setMediaLoaded(false);
     setIsVideoPlaying(false);
-  };
-
-  const handleVideoPlay = () => {
+    
+    // Reset video if switching media
     const videoElement = document.getElementById("fullscreen-video");
     if (videoElement) {
-      if (isVideoPlaying) {
-        videoElement.pause();
-      } else {
-        videoElement.play();
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    }
+  };
+
+  const handleVideoPlay = async () => {
+    const videoElement = document.getElementById("fullscreen-video");
+    if (videoElement) {
+      try {
+        console.log('Video play handler triggered, current playing state:', isVideoPlaying);
+        console.log('Video element state:', {
+          paused: videoElement.paused,
+          currentTime: videoElement.currentTime,
+          duration: videoElement.duration,
+          readyState: videoElement.readyState
+        });
+        
+        if (isVideoPlaying) {
+          videoElement.pause();
+          console.log('Video paused');
+        } else {
+          // Ensure video doesn't go fullscreen automatically
+          videoElement.removeAttribute('autoplay');
+          videoElement.setAttribute('playsinline', 'true');
+          
+          await videoElement.play();
+          console.log('Video started playing');
+        }
+        setIsVideoPlaying(!isVideoPlaying);
+      } catch (error) {
+        console.error('Video play error:', error);
+        // If autoplay fails, user needs to interact first
+        setIsVideoPlaying(false);
       }
-      setIsVideoPlaying(!isVideoPlaying);
+    } else {
+      console.error('Video element not found');
     }
   };
 
@@ -223,21 +290,75 @@ const FullScreenMediaViewer = ({
         {isVideo(currentMedia) ? (
           <video
             id="fullscreen-video"
-            src={`${
-              process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"
-            }${currentMedia}`}
+            src={(() => {
+              console.log('Full media array:', media);
+              console.log('Selected index:', selectedIndex);
+              console.log('Current media item:', currentMedia);
+              
+              // Check if it's a video and handle different video data formats
+              if (typeof currentMedia === 'string') {
+                // Legacy format - use mediaUtils to construct proper URL
+                const videoUrl = getProductVideoUrl([currentMedia], 0);
+                console.log('Legacy video URL:', videoUrl);
+                return videoUrl;
+              } else if (currentMedia && typeof currentMedia === 'object') {
+                // New Cloudinary format
+                if (currentMedia.url) {
+                  console.log('Cloudinary video URL:', currentMedia.url);
+                  return currentMedia.url;
+                } else {
+                  // Fallback to mediaUtils
+                  const videoUrl = getProductVideoUrl([currentMedia], 0);
+                  console.log('Fallback video URL:', videoUrl);
+                  return videoUrl;
+                }
+              }
+              
+              console.log('No valid video URL found');
+              return '';
+            })()}
             className="max-w-full max-h-full object-contain"
-            controls
+            controls={false}
             muted={isVideoMuted}
-            onLoadedData={() => setMediaLoaded(true)}
+            playsInline
+            preload="metadata"
+            onLoadedData={() => {
+              console.log('Video loaded successfully');
+              setMediaLoaded(true);
+            }}
             onPlay={() => setIsVideoPlaying(true)}
             onPause={() => setIsVideoPlaying(false)}
+            onError={(e) => {
+              console.error('Video loading error:', e);
+              console.error('Video src:', e.target.src);
+              console.error('Error details:', e.target.error);
+              
+              // Try alternative approaches
+              const videoElement = e.target;
+              const originalSrc = videoElement.src;
+              
+              console.log('Attempting fallback video loading approaches...');
+              
+              // If it's a Cloudinary URL, try different transformations
+              if (originalSrc.includes('cloudinary')) {
+                console.log('Trying Cloudinary video transformations...');
+                // Try adding video format transformation
+                if (!originalSrc.includes('f_auto')) {
+                  const newSrc = originalSrc.replace('/upload/', '/upload/f_auto/');
+                  console.log('Trying f_auto:', newSrc);
+                  videoElement.src = newSrc;
+                  return;
+                }
+              }
+              
+              setMediaLoaded(true);
+            }}
+            onLoadStart={() => console.log('Video load started')}
+            onCanPlay={() => console.log('Video can play')}
           />
         ) : (
           <img
-            src={`${
-              process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"
-            }${currentMedia}`}
+            src={getProductImageUrl([currentMedia], 0)}
             alt={`${productName} ${selectedIndex + 1}`}
             className={`max-w-full max-h-full object-contain transition-all duration-300 ${
               isZoomed ? "scale-150 cursor-move" : "cursor-zoom-in"
@@ -309,12 +430,10 @@ const FullScreenMediaViewer = ({
                 {isVideo(mediaItem) ? (
                   <>
                     <video
-                      src={`${
-                        process.env.REACT_APP_BACKEND_URL ||
-                        "http://localhost:8000"
-                      }${mediaItem}`}
+                      src={getProductVideoUrl([mediaItem], 0)}
                       className="w-full h-full object-cover"
                       muted
+                      preload="metadata"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                       <HiOutlinePlay className="h-4 w-4 text-white" />
@@ -322,10 +441,7 @@ const FullScreenMediaViewer = ({
                   </>
                 ) : (
                   <img
-                    src={`${
-                      process.env.REACT_APP_BACKEND_URL ||
-                      "http://localhost:8000"
-                    }${mediaItem}`}
+                    src={getProductImageUrl([mediaItem], 0)}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
