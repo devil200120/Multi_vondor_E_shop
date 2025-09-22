@@ -25,11 +25,36 @@ const GoogleTranslate = () => {
     { code: "as", name: "Assamese", native: "অসমীয়া", flag: "🇮🇳" },
   ];
 
-  // Get current language on mount
   useEffect(() => {
-    const lang = getCurrentLanguage();
-    setCurrentLang(lang);
-  }, [getCurrentLanguage]);
+    const updateLanguage = () => {
+      const lang = getCurrentLanguage();
+      console.log(`GoogleTranslate component - current language: ${lang}`);
+      if (lang !== currentLang) {
+        setCurrentLang(lang);
+      }
+    };
+    
+    updateLanguage();
+    
+    // Reset loading state if page has reloaded
+    const wasChangingLanguage = sessionStorage.getItem('languageChangeInProgress');
+    if (wasChangingLanguage) {
+      console.log("Page reloaded after language change, resetting loading state");
+      setIsLoading(false);
+      sessionStorage.removeItem('languageChangeInProgress');
+      
+      // Remove any existing loading overlay
+      const existingLoader = document.getElementById('language-change-loader');
+      if (existingLoader) {
+        existingLoader.remove();
+      }
+    }
+    
+    // Check periodically in case language changes from external sources
+    const interval = setInterval(updateLanguage, 2000);
+    
+    return () => clearInterval(interval);
+  }, [getCurrentLanguage, currentLang]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -44,14 +69,31 @@ const GoogleTranslate = () => {
   }, []);
 
   const handleLanguageChange = (langCode) => {
+    console.log(`Language change requested: ${currentLang} -> ${langCode}`);
+    
     if (langCode === currentLang) {
+      console.log("Same language selected, closing dropdown");
       setIsOpen(false);
       return;
     }
 
+    console.log("Starting language change process...");
     setIsLoading(true);
     setIsOpen(false);
-    changeLanguage(langCode);
+    
+    // Update local state immediately for UI feedback
+    setCurrentLang(langCode);
+    
+    // Call the hook's change language function
+    try {
+      changeLanguage(langCode);
+    } catch (error) {
+      console.error("Error in language change:", error);
+      setIsLoading(false);
+      // Reset to previous language on error
+      const prevLang = getCurrentLanguage();
+      setCurrentLang(prevLang);
+    }
   };
 
   const currentLanguage =
