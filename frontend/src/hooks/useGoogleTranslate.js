@@ -100,154 +100,60 @@ export const useGoogleTranslate = () => {
     try {
       console.log(`Changing language to: ${langCode}`);
       
-      // Save language preference immediately
+      // Save language preference
       localStorage.setItem("googleTranslate_lang", langCode);
-      
-      // Mark that language change is in progress
-      sessionStorage.setItem('languageChangeInProgress', 'true');
-      
-      // Get domain for cookie setting
-      const hostname = window.location.hostname;
-      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-      
-      console.log(`Domain info - hostname: ${hostname}, isLocalhost: ${isLocalhost}`);
-      
-      // Clear any existing Google Translate cookies first
-      const cookieNames = ['googtrans', 'googtrans-temp'];
-      cookieNames.forEach(cookieName => {
-        // Clear for current domain
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
-        if (!isLocalhost) {
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname};`;
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${hostname};`;
-        }
-      });
 
       if (langCode === "en") {
-        console.log("Setting to English - clearing Google Translate cookies");
-        // For English, we just cleared the cookies above
+        // Clear Google Translate cookie for English
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
       } else {
         // Set Google Translate cookie for other languages
         const googTransValue = `/en/${langCode}`;
-        console.log(`Setting Google Translate cookie: ${googTransValue}`);
-        
-        // Set cookie for different domain scenarios
-        document.cookie = `googtrans=${googTransValue}; path=/; max-age=31536000;`;
-        if (!isLocalhost) {
-          document.cookie = `googtrans=${googTransValue}; path=/; domain=${hostname}; max-age=31536000;`;
-          try {
-            document.cookie = `googtrans=${googTransValue}; path=/; domain=.${hostname}; max-age=31536000;`;
-          } catch (e) {
-            console.log("Could not set subdomain cookie:", e);
-          }
-        }
+        document.cookie = `googtrans=${googTransValue}; path=/; domain=${window.location.hostname}`;
+        document.cookie = `googtrans=${googTransValue}; path=/;`;
       }
-      
-      // Verify cookie was set correctly
-      setTimeout(() => {
-        const cookies = document.cookie.split(";");
-        const googTransCookie = cookies.find((cookie) =>
-          cookie.trim().startsWith("googtrans=")
-        );
-        console.log("Cookie verification - all cookies:", document.cookie);
-        console.log("Google Translate cookie:", googTransCookie ? googTransCookie.trim() : "Not found");
-      }, 100);
 
-      // Force a longer wait to ensure cookie is set
+      // Show loading message
       const loadingMessage = document.createElement('div');
-      loadingMessage.id = 'language-change-loader';
       loadingMessage.innerHTML = `
         <div style="
           position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.8);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 10000;
-          font-family: Arial, sans-serif;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 20px 30px;
+          border-radius: 10px;
+          z-index: 9999;
+          text-align: center;
+          font-size: 16px;
+          font-weight: 500;
         ">
-          <div style="
-            background: white;
-            padding: 30px 40px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-          ">
-            <div style="
-              font-size: 18px;
-              font-weight: 600;
-              color: #333;
-              margin-bottom: 10px;
-            ">🌍 Changing language...</div>
-            <div style="
-              font-size: 14px;
-              color: #666;
-              margin-bottom: 20px;
-            ">Please wait a moment</div>
-            <div style="
-              width: 40px;
-              height: 40px;
-              border: 3px solid #f3f3f3;
-              border-top: 3px solid #3498db;
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-              margin: 0 auto;
-            "></div>
-            <style>
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            </style>
-          </div>
+          <div style="margin-bottom: 10px;">🌍 Changing language...</div>
+          <div style="font-size: 14px; opacity: 0.8;">Please wait</div>
         </div>
       `;
       document.body.appendChild(loadingMessage);
 
-      // Wait longer in deployment environments
-      const reloadDelay = isLocalhost ? 1500 : 2500;
-      
+      // Force reload
       setTimeout(() => {
-        console.log("Reloading page to apply language change");
-        
-        // Try multiple reload approaches for better compatibility
-        try {
-          // Method 1: Force reload with cache bypass
-          window.location.reload(true);
-        } catch (e1) {
-          try {
-            // Method 2: Navigate to same URL with timestamp
-            const url = new URL(window.location);
-            url.searchParams.set('lang', langCode);
-            url.searchParams.set('t', Date.now());
-            window.location.href = url.toString();
-          } catch (e2) {
-            // Method 3: Simple reload
-            window.location.reload();
-          }
-        }
-      }, reloadDelay);
+        window.location.reload();
+      }, 1000);
 
     } catch (error) {
       console.error("Language change failed:", error);
-      // Fallback: Always reload on error, but with delay
+      // Fallback: Always reload on error
       setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+        window.location.reload();
+      }, 500);
     }
   }, []);
 
   // Get current language
   const getCurrentLanguage = useCallback(() => {
     try {
-      // First check localStorage for immediate availability
-      const savedLang = localStorage.getItem("googleTranslate_lang");
-      
-      // Then check Google Translate cookie
       const cookies = document.cookie.split(";");
       const googTransCookie = cookies.find((cookie) =>
         cookie.trim().startsWith("googtrans=")
@@ -255,26 +161,11 @@ export const useGoogleTranslate = () => {
 
       if (googTransCookie) {
         const value = googTransCookie.split("=")[1];
-        if (value && value.includes("/")) {
-          const langCode = value.split("/")[2] || "en";
-          console.log(`Language from cookie: ${langCode}`);
-          
-          // Update localStorage to match cookie
-          if (savedLang !== langCode) {
-            localStorage.setItem("googleTranslate_lang", langCode);
-          }
-          
-          return langCode;
-        }
+        const langCode = value.split("/")[2] || "en";
+        return langCode;
       }
-      
-      // Fallback to localStorage or default
-      const fallbackLang = savedLang || "en";
-      console.log(`Language from localStorage/default: ${fallbackLang}`);
-      return fallbackLang;
-      
+      return localStorage.getItem("googleTranslate_lang") || "en";
     } catch (error) {
-      console.error("Error getting current language:", error);
       return "en";
     }
   }, []);

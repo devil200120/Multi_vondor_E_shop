@@ -31,33 +31,38 @@ const FullScreenMediaViewer = ({
 
   // Helper function to determine if media item is a video
   const isVideo = (mediaItem) => {
-    console.log('isVideo check for:', mediaItem);
-    
+    console.log("isVideo check for:", mediaItem);
+
     // Handle Cloudinary object format
-    if (typeof mediaItem === 'object' && mediaItem?.url) {
+    if (typeof mediaItem === "object" && mediaItem?.url) {
       const url = mediaItem.url;
-      console.log('Checking Cloudinary URL:', url);
-      
+      console.log("Checking Cloudinary URL:", url);
+
       // Check for Cloudinary video resource type in URL
-      if (url.includes('/video/upload/') || url.includes('resource_type=video')) {
-        console.log('Detected Cloudinary video');
+      if (
+        url.includes("/video/upload/") ||
+        url.includes("resource_type=video")
+      ) {
+        console.log("Detected Cloudinary video");
         return true;
       }
-      
+
       // Fallback to extension check
       const isVideoExt = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i.test(url);
-      console.log('Extension check result:', isVideoExt);
+      console.log("Extension check result:", isVideoExt);
       return isVideoExt;
     }
-    
+
     // Handle legacy string format
-    if (typeof mediaItem === 'string') {
-      const isVideoExt = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i.test(mediaItem);
-      console.log('Legacy string video check:', isVideoExt);
+    if (typeof mediaItem === "string") {
+      const isVideoExt = /\.(mp4|webm|ogg|avi|mov|wmv|flv|mkv)$/i.test(
+        mediaItem
+      );
+      console.log("Legacy string video check:", isVideoExt);
       return isVideoExt;
     }
-    
-    console.log('Not a video:', mediaItem);
+
+    console.log("Not a video:", mediaItem);
     return false;
   };
 
@@ -167,7 +172,7 @@ const FullScreenMediaViewer = ({
     setImagePosition({ x: 0, y: 0 });
     setMediaLoaded(false);
     setIsVideoPlaying(false);
-    
+
     // Reset video if switching media
     const videoElement = document.getElementById("fullscreen-video");
     if (videoElement) {
@@ -180,33 +185,36 @@ const FullScreenMediaViewer = ({
     const videoElement = document.getElementById("fullscreen-video");
     if (videoElement) {
       try {
-        console.log('Video play handler triggered, current playing state:', isVideoPlaying);
-        console.log('Video element state:', {
+        console.log(
+          "Video play handler triggered, current playing state:",
+          isVideoPlaying
+        );
+        console.log("Video element state:", {
           paused: videoElement.paused,
           currentTime: videoElement.currentTime,
           duration: videoElement.duration,
-          readyState: videoElement.readyState
+          readyState: videoElement.readyState,
         });
-        
+
         if (isVideoPlaying) {
           videoElement.pause();
-          console.log('Video paused');
+          console.log("Video paused");
         } else {
           // Ensure video doesn't go fullscreen automatically
-          videoElement.removeAttribute('autoplay');
-          videoElement.setAttribute('playsinline', 'true');
-          
+          videoElement.removeAttribute("autoplay");
+          videoElement.setAttribute("playsinline", "true");
+
           await videoElement.play();
-          console.log('Video started playing');
+          console.log("Video started playing");
         }
         setIsVideoPlaying(!isVideoPlaying);
       } catch (error) {
-        console.error('Video play error:', error);
+        console.error("Video play error:", error);
         // If autoplay fails, user needs to interact first
         setIsVideoPlaying(false);
       }
     } else {
-      console.error('Video element not found');
+      console.error("Video element not found");
     }
   };
 
@@ -291,31 +299,31 @@ const FullScreenMediaViewer = ({
           <video
             id="fullscreen-video"
             src={(() => {
-              console.log('Full media array:', media);
-              console.log('Selected index:', selectedIndex);
-              console.log('Current media item:', currentMedia);
-              
+              console.log("Full media array:", media);
+              console.log("Selected index:", selectedIndex);
+              console.log("Current media item:", currentMedia);
+
               // Check if it's a video and handle different video data formats
-              if (typeof currentMedia === 'string') {
+              if (typeof currentMedia === "string") {
                 // Legacy format - use mediaUtils to construct proper URL
                 const videoUrl = getProductVideoUrl([currentMedia], 0);
-                console.log('Legacy video URL:', videoUrl);
+                console.log("Legacy video URL:", videoUrl);
                 return videoUrl;
-              } else if (currentMedia && typeof currentMedia === 'object') {
+              } else if (currentMedia && typeof currentMedia === "object") {
                 // New Cloudinary format
                 if (currentMedia.url) {
-                  console.log('Cloudinary video URL:', currentMedia.url);
+                  console.log("Cloudinary video URL:", currentMedia.url);
                   return currentMedia.url;
                 } else {
                   // Fallback to mediaUtils
                   const videoUrl = getProductVideoUrl([currentMedia], 0);
-                  console.log('Fallback video URL:', videoUrl);
+                  console.log("Fallback video URL:", videoUrl);
                   return videoUrl;
                 }
               }
-              
-              console.log('No valid video URL found');
-              return '';
+
+              console.log("No valid video URL found");
+              return "";
             })()}
             className="max-w-full max-h-full object-contain"
             controls={false}
@@ -323,38 +331,41 @@ const FullScreenMediaViewer = ({
             playsInline
             preload="metadata"
             onLoadedData={() => {
-              console.log('Video loaded successfully');
+              console.log("Video loaded successfully");
               setMediaLoaded(true);
             }}
             onPlay={() => setIsVideoPlaying(true)}
             onPause={() => setIsVideoPlaying(false)}
             onError={(e) => {
-              console.error('Video loading error:', e);
-              console.error('Video src:', e.target.src);
-              console.error('Error details:', e.target.error);
-              
+              console.error("Video loading error:", e);
+              console.error("Video src:", e.target.src);
+              console.error("Error details:", e.target.error);
+
               // Try alternative approaches
               const videoElement = e.target;
               const originalSrc = videoElement.src;
-              
-              console.log('Attempting fallback video loading approaches...');
-              
+
+              console.log("Attempting fallback video loading approaches...");
+
               // If it's a Cloudinary URL, try different transformations
-              if (originalSrc.includes('cloudinary')) {
-                console.log('Trying Cloudinary video transformations...');
+              if (originalSrc.includes("cloudinary")) {
+                console.log("Trying Cloudinary video transformations...");
                 // Try adding video format transformation
-                if (!originalSrc.includes('f_auto')) {
-                  const newSrc = originalSrc.replace('/upload/', '/upload/f_auto/');
-                  console.log('Trying f_auto:', newSrc);
+                if (!originalSrc.includes("f_auto")) {
+                  const newSrc = originalSrc.replace(
+                    "/upload/",
+                    "/upload/f_auto/"
+                  );
+                  console.log("Trying f_auto:", newSrc);
                   videoElement.src = newSrc;
                   return;
                 }
               }
-              
+
               setMediaLoaded(true);
             }}
-            onLoadStart={() => console.log('Video load started')}
-            onCanPlay={() => console.log('Video can play')}
+            onLoadStart={() => console.log("Video load started")}
+            onCanPlay={() => console.log("Video can play")}
           />
         ) : (
           <img
