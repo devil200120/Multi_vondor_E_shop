@@ -5,6 +5,7 @@ import {
   getCategoryStats,
   clearCategoryErrors,
   clearCategoryMessages,
+  deleteCategory,
 } from "../../redux/actions/category";
 import {
   HiOutlineViewGrid,
@@ -13,6 +14,7 @@ import {
   HiOutlineCollection,
   HiOutlineRefresh,
   HiOutlineTag,
+  HiOutlineX
 } from "react-icons/hi";
 import {
   FiSearch,
@@ -21,6 +23,7 @@ import {
   FiEye,
   FiGrid,
   FiList,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { MdCategory, MdVerified, MdBlock } from "react-icons/md";
 import { Button } from "@material-ui/core";
@@ -42,6 +45,11 @@ const AdminCategoryManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalAnimating, setDeleteModalAnimating] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [deleteForce, setDeleteForce] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [mounted, setMounted] = useState(false);
@@ -108,6 +116,42 @@ const AdminCategoryManager = () => {
   const handlePageChange = (newPage) => {
     setPage(newPage);
     loadData(searchQuery, newPage);
+  };
+
+  const openDeleteModal = (category) => {
+    setCategoryToDelete(category);
+    setDeleteForce(false);
+    setDeleteModalOpen(true);
+    setTimeout(() => setDeleteModalAnimating(true), 10);
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteCategory(categoryToDelete._id, deleteForce));
+      setDeleteModalAnimating(false);
+      setTimeout(() => {
+        setDeleteModalOpen(false);
+        setCategoryToDelete(null);
+        setDeleteForce(false);
+      }, 300);
+      // Data will be reloaded via message effect
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalAnimating(false);
+    setTimeout(() => {
+      setDeleteModalOpen(false);
+      setCategoryToDelete(null);
+      setDeleteForce(false);
+    }, 300);
   };
 
   if (!mounted) {
@@ -444,6 +488,14 @@ const AdminCategoryManager = () => {
                     >
                       <FiEdit2 size={16} />
                     </button>
+                    
+                    <button
+                      onClick={() => openDeleteModal(category)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                      title="Delete Category"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -508,6 +560,115 @@ const AdminCategoryManager = () => {
           onClose={handleFormClose}
           category={editingCategory}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && categoryToDelete && (
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
+          deleteModalAnimating ? 'bg-black bg-opacity-50' : 'bg-black bg-opacity-0'
+        }`}>
+          <div className={`bg-white rounded-xl shadow-unacademy-xl w-full max-w-md transition-all duration-300 transform ${
+            deleteModalAnimating ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+          }`}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <FiAlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Delete Category</h2>
+                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                </div>
+              </div>
+              <button
+                onClick={closeDeleteModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                disabled={isDeleting}
+              >
+                <HiOutlineX className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-gray-800 mb-2">
+                  Are you sure you want to delete <strong>"{categoryToDelete.name}"</strong>?
+                </p>
+                
+                {categoryToDelete.productCount > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                    <div className="flex">
+                      <FiAlertTriangle className="h-5 w-5 text-yellow-400 mr-2 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">
+                          This category has {categoryToDelete.productCount} associated products
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Products will lose their category assignment if you proceed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex">
+                    <FiAlertTriangle className="h-5 w-5 text-red-400 mr-2 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800 mb-2">
+                        Force Delete Options:
+                      </p>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={deleteForce}
+                          onChange={(e) => setDeleteForce(e.target.checked)}
+                          className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                          disabled={isDeleting}
+                        />
+                        <span className="ml-2 text-sm text-red-700">
+                          Force delete (removes subcategories and product associations)
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteCategory}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-all duration-200 shadow-unacademy hover:shadow-unacademy-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 className="h-4 w-4" />
+                    <span>Delete Category</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
