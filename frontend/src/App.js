@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Store from "./redux/store";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGoogleTranslate } from "./hooks/useGoogleTranslate";
+import axios from "axios";
 import BanModal from "./components/BanDetection/BanModal";
 import BanProtection from "./components/BanDetection/BanProtection";
 import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
@@ -68,7 +69,6 @@ import AdminOrderDetailsPage from "./pages/AdminOrderDetailsPage";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useEffect } from "react";
 import { loadSeller, loadUser } from "./redux/actions/user";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ProtectedAdminRoute from "./routes/ProtectedAdminRoute";
@@ -76,7 +76,6 @@ import SellerProtectedRoute from "./routes/SellerProtectedRoute";
 import { ShopHomePage } from "./ShopRoutes";
 import { getAllProducts } from "./redux/actions/product";
 import { getAllEvents } from "./redux/actions/event";
-import axios from "axios";
 import { server } from "./server";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -100,7 +99,7 @@ const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Load user and seller data first
+        // Load user and seller data first (these actions handle their own errors)
         await Promise.all([
           Store.dispatch(loadUser()),
           Store.dispatch(loadSeller()),

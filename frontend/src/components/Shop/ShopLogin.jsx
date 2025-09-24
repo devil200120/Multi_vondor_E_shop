@@ -34,7 +34,33 @@ const ShopLogin = () => {
       dispatch(loadSeller()); // Load seller data into Redux state
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      const errorMessage = err.response?.data?.message || "Login failed";
+
+      // Handle specific errors for role validation
+      if (
+        errorMessage.includes("Only users with Supplier role can login") ||
+        errorMessage.includes("Please use regular user login")
+      ) {
+        toast.error(
+          "You don't have Supplier privileges. Please use the regular user login."
+        );
+        navigate("/login");
+      } else if (errorMessage.includes("Your role has been changed")) {
+        toast.error(
+          "Your role has been changed. Please use the regular user login."
+        );
+        navigate("/login");
+      } else if (
+        errorMessage.includes("Invalid credentials") ||
+        errorMessage.includes("password")
+      ) {
+        toast.error(
+          errorMessage +
+            " - If you were recently promoted to Supplier, use temporary password: 'temppassword123'"
+        );
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -75,6 +101,42 @@ const ShopLogin = () => {
 
           {/* Form */}
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            {/* Information Box for Converted Suppliers */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-blue-400 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    New Supplier?
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>
+                      If an admin recently promoted you to Supplier, use your
+                      email and temporary password:{" "}
+                      <code className="bg-blue-100 px-1 rounded text-blue-900 font-mono">
+                        temppassword123
+                      </code>
+                    </p>
+                    <p className="mt-1 text-xs">
+                      Please change this password after your first login.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Email Field */}
               <div>
@@ -205,6 +267,39 @@ const ShopLogin = () => {
                     Create Store
                   </Link>
                 </p>
+              </div>
+
+              {/* User Login Link */}
+              <div className="text-center pt-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">or</span>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-sm"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    Login as Customer
+                  </Link>
+                </div>
               </div>
             </form>
           </div>

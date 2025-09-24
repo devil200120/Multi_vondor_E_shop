@@ -26,6 +26,7 @@ const PincodeValidationDialog = ({
   const [isValid, setIsValid] = useState(null);
   const [step, setStep] = useState("initial"); // 'initial', 'checking', 'result'
   const [closingAnimation, setClosingAnimation] = useState(false);
+  const [isAnimatingIn, setIsAnimatingIn] = useState(false);
 
   const checkPincodeDelivery = useCallback(
     async (pincodeValue, isAutoCheck = false) => {
@@ -103,6 +104,20 @@ const PincodeValidationDialog = ({
     [onValidationResult]
   );
 
+  // Handle entrance animation
+  useEffect(() => {
+    if (show) {
+      setIsAnimatingIn(true);
+      // Use requestAnimationFrame for smoother timing
+      const timer = requestAnimationFrame(() => {
+        setTimeout(() => {
+          setIsAnimatingIn(false);
+        }, 50); // Reduced delay for faster transition
+      });
+      return () => cancelAnimationFrame(timer);
+    }
+  }, [show]);
+
   // Check if user has a valid Karnataka address
   useEffect(() => {
     if (show && userAddresses && userAddresses.length > 0) {
@@ -153,7 +168,8 @@ const PincodeValidationDialog = ({
       setIsValid(null);
       setStep("initial");
       setClosingAnimation(false);
-    }, 200);
+      setIsAnimatingIn(false);
+    }, 300); // Increased from 200ms to 300ms
   };
 
   const handleContinueShopping = () => {
@@ -164,15 +180,29 @@ const PincodeValidationDialog = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-3 sm:p-4 transition-opacity duration-200 ${
-        closingAnimation ? "opacity-0" : "opacity-100"
+      className={`fixed inset-0 bg-black flex items-center justify-center z-50 p-3 sm:p-4 transition-all duration-300 ${
+        closingAnimation ? "bg-opacity-0" : "bg-opacity-60"
       }`}
-      style={{ backdropFilter: "blur(4px)" }}
+      style={{
+        backdropFilter: closingAnimation ? "blur(0px)" : "blur(4px)",
+        transition:
+          "backdrop-filter 300ms cubic-bezier(0.4, 0, 0.2, 1), background-color 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
+      onClick={handleClose}
     >
       <div
-        className={`bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-3 transform transition-all duration-200 ${
-          closingAnimation ? "scale-95 opacity-0" : "scale-100 opacity-100"
+        className={`bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-3 transform transition-all duration-300 ${
+          closingAnimation
+            ? "scale-90 opacity-0 translate-y-4"
+            : isAnimatingIn
+            ? "scale-95 translate-y-2"
+            : "scale-100 translate-y-0"
         }`}
+        style={{
+          transformOrigin: "center center",
+          willChange: "transform, opacity",
+          transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)", // Spring-like bounce effect
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

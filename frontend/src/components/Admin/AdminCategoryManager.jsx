@@ -12,7 +12,17 @@ import {
   HiOutlineSearch,
   HiOutlineCollection,
   HiOutlineRefresh,
+  HiOutlineTag,
 } from "react-icons/hi";
+import {
+  FiSearch,
+  FiEdit2,
+  FiTrash2,
+  FiEye,
+  FiGrid,
+  FiList,
+} from "react-icons/fi";
+import { MdCategory, MdVerified, MdBlock } from "react-icons/md";
 import { Button } from "@material-ui/core";
 import { toast } from "react-toastify";
 import styles from "../../styles/styles";
@@ -101,273 +111,394 @@ const AdminCategoryManager = () => {
   };
 
   if (!mounted) {
-    return <Loader />;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader />
+      </div>
+    );
   }
 
   return (
-    <div className="w-full p-6">
+    <div className="w-full p-4 800px:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <HiOutlineCollection className="mr-2" />
-            Category Management
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your product categories and subcategories
-          </p>
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <MdCategory className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl 800px:text-3xl font-bold text-gray-900">
+              Categories
+            </h1>
+            <p className="text-gray-600">
+              Manage product categories and organize your inventory
+            </p>
+          </div>
         </div>
 
-        <div className="flex space-x-3">
-          <Button
-            variant="outlined"
+        {/* Action Buttons */}
+        <div className="flex flex-col 400px:flex-row gap-3 400px:justify-end mt-4">
+          <button
             onClick={handleRefresh}
-            startIcon={<HiOutlineRefresh />}
             disabled={isLoading}
+            className="flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-unacademy hover:shadow-unacademy-md"
           >
+            <HiOutlineRefresh className="mr-2 h-4 w-4" />
             Refresh
-          </Button>
+          </button>
 
-          <Button
-            variant="contained"
-            color="primary"
+          <button
             onClick={() => setShowForm(true)}
-            startIcon={<HiOutlinePlus />}
-            className={styles.button}
+            className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-medium rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-unacademy hover:shadow-unacademy-lg transform hover:-translate-y-0.5"
           >
+            <HiOutlinePlus className="mr-2 h-4 w-4" />
             Add Category
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Statistics */}
+      {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex items-center">
-              <HiOutlineCollection className="text-blue-500 text-2xl mr-3" />
+        <div className="grid grid-cols-1 400px:grid-cols-2 800px:grid-cols-4 gap-4 800px:gap-6 mb-6">
+          <div className={`${styles.card} ${styles.card_padding}`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Categories</p>
-                <p className="text-2xl font-bold">{stats.total || 0}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Categories
+                </p>
+                <p className="text-2xl font-bold text-indigo-600">
+                  {stats.total || 0}
+                </p>
+                <div className="flex items-center mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    All Categories
+                  </span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <MdCategory className="h-6 w-6 text-indigo-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex items-center">
-              <HiOutlineViewGrid className="text-green-500 text-2xl mr-3" />
+          <div className={`${styles.card} ${styles.card_padding}`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold">{stats.active || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.active || 0}
+                </p>
+                <div className="flex items-center mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Published
+                  </span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <MdVerified className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex items-center">
-              <HiOutlineViewGrid className="text-red-500 text-2xl mr-3" />
+          <div className={`${styles.card} ${styles.card_padding}`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Inactive</p>
-                <p className="text-2xl font-bold">{stats.inactive || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Inactive</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.inactive || 0}
+                </p>
+                <div className="flex items-center mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    Unpublished
+                  </span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <MdBlock className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="flex items-center">
-              <HiOutlineViewGrid className="text-purple-500 text-2xl mr-3" />
+          <div className={`${styles.card} ${styles.card_padding}`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Root Categories</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm font-medium text-gray-600">
+                  Root Categories
+                </p>
+                <p className="text-2xl font-bold text-purple-600">
                   {stats.byLevel?.find((l) => l._id === 0)?.count || 0}
                 </p>
+                <div className="flex items-center mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Main Categories
+                  </span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <HiOutlineTag className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Controls */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          {/* Search */}
-          <div className="relative">
-            <HiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search categories..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
-            />
-          </div>
-
-          {/* View Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setView("grid")}
-              className={`px-3 py-1 rounded text-sm ${
-                view === "grid"
-                  ? "bg-white shadow text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <HiOutlineViewGrid className="inline mr-1" />
-              Grid
-            </button>
-            <button
-              onClick={() => setView("tree")}
-              className={`px-3 py-1 rounded text-sm ${
-                view === "tree"
-                  ? "bg-white shadow text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <HiOutlineCollection className="inline mr-1" />
-              Tree
-            </button>
-          </div>
+      {/* Search Bar */}
+      <div className={`${styles.card} p-4 mb-6`}>
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <input
+            type="text"
+            placeholder="Search categories by name, description..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className={styles.input}
+            style={{ paddingLeft: "2.5rem" }}
+          />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="bg-white rounded-lg shadow p-6">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader />
-          </div>
-        ) : categories && categories.length > 0 ? (
-          <div className="space-y-4">
-            {categories.map((category) => {
-              console.log("Category data:", category);
-              console.log("Category image:", category.image);
-              console.log(
-                "Image URL result:",
-                getCategoryImageUrl(category.image, backend_url)
-              );
+      {/* View Toggle & Categories List */}
+      <div className={`${styles.card} overflow-hidden`}>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between flex-col 400px:flex-row gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <MdCategory className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Categories List
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {categories?.length || 0} categor
+                  {categories?.length !== 1 ? "ies" : "y"} found
+                </p>
+              </div>
+            </div>
 
-              return (
-                <div key={category._id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      {category.image && (
+            {/* View Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setView("grid")}
+                className={`px-3 py-1 rounded text-sm transition-all duration-200 flex items-center ${
+                  view === "grid"
+                    ? "bg-white shadow-unacademy text-primary-600"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <FiGrid className="mr-1 h-4 w-4" />
+                Grid
+              </button>
+              <button
+                onClick={() => setView("list")}
+                className={`px-3 py-1 rounded text-sm transition-all duration-200 flex items-center ${
+                  view === "list"
+                    ? "bg-white shadow-unacademy text-primary-600"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <FiList className="mr-1 h-4 w-4" />
+                List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader />
+            </div>
+          ) : categories && categories.length > 0 ? (
+            <div
+              className={
+                view === "grid"
+                  ? "grid grid-cols-1 400px:grid-cols-2 800px:grid-cols-3 gap-6"
+                  : "space-y-4"
+              }
+            >
+              {categories.map((category) => (
+                <div
+                  key={category._id}
+                  className={`border border-gray-200 rounded-xl transition-all duration-200 hover:shadow-unacademy-md hover:border-primary-200 ${
+                    view === "grid"
+                      ? "p-4"
+                      : "p-4 flex items-center justify-between"
+                  }`}
+                >
+                  <div
+                    className={`${
+                      view === "grid"
+                        ? "text-center"
+                        : "flex items-center flex-1"
+                    }`}
+                  >
+                    {/* Category Image */}
+                    <div
+                      className={`${
+                        view === "grid" ? "mx-auto mb-4" : "mr-4"
+                      } flex-shrink-0`}
+                    >
+                      {category.image ? (
                         <img
                           src={getCategoryImageUrl(category.image, backend_url)}
                           alt={category.name}
-                          className="w-12 h-12 rounded object-cover mr-4"
+                          className={`${
+                            view === "grid" ? "w-20 h-20" : "w-12 h-12"
+                          } rounded-lg object-cover border-2 border-gray-200`}
                           onError={(e) => {
                             console.log("Image failed to load:", e.target.src);
-                            console.log("Image data:", category.image);
-                          }}
-                          onLoad={() => {
-                            console.log(
-                              "Image loaded successfully:",
-                              getCategoryImageUrl(category.image, backend_url)
-                            );
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "flex";
                           }}
                         />
-                      )}
-                      {!category.image && (
-                        <div className="w-12 h-12 bg-gray-200 rounded mr-4 flex items-center justify-center text-gray-500 text-xs">
-                          No Image
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-medium text-gray-900">
-                          {category.name}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          Level {category.level} • {category.productCount || 0}{" "}
-                          products
-                        </p>
-                        {category.description && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            {category.description}
-                          </p>
-                        )}
-                        {category.parent && (
-                          <p className="text-xs text-blue-600 mt-1">
-                            Parent: {category.parent.name}
-                          </p>
-                        )}
+                      ) : null}
+                      <div
+                        className={`${
+                          view === "grid" ? "w-20 h-20" : "w-12 h-12"
+                        } ${
+                          category.image ? "hidden" : "flex"
+                        } bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg items-center justify-center border-2 border-dashed border-indigo-300`}
+                      >
+                        <MdCategory
+                          className={`${
+                            view === "grid" ? "h-8 w-8" : "h-6 w-6"
+                          } text-indigo-500`}
+                        />
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          category.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                    {/* Category Info */}
+                    <div
+                      className={`${
+                        view === "grid" ? "text-center" : "flex-1"
+                      }`}
+                    >
+                      <h3
+                        className={`font-semibold text-gray-900 ${
+                          view === "grid" ? "text-lg mb-2" : "text-base mb-1"
                         }`}
                       >
-                        {category.isActive ? "Active" : "Inactive"}
-                      </span>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => {
-                          setEditingCategory(category);
-                          setShowForm(true);
-                        }}
+                        {category.name}
+                      </h3>
+
+                      <div
+                        className={`${
+                          view === "grid"
+                            ? "space-y-2 mb-4"
+                            : "flex items-center space-x-4 mb-2"
+                        }`}
                       >
-                        Edit
-                      </Button>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            category.isActive
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {category.isActive ? "Active" : "Inactive"}
+                        </span>
+
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Level {category.level}
+                        </span>
+
+                        <span className="text-sm text-gray-500">
+                          {category.productCount || 0} products
+                        </span>
+                      </div>
+
+                      {category.description && (
+                        <p
+                          className={`text-gray-600 ${
+                            view === "grid" ? "text-sm mb-4" : "text-xs mb-2"
+                          } line-clamp-2`}
+                        >
+                          {category.description}
+                        </p>
+                      )}
+
+                      {category.parent && (
+                        <p className="text-xs text-primary-600 font-medium">
+                          Parent: {category.parent.name}
+                        </p>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center mt-6 pt-4 border-t">
+                  {/* Actions */}
+                  <div
+                    className={`${
+                      view === "grid"
+                        ? "flex justify-center space-x-2 pt-4 border-t border-gray-100"
+                        : "flex space-x-2 ml-4"
+                    }`}
+                  >
+                    <button
+                      onClick={() => {
+                        setEditingCategory(category);
+                        setShowForm(true);
+                      }}
+                      className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
+                      title="Edit Category"
+                    >
+                      <FiEdit2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                <MdCategory className="h-10 w-10 text-indigo-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No categories found
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {searchQuery
+                  ? `No categories match your search "${searchQuery}". Try a different search term.`
+                  : "Get started by creating your first product category to organize your inventory."}
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-unacademy hover:shadow-unacademy-lg transform hover:-translate-y-0.5"
+              >
+                <HiOutlinePlus className="mr-2 h-5 w-5" />
+                Create First Category
+              </button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {categories && categories.length > 0 && (
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 flex-col 400px:flex-row gap-4">
               <p className="text-sm text-gray-600">
                 Showing {categories.length} of {total || 0} categories
               </p>
               <div className="flex space-x-2">
-                <Button
-                  size="small"
-                  variant="outlined"
+                <button
                   disabled={page <= 1 || isLoading}
                   onClick={() => handlePageChange(page - 1)}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   Previous
-                </Button>
-                <span className="px-3 py-1 text-sm text-gray-600">
+                </button>
+                <span className="px-4 py-2 text-sm text-gray-600 bg-gray-50 rounded-lg">
                   Page {page}
                 </span>
-                <Button
-                  size="small"
-                  variant="outlined"
+                <button
                   disabled={categories.length < pageSize || isLoading}
                   onClick={() => handlePageChange(page + 1)}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   Next
-                </Button>
+                </button>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <HiOutlineCollection className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              No categories
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating your first category.
-            </p>
-            <div className="mt-6">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowForm(true)}
-                startIcon={<HiOutlinePlus />}
-              >
-                Add Category
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Category Form Modal */}

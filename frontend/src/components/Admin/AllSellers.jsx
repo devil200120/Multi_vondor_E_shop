@@ -16,6 +16,7 @@ import {
   FiEye,
   FiUserX,
   FiUserCheck,
+  FiSettings,
 } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { MdStorefront, MdVerified, MdBlock } from "react-icons/md";
@@ -35,9 +36,60 @@ const AllSellers = () => {
   const [banReason, setBanReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Role management states
+  const [roleAssignModalOpen, setRoleAssignModalOpen] = useState(false);
+  const [selectedSellerUser, setSelectedSellerUser] = useState(null);
+  const [sellerRoles, setSellerRoles] = useState({});
+
   useEffect(() => {
     dispatch(getAllSellers());
   }, [dispatch]);
+
+  // Fetch user roles for sellers
+  useEffect(() => {
+    const fetchSellerRoles = async () => {
+      if (sellers && sellers.length > 0) {
+        const rolesMap = {};
+
+        // Fetch user data for each seller by email
+        for (const seller of sellers) {
+          try {
+            const response = await axios.get(
+              `${server}/user/get-user-by-email/${seller.email}`,
+              { withCredentials: true }
+            );
+            if (response.data.success && response.data.user) {
+              rolesMap[seller.email] = {
+                role: response.data.user.role,
+                hasUserAccount: true,
+                userId: response.data.user._id,
+              };
+            }
+          } catch (error) {
+            // If user not found (404), this seller doesn't have a user account
+            if (error.response?.status === 404) {
+              rolesMap[seller.email] = {
+                role: "Shop Only",
+                hasUserAccount: false,
+                userId: null,
+              };
+            } else {
+              // For other errors, mark as error
+              rolesMap[seller.email] = {
+                role: "Error",
+                hasUserAccount: false,
+                userId: null,
+              };
+            }
+          }
+        }
+
+        setSellerRoles(rolesMap);
+      }
+    };
+
+    fetchSellerRoles();
+  }, [sellers]);
 
   const handleDelete = async (id) => {
     await axios
@@ -122,6 +174,68 @@ const AllSellers = () => {
     }
   };
 
+  // Role management functions
+  const handleRoleChange = async (seller, newRole) => {
+    try {
+      let userId;
+
+      // Check if seller has a user account
+      if (!seller.hasUserAccount) {
+        // Create user account for shop-only seller
+        const createUserResponse = await axios.post(
+          `${server}/user/create-user-for-seller`,
+          {
+            name: seller.name,
+            email: seller.email,
+            role: newRole,
+          },
+          { withCredentials: true }
+        );
+
+        if (createUserResponse.data.success) {
+          userId = createUserResponse.data.user._id;
+          toast.success(`User account created and role set to ${newRole}`);
+        } else {
+          throw new Error("Failed to create user account");
+        }
+      } else {
+        // Change role for existing user
+        const userResponse = await axios.get(
+          `${server}/user/get-user-by-email/${seller.email}`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (userResponse.data.user) {
+          userId = userResponse.data.user._id;
+
+          // Change the role
+          const response = await axios.put(
+            `${server}/user/change-user-role/${userId}`,
+            { role: newRole },
+            { withCredentials: true }
+          );
+
+          toast.success(response.data.message);
+        }
+      }
+
+      setRoleAssignModalOpen(false);
+      setSelectedSellerUser(null);
+      dispatch(getAllSellers()); // Refresh sellers list
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to change user role"
+      );
+    }
+  };
+
+  const openRoleAssignModal = (seller) => {
+    setSelectedSellerUser(seller);
+    setRoleAssignModalOpen(true);
+  };
+
   const columns = [
     {
       field: "id",
@@ -198,6 +312,40 @@ const AllSellers = () => {
       ),
     },
     {
+      field: "role",
+      headerName: "User Role",
+      minWidth: 120,
+      flex: 0.8,
+      headerAlign: "center",
+      align: "center",
+      renderCell: (params) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            params.value === "Admin"
+              ? "bg-purple-100 text-purple-800"
+              : params.value === "Supplier"
+              ? "bg-blue-100 text-blue-800"
+              : params.value === "User"
+              ? "bg-green-100 text-green-800"
+              : params.value === "Shop Only"
+              ? "bg-orange-100 text-orange-800"
+              : params.value === "Error"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+          title={
+            params.value === "Shop Only"
+              ? "This seller doesn't have a user account"
+              : params.value === "Error"
+              ? "Error fetching user data"
+              : ""
+          }
+        >
+          {params.value || "Loading..."}
+        </span>
+      ),
+    },
+    {
       field: "status",
       headerName: "Status",
       minWidth: 120,
@@ -223,13 +371,13 @@ const AllSellers = () => {
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 180,
-      flex: 1,
+      minWidth: 220,
+      flex: 1.2,
       headerAlign: "center",
       align: "center",
       sortable: false,
       renderCell: (params) => (
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-1">
           <Link to={`/shop/preview/${params.id}`}>
             <Button
               className="!min-w-0 !p-2 !text-primary-600 hover:!bg-primary-50 !rounded-lg transition-all duration-200"
@@ -238,6 +386,18 @@ const AllSellers = () => {
               <FiEye size={16} />
             </Button>
           </Link>
+
+          <Button
+            onClick={() => openRoleAssignModal(params.row)}
+            className="!min-w-0 !p-2 !text-blue-600 hover:!bg-blue-50 !rounded-lg transition-all duration-200"
+            title={
+              params.row.hasUserAccount
+                ? "Change User Role"
+                : "Create User Account & Assign Role"
+            }
+          >
+            <FiSettings size={16} />
+          </Button>
 
           {params.row.isBanned ? (
             <Button
@@ -278,12 +438,16 @@ const AllSellers = () => {
   const row = [];
   sellers &&
     sellers.forEach((item) => {
+      const sellerRoleData = sellerRoles[item.email];
       row.push({
         id: item._id,
         name: item?.name,
         email: item?.email,
         joinedAt: item.createdAt?.slice(0, 10) || "N/A",
         address: item.address,
+        role: sellerRoleData ? sellerRoleData.role : "Loading...",
+        hasUserAccount: sellerRoleData ? sellerRoleData.hasUserAccount : false,
+        userId: sellerRoleData ? sellerRoleData.userId : null,
         isBanned: item.isBanned || false,
         banReason: item.banReason || null,
         bannedAt: item.bannedAt || null,
@@ -670,6 +834,103 @@ const AllSellers = () => {
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all duration-200 shadow-unacademy hover:shadow-unacademy-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Unbanning..." : "Unban Seller"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Assignment Modal */}
+      {roleAssignModalOpen && selectedSellerUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-unacademy-xl p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Change User Role
+              </h3>
+              <button
+                onClick={() => {
+                  setRoleAssignModalOpen(false);
+                  setSelectedSellerUser(null);
+                }}
+                className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+              >
+                <RxCross1 size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <FiSettings className="text-blue-600 h-6 w-6" />
+              </div>
+              <p className="text-gray-600 text-center mb-4">
+                {selectedSellerUser.hasUserAccount ? (
+                  <>
+                    Change the role for user associated with{" "}
+                    <strong>{selectedSellerUser.name}</strong> (
+                    {selectedSellerUser.email})
+                  </>
+                ) : (
+                  <>
+                    Create a user account and assign role for{" "}
+                    <strong>{selectedSellerUser.name}</strong> (
+                    {selectedSellerUser.email}). This seller currently has shop
+                    access only.
+                  </>
+                )}
+              </p>
+              <p className="text-sm text-gray-500 text-center mb-4">
+                Current Role:{" "}
+                <span className="font-medium">
+                  {sellerRoles[selectedSellerUser.email]?.role || "Loading..."}
+                </span>
+              </p>
+
+              <div className="space-y-2">
+                {["User", "Admin", "Supplier"].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => handleRoleChange(selectedSellerUser, role)}
+                    disabled={
+                      sellerRoles[selectedSellerUser.email]?.role === role
+                    }
+                    className={`w-full p-3 text-left rounded-lg border transition-all duration-200 ${
+                      sellerRoles[selectedSellerUser.email]?.role === role
+                        ? "bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">
+                          {role === "User" ? "User" : role}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {role === "User" &&
+                            "Regular user with basic permissions"}
+                          {role === "Admin" && "Full access to admin panel"}
+                          {role === "Supplier" &&
+                            "Can manage shop and products"}
+                        </p>
+                      </div>
+                      {sellerRoles[selectedSellerUser.email]?.role === role && (
+                        <MdVerified className="text-green-600 h-5 w-5" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setRoleAssignModalOpen(false);
+                  setSelectedSellerUser(null);
+                }}
+                className={`flex-1 ${styles.button_outline}`}
+              >
+                Cancel
               </button>
             </div>
           </div>

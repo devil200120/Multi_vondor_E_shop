@@ -528,7 +528,194 @@ const ShopSettings = () => {
           </div>
         </form>
       </div>
+
+      {/* Password Update Section */}
+      <div className="w-full bg-white rounded-xl shadow-lg p-8 mt-8">
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            Change Password
+          </h3>
+          <p className="text-gray-600">
+            Update your account password for security
+          </p>
+        </div>
+
+        <PasswordUpdateForm />
+      </div>
     </div>
+  );
+};
+
+// Separate Password Update Component
+const PasswordUpdateForm = () => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirm password do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await axios.put(
+        `${server}/shop/update-password`,
+        {
+          currentPassword,
+          newPassword,
+        },
+        { withCredentials: true }
+      );
+
+      toast.success("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handlePasswordUpdate} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Current Password */}
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            Current Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter your current password"
+              className={`${styles.input} pr-12`}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showCurrentPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+        </div>
+
+        {/* New Password */}
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            New Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password (min 6 characters)"
+              className={`${styles.input} pr-12`}
+              required
+              minLength={6}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showNewPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirm Password */}
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">
+          Confirm New Password <span className="text-red-500">*</span>
+        </label>
+        <div className="relative max-w-md">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm your new password"
+            className={`${styles.input} pr-12`}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            {showConfirmPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
+      </div>
+
+      {/* Password Requirements */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-blue-800 mb-2">
+          Password Requirements:
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• At least 6 characters long</li>
+          <li>• Different from your current password</li>
+        </ul>
+      </div>
+
+      {/* Update Button */}
+      <div className="flex justify-start">
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-8 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-semibold flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Updating...
+            </>
+          ) : (
+            <>
+              <FiSave className="text-lg" />
+              <span>Update Password</span>
+            </>
+          )}
+        </button>
+      </div>
+    </form>
   );
 };
 

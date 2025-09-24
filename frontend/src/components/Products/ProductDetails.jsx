@@ -39,6 +39,7 @@ import Ratings from "./Ratings";
 import FullScreenMediaViewer from "./FullScreenImageViewer";
 import PincodeValidationDialog from "../PincodeService/PincodeValidationDialog";
 import { usePincodeService } from "../../hooks/usePincodeService";
+import ReadMoreText from "../UI/ReadMoreText";
 import axios from "axios";
 
 const ProductDetails = ({ data }) => {
@@ -593,9 +594,14 @@ const ProductDetails = ({ data }) => {
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                   {data.name}
                 </h1>
-                <p className="mt-3 text-base text-gray-600 leading-relaxed">
-                  {data.description}
-                </p>
+                <div className="mt-3">
+                  <ReadMoreText
+                    text={data.description}
+                    maxLength={300}
+                    readMoreClassName="text-base text-gray-600"
+                    buttonClassName="hover:bg-primary-50 rounded-md"
+                  />
+                </div>
               </div>
               {/* Price Section */}
               <div className="flex items-center space-x-2">
@@ -1067,9 +1073,12 @@ const ProductDetailsInfo = ({
               <h3 className="text-base font-semibold text-gray-900 mb-3">
                 Product Description
               </h3>
-              <p className="text-sm text-gray-600 leading-normal whitespace-pre-line">
-                {data.description}
-              </p>
+              <ReadMoreText
+                text={data.description}
+                maxLength={500}
+                readMoreClassName="text-sm text-gray-600 leading-normal"
+                buttonClassName="hover:bg-primary-50 rounded-md"
+              />
             </div>
           )}
 
@@ -1166,7 +1175,12 @@ const ProductDetailsInfo = ({
                     <h4 className="font-medium text-gray-900 mb-2">
                       Description
                     </h4>
-                    <p className="text-gray-600">{data.shop.description}</p>
+                    <ReadMoreText
+                      text={data.shop.description}
+                      maxLength={250}
+                      readMoreClassName="text-gray-600"
+                      buttonClassName="hover:bg-gray-50 rounded-md"
+                    />
                   </div>
                 )}
               </div>

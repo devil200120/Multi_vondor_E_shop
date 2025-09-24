@@ -30,7 +30,6 @@ const Login = () => {
         { email, password },
         { withCredentials: true }
       );
-      toast.success("Login Successful!");
 
       // Load user data and get the user info
       await dispatch(loadUser());
@@ -40,6 +39,9 @@ const Login = () => {
         withCredentials: true,
       });
 
+      // Show success message and redirect
+      toast.success("Login Successful!");
+
       // Check user role and redirect accordingly
       if (data.user && data.user.role === "Admin") {
         navigate("/admin/dashboard");
@@ -47,7 +49,25 @@ const Login = () => {
         navigate("/");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      const errorMessage = err.response?.data?.message || "Login failed";
+
+      // Handle specific error for suppliers trying to use user login
+      if (
+        errorMessage.includes("You are registered as a Supplier") ||
+        errorMessage.includes("Please use the Shop Login")
+      ) {
+        toast.error(
+          "You are a Supplier. Please use Shop Login to access your dashboard."
+        );
+        navigate("/shop-login");
+      } else if (errorMessage.includes("Your role has been changed")) {
+        toast.error(
+          "Your role has been changed. Please login again with the appropriate login type."
+        );
+        navigate("/");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -223,6 +243,39 @@ const Login = () => {
               >
                 Create account
               </Link>
+            </div>
+
+            {/* Supplier Login Link */}
+            <div className="text-center pt-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-secondary-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-text-muted">or</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link
+                  to="/shop-login"
+                  className="inline-flex items-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-sm"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                  Login as Supplier
+                </Link>
+              </div>
             </div>
           </form>
         </div>

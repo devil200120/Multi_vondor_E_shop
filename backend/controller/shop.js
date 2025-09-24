@@ -180,6 +180,18 @@ router.post(
         );
       }
 
+      // Check if there's an associated user account and validate role
+      const User = require("../model/user");
+      const associatedUser = await User.findOne({ email: user.email });
+      
+      // Only block login if user account EXISTS but role is NOT Supplier
+      // Allow login if:
+      // 1. No user account exists (original shop-only seller)
+      // 2. User account exists with Supplier role
+      if (associatedUser && associatedUser.role !== "Supplier") {
+        return next(new ErrorHandler("Access denied. Only users with Supplier role can login to shop dashboard. Please use regular user login.", 401));
+      }
+
       sendShopToken(user, 201, res);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -686,6 +698,50 @@ router.get(
         banReason: shop.banReason,
         bannedAt: shop.bannedAt,
         bannedBy: shop.bannedBy,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Update shop password
+router.put(
+  "/update-password",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return next(new ErrorHandler("Current password and new password are required", 400));
+      }
+
+      if (newPassword.length < 6) {
+        return next(new ErrorHandler("New password must be at least 6 characters long", 400));
+      }
+
+      // Get shop with password
+      const shop = await Shop.findById(req.seller._id).select("+password");
+      
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      // Check if current password is correct
+      const isCurrentPasswordValid = await shop.comparePassword(currentPassword);
+      
+      if (!isCurrentPasswordValid) {
+        return next(new ErrorHandler("Current password is incorrect", 401));
+      }
+
+      // Update password
+      shop.password = newPassword;
+      await shop.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Password updated successfully"
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
