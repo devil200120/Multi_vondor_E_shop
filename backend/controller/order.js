@@ -52,37 +52,54 @@ router.post(
         );
       }
 
-      // Send comprehensive order confirmation email to the user
-      try {
-        // Use the first order for email (they all have the same user and basic info)
-        const firstOrder = orders[0];
-        
-        // Create a combined order object for email template if multiple orders
-        const emailOrder = {
-          ...firstOrder.toObject(),
-          cart: cart, // Use the full cart from all shops
-          totalPrice: totalPrice // Use the total price across all orders
-        };
+      // Send comprehensive order confirmation email to the user (skip for COD orders)
+      const isCODOrder = paymentInfo && (
+        paymentInfo.type === 'COD' || 
+        paymentInfo.type === 'Cash on Delivery' || 
+        paymentInfo.type === 'cash_on_delivery' ||
+        paymentInfo.type === 'cod' ||
+        paymentInfo.type?.toLowerCase().includes('cash') ||
+        paymentInfo.type?.toLowerCase().includes('cod')
+      );
 
-        const emailHTML = generateOrderConfirmationEmail(emailOrder, user);
-        
-        await sendMail({
-          email: user.email,
-          subject: `Order Confirmation - Order #${firstOrder._id.toString().slice(-8).toUpperCase()}`,
-          message: `Dear ${user.name},\n\nYour order has been successfully placed!\n\nOrder Details:\n- Order Number: #${firstOrder._id.toString().slice(-8).toUpperCase()}\n- Total Amount: ₹${totalPrice}\n- Items: ${cart.length} products\n\nYou can track your order at: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/track-order/${firstOrder._id}\n\nThank you for shopping with us!\n\nBest regards,\nYour Store Team`,
-          html: emailHTML
-        });
+      if (!isCODOrder) {
+        try {
+          // Use the first order for email (they all have the same user and basic info)
+          const firstOrder = orders[0];
+          
+          // Create a combined order object for email template if multiple orders
+          const emailOrder = {
+            ...firstOrder.toObject(),
+            cart: cart, // Use the full cart from all shops
+            totalPrice: totalPrice // Use the total price across all orders
+          };
 
-        console.log(`Order confirmation email sent successfully to ${user.email}`);
-      } catch (emailError) {
-        console.error('Failed to send order confirmation email:', emailError);
-        // Don't throw error here as the order was created successfully
-        // Just log the email error and continue
+          const emailHTML = generateOrderConfirmationEmail(emailOrder, user);
+          
+          await sendMail({
+            email: user.email,
+            subject: `Order Confirmation - Order #${firstOrder._id.toString().slice(-8).toUpperCase()}`,
+            message: `Dear ${user.name},\n\nYour order has been successfully placed!\n\nOrder Details:\n- Order Number: #${firstOrder._id.toString().slice(-8).toUpperCase()}\n- Total Amount: ₹${totalPrice}\n- Items: ${cart.length} products\n\nYou can track your order at: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/track-order/${firstOrder._id}\n\nThank you for shopping with us!\n\nBest regards,\nYour Store Team`,
+            html: emailHTML
+          });
+
+          console.log(`Order confirmation email sent successfully to ${user.email}`);
+        } catch (emailError) {
+          console.error('Failed to send order confirmation email:', emailError);
+          // Don't throw error here as the order was created successfully
+          // Just log the email error and continue
+        }
+      } else {
+        console.log('COD Order - Skipping email notification to avoid SMTP issues');
       }
 
       res.status(201).json({
         success: true,
         orders,
+        message: isCODOrder ? 
+          'Order placed successfully (COD - Email notification skipped)' : 
+          'Order placed successfully (Email confirmation sent)',
+        emailSent: !isCODOrder
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

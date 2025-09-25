@@ -14,7 +14,7 @@ import {
   HiOutlineCollection,
   HiOutlineRefresh,
   HiOutlineTag,
-  HiOutlineX
+  HiOutlineX,
 } from "react-icons/hi";
 import {
   FiSearch,
@@ -127,7 +127,7 @@ const AdminCategoryManager = () => {
 
   const handleDeleteCategory = async () => {
     if (!categoryToDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await dispatch(deleteCategory(categoryToDelete._id, deleteForce));
@@ -139,7 +139,7 @@ const AdminCategoryManager = () => {
       }, 300);
       // Data will be reloaded via message effect
     } catch (error) {
-      console.error('Delete error:', error);
+      console.error("Delete error:", error);
     } finally {
       setIsDeleting(false);
     }
@@ -488,7 +488,7 @@ const AdminCategoryManager = () => {
                     >
                       <FiEdit2 size={16} />
                     </button>
-                    
+
                     <button
                       onClick={() => openDeleteModal(category)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
@@ -564,12 +564,20 @@ const AdminCategoryManager = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && categoryToDelete && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
-          deleteModalAnimating ? 'bg-black bg-opacity-50' : 'bg-black bg-opacity-0'
-        }`}>
-          <div className={`bg-white rounded-xl shadow-unacademy-xl w-full max-w-md transition-all duration-300 transform ${
-            deleteModalAnimating ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
-          }`}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
+            deleteModalAnimating
+              ? "bg-black bg-opacity-50"
+              : "bg-black bg-opacity-0"
+          }`}
+        >
+          <div
+            className={`bg-white rounded-xl shadow-unacademy-xl w-full max-w-md transition-all duration-300 transform ${
+              deleteModalAnimating
+                ? "opacity-100 scale-100 translate-y-0"
+                : "opacity-0 scale-95 translate-y-4"
+            }`}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
@@ -577,8 +585,12 @@ const AdminCategoryManager = () => {
                   <FiAlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Delete Category</h2>
-                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                  <h2 className="text-lg font-bold text-gray-900">
+                    Delete Category
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    This action cannot be undone
+                  </p>
                 </div>
               </div>
               <button
@@ -594,25 +606,28 @@ const AdminCategoryManager = () => {
             <div className="p-6">
               <div className="mb-4">
                 <p className="text-gray-800 mb-2">
-                  Are you sure you want to delete <strong>"{categoryToDelete.name}"</strong>?
+                  Are you sure you want to delete{" "}
+                  <strong>"{categoryToDelete.name}"</strong>?
                 </p>
-                
+
                 {categoryToDelete.productCount > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                     <div className="flex">
                       <FiAlertTriangle className="h-5 w-5 text-yellow-400 mr-2 mt-0.5" />
                       <div>
                         <p className="text-sm font-medium text-yellow-800">
-                          This category has {categoryToDelete.productCount} associated products
+                          This category has {categoryToDelete.productCount}{" "}
+                          associated products
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Products will lose their category assignment if you proceed.
+                          Products will lose their category assignment if you
+                          proceed.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                   <div className="flex">
                     <FiAlertTriangle className="h-5 w-5 text-red-400 mr-2 mt-0.5" />
@@ -629,7 +644,8 @@ const AdminCategoryManager = () => {
                           disabled={isDeleting}
                         />
                         <span className="ml-2 text-sm text-red-700">
-                          Force delete (removes subcategories and product associations)
+                          Force delete (removes subcategories and product
+                          associations)
                         </span>
                       </label>
                     </div>
