@@ -64,6 +64,92 @@ export const eventReducer = createReducer(initialState, {
     state.error = action.payload;
   },
 
+  // Admin get all events
+  adminGetAllEventsRequest: (state) => {
+    state.isLoading = true;
+  },
+  adminGetAllEventsSuccess: (state, action) => {
+    state.isLoading = false;
+    state.adminEvents = action.payload;
+  },
+  adminGetAllEventsFailed: (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+  },
+
+  // Admin create event
+  adminCreateEventRequest: (state) => {
+    state.isLoading = true;
+  },
+  adminCreateEventSuccess: (state, action) => {
+    state.isLoading = false;
+    state.success = true;
+    state.message = "Event created successfully!";
+    // Add new event to the list
+    if (state.adminEvents) {
+      state.adminEvents.unshift(action.payload);
+    }
+  },
+  adminCreateEventFailed: (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+    state.success = false;
+  },
+
+  // Admin update event
+  adminUpdateEventRequest: (state) => {
+    state.isLoading = true;
+  },
+  adminUpdateEventSuccess: (state, action) => {
+    state.isLoading = false;
+    state.success = true;
+    state.message = "Event updated successfully!";
+    // Update event in the list
+    if (state.adminEvents) {
+      const index = state.adminEvents.findIndex(event => event._id === action.payload._id);
+      if (index !== -1) {
+        state.adminEvents[index] = action.payload;
+      }
+    }
+  },
+  adminUpdateEventFailed: (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+    state.success = false;
+  },
+
+  // Admin delete event
+  adminDeleteEventRequest: (state) => {
+    state.isLoading = true;
+  },
+  adminDeleteEventSuccess: (state, action) => {
+    state.isLoading = false;
+    state.message = action.payload.message;
+    // Remove deleted event from the list
+    if (state.adminEvents && action.payload.eventId) {
+      state.adminEvents = state.adminEvents.filter(
+        event => event._id !== action.payload.eventId
+      );
+    }
+  },
+  adminDeleteEventFailed: (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+  },
+
+  // Admin get single event
+  adminGetEventRequest: (state) => {
+    state.isLoading = true;
+  },
+  adminGetEventSuccess: (state, action) => {
+    state.isLoading = false;
+    state.selectedEvent = action.payload;
+  },
+  adminGetEventFailed: (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+  },
+
   clearErrors: (state) => {
     state.error = null;
   },
@@ -71,5 +157,6 @@ export const eventReducer = createReducer(initialState, {
   clearMessages: (state) => {
     state.message = null;
     state.error = null;
+    state.success = false;
   },
 });

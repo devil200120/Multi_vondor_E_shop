@@ -1099,7 +1099,7 @@ const AllUsers = () => {
               </p>
 
               <div className="space-y-3">
-                {["user", "Supplier", "Admin"].map((role) => (
+                {["User", "Supplier", "Admin"].map((role) => (
                   <button
                     key={role}
                     onClick={() => handleRoleChange(selectedUser.id, role)}
@@ -1112,11 +1112,9 @@ const AllUsers = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">
-                          {role === "user" ? "User" : role}
-                        </div>
+                        <div className="font-medium">{role}</div>
                         <div className="text-sm text-gray-500">
-                          {role === "user" &&
+                          {role === "User" &&
                             "Regular user with basic permissions"}
                           {role === "Supplier" &&
                             "Can create and manage products"}

@@ -14,6 +14,7 @@ import {
 import { FiPackage, FiEye } from "react-icons/fi";
 import { MdCheckCircle, MdPending } from "react-icons/md";
 import { Button } from "@material-ui/core";
+import { getOrderNumber } from "../../utils/orderUtils";
 import styles from "../../styles/styles";
 
 const AdminDashboardMain = () => {
@@ -35,7 +36,7 @@ const AdminDashboardMain = () => {
 
   const columns = [
     {
-      field: "id",
+      field: "orderNumber",
       headerName: "Order ID",
       minWidth: 180,
       flex: 0.8,
@@ -46,7 +47,7 @@ const AdminDashboardMain = () => {
           className="text-xs font-mono text-primary-600 truncate"
           title={params.value}
         >
-          #{params.value.slice(0, 8)}
+          {params.value}
         </div>
       ),
     },
@@ -130,7 +131,7 @@ const AdminDashboardMain = () => {
             className="!min-w-0 !p-2 !text-primary-600 hover:!bg-primary-50 !rounded-lg transition-all duration-200"
             title="View Order Details"
             onClick={() => {
-              window.open(`/order/${params.id}`, "_blank");
+              window.open(`/admin/order/${params.id}`, "_blank");
             }}
           >
             <FiEye size={16} />
@@ -144,9 +145,10 @@ const AdminDashboardMain = () => {
   adminOrders &&
     adminOrders.forEach((item) => {
       row.push({
-        id: item._id,
+        id: item._id, // Keep _id for internal DataGrid use
+        orderNumber: getOrderNumber(item), // Use formatted order number for display
         itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: "₹" + item?.totalPrice,
+        total: "₹" + item?.totalPrice?.toFixed(2),
         status: item?.status,
       });
     });

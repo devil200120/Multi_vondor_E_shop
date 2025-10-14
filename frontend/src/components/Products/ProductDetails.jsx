@@ -49,6 +49,9 @@ const ProductDetails = ({ data }) => {
   const { cart } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
 
+  // Check if current user is admin
+  const isAdmin = user && user.role === "Admin";
+
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
   const [select, setSelect] = useState(0);
@@ -594,6 +597,43 @@ const ProductDetails = ({ data }) => {
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                   {data.name}
                 </h1>
+
+                {/* Seller Tag */}
+                {data.isSellerProduct && (
+                  <div className="mt-3 mb-3">
+                    <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+                      <span>🏪</span>
+                      <span>Seller Product</span>
+                      {data.sellerShop &&
+                        typeof data.sellerShop === "object" &&
+                        data.sellerShop.name && (
+                          <span className="text-blue-600 font-semibold">
+                            • {data.sellerShop.name}
+                          </span>
+                        )}
+                    </div>
+
+                    {/* Admin Tagging Indicator */}
+                    {isAdmin && (
+                      <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center text-xs text-yellow-700">
+                          <span className="mr-1">👤</span>
+                          <span className="font-medium">Admin Tagged:</span>
+                          <span className="ml-1">
+                            This product was tagged to{" "}
+                            {data.sellerShop &&
+                            typeof data.sellerShop === "object" &&
+                            data.sellerShop.name
+                              ? data.sellerShop.name
+                              : "Seller"}{" "}
+                            by admin
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-3">
                   <ReadMoreText
                     text={data.description}
@@ -862,44 +902,89 @@ const ProductDetails = ({ data }) => {
                 <h4 className="text-sm font-medium text-gray-700 mb-3">
                   Sold by
                 </h4>
-                <Link
-                  to={`/shop/preview/${data?.shop._id}`}
-                  className="flex items-center space-x-3 group"
-                >
-                  <img
-                    src={getAvatarUrl(data?.shop?.avatar, backend_url)}
-                    alt={data?.shop?.name}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-blue-300 transition-colors"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
-                      {data.shop.name}
-                    </h3>
-                    <div className="flex items-center space-x-1 mt-1">
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <AiFillStar
-                            key={star}
-                            className={`w-3 h-3 ${
-                              star <= shopAverageRating
-                                ? "text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
+                {data.isSellerProduct &&
+                data.sellerShop &&
+                typeof data.sellerShop === "object" ? (
+                  // Show seller information for seller products
+                  <Link
+                    to={`/shop/preview/${data.sellerShop._id}`}
+                    className="flex items-center space-x-3 group"
+                  >
+                    <img
+                      src={getAvatarUrl(data.sellerShop?.avatar, backend_url)}
+                      alt={data.sellerShop?.name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-blue-300 transition-colors"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
+                        {data.sellerShop.name}
+                      </h3>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <AiFillStar
+                              key={star}
+                              className={`w-3 h-3 ${
+                                star <= (data.sellerShop.averageRating || 0)
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          ({data.sellerShop.averageRating || 0}/5)
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        ({shopAverageRating}/5)
-                      </span>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-green-600 font-medium flex items-center">
-                      <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                      Verified
+                    <div className="text-right">
+                      <div className="text-xs text-blue-600 font-medium flex items-center">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                        Seller
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                ) : (
+                  // Show platform shop information for platform products
+                  <Link
+                    to={`/shop/preview/${data?.shop._id}`}
+                    className="flex items-center space-x-3 group"
+                  >
+                    <img
+                      src={getAvatarUrl(data?.shop?.avatar, backend_url)}
+                      alt={data?.shop?.name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-blue-300 transition-colors"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
+                        {data.shop.name}
+                      </h3>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <AiFillStar
+                              key={star}
+                              className={`w-3 h-3 ${
+                                star <= shopAverageRating
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          ({shopAverageRating}/5)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-green-600 font-medium flex items-center">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                        Platform
+                      </div>
+                    </div>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -1132,114 +1217,235 @@ const ProductDetailsInfo = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-gray-900">
-                  About the Seller
+                  {data.shop?.name === "Admin Tagged" ||
+                  data.shop?.name === "Platform Admin"
+                    ? "Tagged by Admin"
+                    : "About the Seller"}
                 </h3>
 
-                <Link
-                  to={`/shop/preview/${data.shop._id}`}
-                  className="block group"
-                >
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
-                    <img
-                      src={getAvatarUrl(data?.shop?.avatar, backend_url)}
-                      className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                      alt={data.shop.name}
-                    />
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {data.shop.name}
-                      </h3>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <AiFillStar
-                              key={star}
-                              className={`w-3 h-3 ${
-                                star <= averageRating
-                                  ? "text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+                {data.shop?.name === "Admin Tagged" ||
+                data.shop?.name === "Platform Admin" ? (
+                  // Admin Tagged Product Display
+                  <div className="block">
+                    <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">👑</span>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-blue-900">
+                          Platform Admin
+                        </h3>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                            ✓ Verified Admin
+                          </span>
                         </div>
-                        <span className="text-sm text-gray-600">
-                          ({averageRating}/5) Ratings
-                        </span>
                       </div>
                     </div>
                   </div>
-                </Link>
+                ) : (
+                  // Regular Seller Display
+                  <Link
+                    to={`/shop/preview/${data.shop._id}`}
+                    className="block group"
+                  >
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
+                      <img
+                        src={getAvatarUrl(data?.shop?.avatar, backend_url)}
+                        className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                        alt={data.shop.name}
+                      />
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {data.shop.name}
+                        </h3>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <AiFillStar
+                                key={star}
+                                className={`w-3 h-3 ${
+                                  star <= averageRating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            ({averageRating}/5) Ratings
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                )}
 
-                {data.shop.description && (
+                {data.shop?.name === "Admin Tagged" ||
+                data.shop?.name === "Platform Admin" ? (
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Description
+                      About This Product
                     </h4>
-                    <ReadMoreText
-                      text={data.shop.description}
-                      maxLength={250}
-                      readMoreClassName="text-gray-600"
-                      buttonClassName="hover:bg-gray-50 rounded-md"
-                    />
+                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                      <p className="mb-2">
+                        🏷️ <strong>Admin Tagged Product:</strong> This product
+                        has been curated and tagged by our platform
+                        administrators.
+                      </p>
+                      <p className="mb-2">
+                        ✅ <strong>Quality Assured:</strong> All admin-tagged
+                        products go through our quality verification process.
+                      </p>
+                      <p>
+                        🚀 <strong>Platform Recommended:</strong> This product
+                        is recommended by our platform team for quality and
+                        reliability.
+                      </p>
+                    </div>
                   </div>
+                ) : (
+                  data.shop.description && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        Description
+                      </h4>
+                      <ReadMoreText
+                        text={data.shop.description}
+                        maxLength={250}
+                        readMoreClassName="text-gray-600"
+                        buttonClassName="hover:bg-gray-50 rounded-md"
+                      />
+                    </div>
+                  )
                 )}
               </div>
 
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-gray-900">
-                  Shop Statistics
+                  {data.shop?.name === "Admin Tagged" ||
+                  data.shop?.name === "Platform Admin"
+                    ? "Product Information"
+                    : "Shop Statistics"}
                 </h3>
 
                 <div className="grid grid-cols-1 gap-3">
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-blue-600">
-                          Joined on
-                        </p>
-                        <p className="text-sm font-semibold text-blue-900">
-                          {new Date(data.shop?.createdAt).toLocaleDateString()}
-                        </p>
+                  {data.shop?.name === "Admin Tagged" ||
+                  data.shop?.name === "Platform Admin" ? (
+                    // Admin Tagged Product Stats
+                    <>
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-blue-600">
+                              Tagged by
+                            </p>
+                            <p className="text-sm font-semibold text-blue-900">
+                              Platform Administrator
+                            </p>
+                          </div>
+                          <span className="text-blue-600 text-lg">👑</span>
+                        </div>
                       </div>
-                      <BiStore className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
 
-                  <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-green-600">
-                          Total Products
-                        </p>
-                        <p className="text-sm font-semibold text-green-900">
-                          {products && products.length}
-                        </p>
+                      <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-green-600">
+                              Product Status
+                            </p>
+                            <p className="text-sm font-semibold text-green-900">
+                              Admin Verified
+                            </p>
+                          </div>
+                          <span className="text-green-600 text-lg">✅</span>
+                        </div>
                       </div>
-                      <AiOutlineShoppingCart className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
 
-                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-purple-600">
-                          Total Reviews
-                        </p>
-                        <p className="text-sm font-semibold text-purple-900">
-                          {totalReviewsLength}
-                        </p>
+                      <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-purple-600">
+                              Quality Rating
+                            </p>
+                            <p className="text-sm font-semibold text-purple-900">
+                              Platform Approved
+                            </p>
+                          </div>
+                          <AiOutlineStar className="w-6 h-6 text-purple-600" />
+                        </div>
                       </div>
-                      <AiOutlineStar className="w-6 h-6 text-purple-600" />
-                    </div>
-                  </div>
+                    </>
+                  ) : (
+                    // Regular Shop Stats
+                    <>
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-blue-600">
+                              Joined on
+                            </p>
+                            <p className="text-sm font-semibold text-blue-900">
+                              {data.shop?.createdAt
+                                ? new Date(
+                                    data.shop.createdAt
+                                  ).toLocaleDateString()
+                                : "N/A"}
+                            </p>
+                          </div>
+                          <BiStore className="w-6 h-6 text-blue-600" />
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-green-600">
+                              Total Products
+                            </p>
+                            <p className="text-sm font-semibold text-green-900">
+                              {products && products.length}
+                            </p>
+                          </div>
+                          <AiOutlineShoppingCart className="w-6 h-6 text-green-600" />
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-purple-600">
+                              Total Reviews
+                            </p>
+                            <p className="text-sm font-semibold text-purple-900">
+                              {totalReviewsLength}
+                            </p>
+                          </div>
+                          <AiOutlineStar className="w-6 h-6 text-purple-600" />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <Link to={`/shop/preview/${data.shop._id}`}>
-                  <button className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    <BiStore className="w-5 h-5 mr-2" />
-                    Visit Shop
-                  </button>
-                </Link>
+                {data.shop?.name === "Admin Tagged" ||
+                data.shop?.name === "Platform Admin" ? (
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-lg text-center">
+                    <span className="text-white font-semibold text-sm">
+                      🏷️ Admin Tagged Product
+                    </span>
+                    <p className="text-blue-100 text-xs mt-1">
+                      Curated by platform administrators
+                    </p>
+                  </div>
+                ) : (
+                  <Link to={`/shop/preview/${data.shop._id}`}>
+                    <button className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                      <BiStore className="w-5 h-5 mr-2" />
+                      Visit Shop
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
           )}

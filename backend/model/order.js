@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+  orderNumber: {
+    type: String,
+    unique: true,
+    sparse: true // Allows existing orders without this field
+  },
   cart: {
     type: Array,
     required: true,
@@ -13,9 +18,33 @@ const orderSchema = new mongoose.Schema({
     type: Object,
     required: true,
   },
+  shopId: {
+    type: String,
+    required: false,
+  },
+  shopName: {
+    type: String,
+    required: false,
+  },
   totalPrice: {
     type: Number,
     required: true,
+  },
+  subTotalPrice: {
+    type: Number,
+    default: 0,
+  },
+  shippingPrice: {
+    type: Number,
+    default: 0,
+  },
+  discountPrice: {
+    type: Number,
+    default: 0,
+  },
+  tax: {
+    type: Number,
+    default: 0,
   },
   status: {
     type: String,
@@ -61,6 +90,12 @@ const orderSchema = new mongoose.Schema({
   deliveredAt: {
     type: Date,
   },
+  cancelledAt: {
+    type: Date,
+  },
+  cancellationReason: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
@@ -77,6 +112,25 @@ orderSchema.pre('save', function(next) {
     });
   }
   next();
+});
+
+// Auto-generate arithmetic order numbers for new orders
+orderSchema.pre('save', async function(next) {
+  if (this.isNew && !this.orderNumber) {
+    try {
+      // Get the total count of existing orders
+      const count = await this.constructor.countDocuments();
+      
+      // Generate order number with format: wanttar-00001, wanttar-00002, etc.
+      this.orderNumber = `wanttar-${String(count + 1).padStart(5, '0')}`;
+      
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
 });
 
 module.exports = mongoose.model("Order", orderSchema);

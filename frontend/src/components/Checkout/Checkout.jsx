@@ -19,11 +19,10 @@ import {
 import { HiSparkles } from "react-icons/hi";
 import PincodeService from "../PincodeService/PincodeService";
 import { usePincodeService } from "../../hooks/usePincodeService";
-import { useShippingService } from "../../hooks/useShippingService";
 import CouponSuggestions from "./CouponSuggestions";
-import ShippingBreakdown from "./ShippingBreakdown";
 
 const Checkout = () => {
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   const { cart } = useSelector((state) => state.cart);
   const [country, setCountry] = useState("");
@@ -40,12 +39,42 @@ const Checkout = () => {
   const [buyNowOrder, setBuyNowOrder] = useState(null);
   const [showPincodeService, setShowPincodeService] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState(null);
-  const [shippingCalculation, setShippingCalculation] = useState(null);
-  const [calculatingShipping, setCalculatingShipping] = useState(false);
-  const navigate = useNavigate();
+  const [shopShippingConfigs, setShopShippingConfigs] = useState({});
+
+  // Use Buy Now order data if available, otherwise use cart
+  const activeCart = buyNowOrder ? buyNowOrder.cart : cart;
+
+  // Fetch shipping configurations for shops in cart
+  useEffect(() => {
+    const fetchShippingConfigs = async () => {
+      if (activeCart && activeCart.length > 0) {
+        const shopIds = [...new Set(activeCart.map((item) => item.shopId))];
+        const configs = {};
+
+        for (const shopId of shopIds) {
+          try {
+            const response = await axios.get(
+              `${server}/shipping/simple-config/${shopId}`,
+              {
+                withCredentials: true,
+              }
+            );
+            if (response.data.success) {
+              configs[shopId] = response.data.config;
+            }
+          } catch (error) {
+            console.log(`No shipping config found for shop ${shopId}`);
+          }
+        }
+
+        setShopShippingConfigs(configs);
+      }
+    };
+
+    fetchShippingConfigs();
+  }, [activeCart]);
+
   const { validatePincode } = usePincodeService();
-  const { calculateCartShipping, loading: shippingLoading } =
-    useShippingService();
 
   // Validate pincode when manually entered
   const handleZipCodeChange = async (e) => {
@@ -200,8 +229,6 @@ const Checkout = () => {
     navigate("/payment");
   };
 
-  // Use Buy Now order data if available, otherwise use cart
-  const activeCart = buyNowOrder ? buyNowOrder.cart : cart;
   console.log("buyNowOrder:", buyNowOrder);
   console.log("cart:", cart);
   console.log("activeCart:", activeCart);
@@ -227,43 +254,83 @@ const Checkout = () => {
 
   console.log("Final subTotalPrice:", subTotalPrice);
 
-  // Calculate dynamic shipping when location changes
-  const calculateDynamicShipping = async (userLocation) => {
-    if (!activeCart || activeCart.length === 0) {
-      setShippingCalculation(null);
-      return;
-    }
-
-    try {
-      setCalculatingShipping(true);
-
-      const result = await calculateCartShipping(
-        activeCart,
-        userLocation,
-        user?._id
-      );
-
-      if (result.success) {
-        setShippingCalculation(result);
-      } else {
-        console.error("Shipping calculation failed:", result.error);
-        toast.error(result.error || "Failed to calculate shipping");
-        setShippingCalculation(null);
-      }
-    } catch (error) {
-      console.error("Error calculating shipping:", error);
-      toast.error("Failed to calculate shipping costs");
-      setShippingCalculation(null);
-    } finally {
-      setCalculatingShipping(false);
-    }
-  };
-
-  // Calculate shipping based on delivery info or use dynamic calculation
+  // Calculate shipping based on delivery info or use simple shipping calculation
   const shipping = React.useMemo(() => {
-    // If we have dynamic shipping calculation, use it
-    if (shippingCalculation && shippingCalculation.success) {
-      return shippingCalculation.totalShipping;
+    // For cart items, calculate simple shipping based on shops
+    if (!buyNowOrder && activeCart && activeCart.length > 0) {
+      const shopGroups = activeCart.reduce((acc, item) => {
+        const shopId = item.shopId;
+        if (!acc[shopId]) {
+          acc[shopId] = {
+            items: [],
+            totalValue: 0,
+            shop: item.shop,
+          };
+        }
+        const price =
+          item.discountPrice || item.originalPrice || item.price || 0;
+        acc[shopId].items.push(item);
+        acc[shopId].totalValue += price * item.qty;
+        return acc;
+      }, {});
+
+      // Calculate total shipping from all shops
+      let totalShipping = 0;
+      console.log("Shop groups for shipping calculation:", shopGroups);
+
+      Object.values(shopGroups).forEach((group) => {
+        const shop = group.shop;
+        const shopId = shop._id || shop.id;
+        console.log("Processing shop for shipping:", shop.name, "ID:", shopId);
+
+        // Get shipping configuration for this shop
+        const shippingConfig = shopShippingConfigs[shopId];
+
+        if (shippingConfig) {
+          console.log("Using shipping config:", shippingConfig);
+
+          // Check if order qualifies for free shipping
+          if (
+            shippingConfig.freeShippingThreshold &&
+            group.totalValue >= shippingConfig.freeShippingThreshold
+          ) {
+            console.log("Free shipping applied for shop:", shop.name);
+            return; // Free shipping for this shop
+          }
+
+          // Add configured shipping charge for this shop
+          const shippingCharge =
+            shippingConfig.baseShippingRate !== undefined
+              ? shippingConfig.baseShippingRate
+              : shippingConfig.shippingCharge !== undefined
+              ? shippingConfig.shippingCharge
+              : 30;
+          console.log("Adding shipping charge:", shippingCharge);
+          totalShipping += shippingCharge;
+        } else {
+          console.log(
+            "No shipping config found for shop:",
+            shop.name,
+            "using default ₹30"
+          );
+
+          // Fallback to default shipping if no config found
+          const defaultShippingCharge = 30;
+
+          // Check if order qualifies for free shipping (threshold ₹999)
+          if (group.totalValue >= 999) {
+            console.log("Free shipping applied for shop (default):", shop.name);
+            return;
+          }
+
+          // Add default shipping charge
+          console.log("Adding default shipping charge:", defaultShippingCharge);
+          totalShipping += defaultShippingCharge;
+        }
+      });
+
+      console.log("Total calculated shipping:", totalShipping);
+      return totalShipping;
     }
 
     // Fallback to old static calculation for Buy Now orders or when dynamic fails
@@ -272,12 +339,18 @@ const Checkout = () => {
       return subTotalPrice >= 999 ? 0 : deliveryInfo.shippingCharge;
     }
 
-    // Default fallback
+    // Default fallback for buy now orders
     return buyNowOrder ? buyNowOrder.shipping : subTotalPrice * 0.1;
-  }, [shippingCalculation, deliveryInfo, subTotalPrice, buyNowOrder]);
+  }, [
+    deliveryInfo,
+    subTotalPrice,
+    buyNowOrder,
+    activeCart,
+    shopShippingConfigs,
+  ]);
 
   // Handle pincode validation and location selection
-  const handleLocationSelect = (locationData) => {
+  const handleLocationSelect = async (locationData) => {
     setAddress1(locationData.address1 || "");
     setAddress2(locationData.address2 || "");
     setCity(locationData.city || "");
@@ -285,23 +358,31 @@ const Checkout = () => {
     setZipCode(locationData.zipCode || "");
     setLatitude(locationData.latitude || "");
     setLongitude(locationData.longitude || "");
-    setShowPincodeService(false);
 
-    // Calculate dynamic shipping with the selected location
-    if (
-      locationData.latitude &&
-      locationData.longitude &&
-      locationData.zipCode
-    ) {
-      const userLocation = {
-        latitude: locationData.latitude,
-        longitude: locationData.longitude,
-        pincode: locationData.zipCode,
-        address: `${locationData.address1}, ${locationData.address2}, ${locationData.city}`,
-      };
-
-      calculateDynamicShipping(userLocation);
+    // Validate the pincode for delivery info (crucial for checkout)
+    if (locationData.zipCode) {
+      try {
+        const result = await validatePincode(locationData.zipCode.toString());
+        if (result.isValid && result.data) {
+          setDeliveryInfo({
+            ...result.data,
+            deliveryAvailable: true,
+          });
+          toast.success(result.message || "Delivery location confirmed");
+        } else {
+          setDeliveryInfo(null);
+          toast.error(
+            result.message || "Delivery not available for this location"
+          );
+        }
+      } catch (error) {
+        console.error("Error validating saved address pincode:", error);
+        setDeliveryInfo(null);
+        toast.error("Error validating delivery location");
+      }
     }
+
+    setShowPincodeService(false);
   };
 
   const handlePincodeValidate = (pincodeData) => {
@@ -310,16 +391,6 @@ const Checkout = () => {
     setCity(pincodeData.district || "");
     setLatitude(pincodeData.latitude || "");
     setLongitude(pincodeData.longitude || "");
-
-    // Calculate dynamic shipping with the validated location
-    const userLocation = {
-      latitude: pincodeData.latitude,
-      longitude: pincodeData.longitude,
-      pincode: zipCode,
-      address: `${address1}, ${address2}, ${pincodeData.district}`,
-    };
-
-    calculateDynamicShipping(userLocation);
   };
 
   const handleSubmit = async (e) => {
@@ -400,8 +471,8 @@ const Checkout = () => {
   const discountPercentenge = couponCodeData ? discountPrice : "";
 
   const totalPrice = couponCodeData
-    ? (subTotalPrice + shipping - discountPercentenge).toFixed(2)
-    : (subTotalPrice + shipping).toFixed(2);
+    ? Number(subTotalPrice + shipping - discountPercentenge).toFixed(2)
+    : Number(subTotalPrice + shipping).toFixed(2);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -450,8 +521,6 @@ const Checkout = () => {
               handleApplyCouponFromSuggestion={handleApplyCouponFromSuggestion}
               couponCodeData={couponCodeData}
               handleRemoveCoupon={handleRemoveCoupon}
-              shippingCalculation={shippingCalculation}
-              calculatingShipping={calculatingShipping}
             />
           </div>
         </div>
@@ -780,8 +849,6 @@ const CartData = ({
   handleApplyCouponFromSuggestion,
   couponCodeData,
   handleRemoveCoupon,
-  shippingCalculation,
-  calculatingShipping,
 }) => {
   return (
     <div className="sticky top-6 space-y-4">
@@ -816,32 +883,15 @@ const CartData = ({
             </div>
 
             {/* Dynamic Shipping Breakdown */}
-            {shippingCalculation ? (
-              <ShippingBreakdown
-                shippingCalculation={shippingCalculation}
-                calculatingShipping={calculatingShipping}
-              />
-            ) : (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">
-                  Shipping & Handling
-                </span>
-                <span className="font-semibold text-gray-800">
-                  {calculatingShipping ? (
-                    <span className="text-xs text-gray-500">
-                      Calculating...
-                    </span>
-                  ) : shipping === 0 ? (
-                    "FREE"
-                  ) : (
-                    `₹${shipping.toFixed(2)}`
-                  )}
-                </span>
-              </div>
-            )}
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Shipping & Handling</span>
+              <span className="font-semibold text-gray-800">
+                {shipping === 0 ? "FREE" : `₹${Number(shipping).toFixed(2)}`}
+              </span>
+            </div>
 
             {/* Free Shipping Message */}
-            {!shippingCalculation && shipping === 0 && subTotalPrice >= 999 && (
+            {shipping === 0 && subTotalPrice >= 999 && (
               <div className="text-xs text-green-600 -mt-2">
                 🎉 Free shipping on orders above ₹999
               </div>
@@ -869,7 +919,7 @@ const CartData = ({
                   Discount Applied
                 </span>
                 <span className="font-semibold">
-                  -₹{discountPercentenge.toFixed(2)}
+                  -₹{Number(discountPercentenge).toFixed(2)}
                 </span>
               </div>
             )}

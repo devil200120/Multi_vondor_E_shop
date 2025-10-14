@@ -11,6 +11,8 @@ import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
+import AboutUsPage from "./pages/AboutUsPage";
+import ReviewsPage from "./pages/ReviewsPage";
 import {
   LoginPage,
   SignupPage,
@@ -51,6 +53,7 @@ import {
   ShopEditProductPage,
   ShopForgotPasswordPage,
   ShopResetPasswordPage,
+  ShippingManagementPage,
 } from "./routes/ShopRoutes";
 
 import {
@@ -161,6 +164,8 @@ const App = () => {
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/refund" element={<RefundPolicyPage />} />
         <Route path="/shipping" element={<ShippingPolicyPage />} />
+        <Route path="/about" element={<AboutUsPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/forgot-password" element={<UserForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<UserResetPasswordPage />} />
         <Route
@@ -255,6 +260,17 @@ const App = () => {
             <SellerProtectedRoute>
               <SellerBanProtection>
                 <ShopSettingsPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-shipping"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShippingManagementPage />
               </SellerBanProtection>
             </SellerProtectedRoute>
           }

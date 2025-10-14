@@ -1,160 +1,172 @@
 import { Button } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { AiOutlineEye } from "react-icons/ai";
+import {
+  AiOutlineDelete,
+  AiOutlineEye,
+  AiOutlineEdit,
+  AiOutlinePlus,
+} from "react-icons/ai";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { server } from "../../server";
+import {
+  deleteEventAdmin,
+  getAllEventsAdmin,
+  createEventAdmin,
+  updateEventAdmin,
+} from "../../redux/actions/event";
+import { toast } from "react-toastify";
 import Loader from "../Layout/Loader";
 import styles from "../../styles/styles";
+import EventFormModal from "./EventFormModal";
 
 const AllEvents = () => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { allEvents, isLoading, message, error } = useSelector(
+    (state) => state.events
+  );
+
+  const dispatch = useDispatch();
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`${server}/event/admin-all-events`, { withCredentials: true })
-      .then((res) => {
-        setEvents(res.data.events);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching events:", error);
-        setLoading(false);
-      });
-  }, []);
+    dispatch(getAllEventsAdmin());
+  }, [dispatch]);
+
+  // Handle delete success/error messages
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      // Clear the message after showing
+      dispatch({ type: "clearMessages" });
+    }
+    if (error) {
+      toast.error(error);
+      // Clear the error after showing
+      dispatch({ type: "clearMessages" });
+    }
+  }, [message, error, dispatch]);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await dispatch(deleteEventAdmin(id));
+        // Success message will be handled by useEffect when message state updates
+      } catch (error) {
+        // Error message will be handled by useEffect when error state updates
+        console.error("Delete failed:", error);
+      }
+    }
+  };
+
+  const handleCreate = () => {
+    setSelectedEvent(null);
+    setIsEdit(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (event) => {
+    setSelectedEvent(event);
+    setIsEdit(true);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (formData, eventId) => {
+    setFormLoading(true);
+    try {
+      if (isEdit && eventId) {
+        await dispatch(updateEventAdmin(eventId, formData));
+        toast.success("Event updated successfully!");
+      } else {
+        await dispatch(createEventAdmin(formData));
+        toast.success("Event created successfully!");
+      }
+      dispatch(getAllEventsAdmin());
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error(isEdit ? "Failed to update event" : "Failed to create event");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+    setIsEdit(false);
+  };
 
   const columns = [
-    {
-      field: "id",
-      headerName: "Event Id",
-      minWidth: 200,
-      flex: 1,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => (
-        <div
-          className="text-xs font-mono text-gray-600 truncate"
-          title={params.value}
-        >
-          {params.value}
-        </div>
-      ),
-    },
+    { field: "id", headerName: "Product Id", minWidth: 150, flex: 0.7 },
     {
       field: "name",
-      headerName: "Event Name",
-      minWidth: 250,
-      flex: 1.5,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <div
-          className="font-medium text-gray-900 truncate"
-          title={params.value}
-        >
-          {params.value}
-        </div>
-      ),
+      headerName: "Name",
+      minWidth: 180,
+      flex: 1.4,
     },
     {
       field: "price",
       headerName: "Price",
-      minWidth: 120,
-      flex: 0.8,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => (
-        <div className="font-semibold text-primary-600">{params.value}</div>
-      ),
+      minWidth: 100,
+      flex: 0.6,
     },
     {
       field: "Stock",
       headerName: "Stock",
       type: "number",
-      minWidth: 100,
-      flex: 0.6,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => (
-        <div
-          className={`font-medium px-2 py-1 rounded-full text-xs ${
-            params.value > 50
-              ? "bg-green-100 text-green-800"
-              : params.value > 10
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {params.value}
-        </div>
-      ),
+      minWidth: 80,
+      flex: 0.5,
     },
+
     {
       field: "sold",
-      headerName: "Sold",
+      headerName: "Sold out",
       type: "number",
-      minWidth: 100,
+      minWidth: 130,
       flex: 0.6,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => (
-        <div className="font-medium text-gray-700">{params.value || 0}</div>
-      ),
     },
     {
-      field: "status",
-      headerName: "Status",
-      minWidth: 120,
-      flex: 0.7,
-      headerAlign: "center",
-      align: "center",
+      field: "Preview",
+      flex: 0.8,
+      minWidth: 150,
+      headerName: "Actions",
+      type: "number",
+      sortable: false,
       renderCell: (params) => {
-        const now = new Date();
-        const startDate = new Date(params.row.startDate);
-        const endDate = new Date(params.row.endDate);
-
-        let status = "upcoming";
-        let statusClass = "bg-blue-100 text-blue-800";
-
-        if (now >= startDate && now <= endDate) {
-          status = "active";
-          statusClass = "bg-green-100 text-green-800";
-        } else if (now > endDate) {
-          status = "ended";
-          statusClass = "bg-gray-100 text-gray-800";
-        }
-
+        const event = allEvents?.find((e) => e._id === params.id);
         return (
-          <div
-            className={`font-medium px-2 py-1 rounded-full text-xs capitalize ${statusClass}`}
-          >
-            {status}
+          <div className="flex space-x-2">
+            <Link to={`/product/${params.id}?isEvent=true`}>
+              <Button title="View Event">
+                <AiOutlineEye size={20} />
+              </Button>
+            </Link>
+            <Button title="Edit Event" onClick={() => handleEdit(event)}>
+              <AiOutlineEdit size={20} />
+            </Button>
           </div>
         );
       },
     },
     {
-      field: "Preview",
-      flex: 0.5,
-      minWidth: 80,
-      headerName: "Actions",
-      headerAlign: "center",
-      align: "center",
+      field: "Delete",
+      flex: 0.8,
+      minWidth: 120,
+      headerName: "",
+      type: "number",
       sortable: false,
       renderCell: (params) => {
         return (
-          <div className="flex justify-center">
-            <Link to={`/product/${params.id}?isEvent=true`}>
-              <Button
-                className="!min-w-0 !p-2 !text-primary-600 hover:!bg-primary-50 !rounded-lg transition-all duration-200"
-                title="View Event"
-              >
-                <AiOutlineEye size={18} />
-              </Button>
-            </Link>
-          </div>
+          <>
+            <Button onClick={() => handleDelete(params.id)}>
+              <AiOutlineDelete size={20} />
+            </Button>
+          </>
         );
       },
     },
@@ -162,123 +174,64 @@ const AllEvents = () => {
 
   const row = [];
 
-  events &&
-    events.forEach((item) => {
+  allEvents &&
+    allEvents.forEach((item) => {
       row.push({
         id: item._id,
         name: item.name,
         price: "₹" + item.discountPrice,
         Stock: item.stock,
         sold: item.sold_out,
-        startDate: item.start_Date,
-        endDate: item.Finish_Date,
       });
     });
 
-  // Calculate event statistics
-  const now = new Date();
-  const activeEvents = events.filter((event) => {
-    const startDate = new Date(event.start_Date);
-    const endDate = new Date(event.Finish_Date);
-    return now >= startDate && now <= endDate;
-  }).length;
-
-  const upcomingEvents = events.filter((event) => {
-    const startDate = new Date(event.start_Date);
-    return now < startDate;
-  }).length;
-
-  const endedEvents = events.filter((event) => {
-    const endDate = new Date(event.Finish_Date);
-    return now > endDate;
-  }).length;
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader />
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 400px:grid-cols-2 800px:grid-cols-4 gap-4 mb-6">
-        <div className={`${styles.card} ${styles.card_padding} text-center`}>
-          <div className="text-2xl font-bold text-primary-600">
-            {events.length}
+    <>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <div className="w-full mx-8 pt-1 mt-10 bg-white">
+          {/* Header with Create Button */}
+          <div className="w-full flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Events Management
+              </h2>
+              <p className="text-gray-600">
+                Manage all events in your marketplace
+              </p>
+            </div>
+            <div
+              className={`${styles.button} !w-max !h-[45px] px-3 !rounded-[5px] mr-3 mb-3 cursor-pointer`}
+              onClick={handleCreate}
+            >
+              <span className="text-white flex items-center space-x-2">
+                <AiOutlinePlus size={18} />
+                <span>Create Event</span>
+              </span>
+            </div>
           </div>
-          <div className="text-sm text-gray-600">Total Events</div>
-        </div>
-        <div className={`${styles.card} ${styles.card_padding} text-center`}>
-          <div className="text-2xl font-bold text-green-600">
-            {activeEvents}
-          </div>
-          <div className="text-sm text-gray-600">Active Events</div>
-        </div>
-        <div className={`${styles.card} ${styles.card_padding} text-center`}>
-          <div className="text-2xl font-bold text-blue-600">
-            {upcomingEvents}
-          </div>
-          <div className="text-sm text-gray-600">Upcoming Events</div>
-        </div>
-        <div className={`${styles.card} ${styles.card_padding} text-center`}>
-          <div className="text-2xl font-bold text-gray-600">{endedEvents}</div>
-          <div className="text-sm text-gray-600">Ended Events</div>
-        </div>
-      </div>
 
-      {/* Events Table */}
-      <div className={`${styles.card} overflow-hidden`}>
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Events List</h3>
-          <p className="text-sm text-gray-600">
-            Manage all events in your marketplace
-          </p>
-        </div>
-
-        <div className="h-[600px] w-full">
           <DataGrid
             rows={row}
             columns={columns}
             pageSize={10}
-            rowsPerPageOptions={[10, 25, 50]}
             disableSelectionOnClick
-            autoHeight={false}
-            className="!border-0"
-            sx={{
-              "& .MuiDataGrid-main": {
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: "#f8fafc",
-                  borderBottom: "1px solid #e2e8f0",
-                  "& .MuiDataGrid-columnHeader": {
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    color: "#374151",
-                    padding: "12px",
-                  },
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "12px",
-                  borderBottom: "1px solid #f1f5f9",
-                  fontSize: "0.875rem",
-                },
-                "& .MuiDataGrid-row": {
-                  "&:hover": {
-                    backgroundColor: "#f8fafc",
-                  },
-                },
-              },
-              "& .MuiDataGrid-footerContainer": {
-                borderTop: "1px solid #e2e8f0",
-                backgroundColor: "#f8fafc",
-              },
-            }}
+            autoHeight
           />
         </div>
-      </div>
-    </div>
+      )}
+
+      {/* Event Form Modal */}
+      <EventFormModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        event={selectedEvent}
+        onSubmit={handleSubmit}
+        isEdit={isEdit}
+        loading={formLoading}
+      />
+    </>
   );
 };
 

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import Loader from "../Layout/Loader";
 import { getAllOrdersOfShop } from "../../redux/actions/order";
 import { AiOutlineArrowRight } from "react-icons/ai";
+import { getOrderNumber } from "../../utils/orderUtils";
 
 const AllRefundOrders = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
@@ -25,7 +26,15 @@ const AllRefundOrders = () => {
     );
 
   const columns = [
-    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
+    {
+      field: "id",
+      headerName: "Order ID",
+      minWidth: 150,
+      flex: 0.7,
+      renderCell: (params) => (
+        <span className="font-mono text-sm">{getOrderNumber(params.row)}</span>
+      ),
+    },
 
     {
       field: "status",
@@ -81,8 +90,10 @@ const AllRefundOrders = () => {
     refundOrders.forEach((item) => {
       row.push({
         id: item._id,
+        _id: item._id, // Include _id for getOrderNumber function
+        orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice,
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
       });
     });

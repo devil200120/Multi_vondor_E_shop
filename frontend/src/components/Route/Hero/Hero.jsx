@@ -4,6 +4,7 @@ import axios from "axios";
 import styles from "../../../styles/styles";
 import { server, backend_url } from "../../../server";
 import { getBannerImageUrl } from "../../../utils/mediaUtils";
+import SlidingBanner from "./SlidingBanner";
 
 const Hero = () => {
   const [banner, setBanner] = useState({
@@ -61,6 +62,9 @@ const Hero = () => {
         `${server}/banner/get-banner?t=${Date.now()}`
       );
       console.log("Banner data received:", data);
+      console.log("Banner display mode:", data.banner?.displayMode);
+      console.log("Banner images count:", data.banner?.images?.length || 0);
+      console.log("Banner images array:", data.banner?.images);
       if (data.success && data.banner) {
         console.log("Setting banner data:", data.banner);
         setBanner(data.banner);
@@ -156,7 +160,11 @@ const Hero = () => {
                 <div className="w-full h-96 bg-gray-200 rounded-2xl flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
                 </div>
+              ) : banner.displayMode === 'sliding' && banner.images && banner.images.length > 0 ? (
+                // Sliding Banner Mode
+                <SlidingBanner banner={banner} />
               ) : (
+                // Single Image Mode
                 <img
                   src={getImageUrl(banner.image)}
                   alt="Home Decoration"

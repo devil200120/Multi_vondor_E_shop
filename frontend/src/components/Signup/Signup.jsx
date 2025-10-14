@@ -40,18 +40,16 @@ const Signup = () => {
       return;
     }
 
-    if (!avatar) {
-      toast.error("Please select a profile picture");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
       const newForm = new FormData();
 
-      newForm.append("file", avatar);
+      // Only append file if avatar is selected
+      if (avatar) {
+        newForm.append("file", avatar);
+      }
       newForm.append("name", name);
       newForm.append("email", email);
       newForm.append("password", password);
@@ -115,7 +113,7 @@ const Signup = () => {
         <div className="bg-white py-10 px-6 shadow-unacademy-lg rounded-2xl border border-secondary-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Avatar Upload */}
-            <div className="flex justify-center mb-6">
+            <div className="flex flex-col items-center mb-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-secondary-200 bg-secondary-50 flex items-center justify-center">
                   {avatar ? (
@@ -145,6 +143,9 @@ const Signup = () => {
                   className="sr-only"
                 />
               </div>
+              <p className="text-xs text-text-muted mt-2 text-center">
+                Profile picture (optional)
+              </p>
             </div>
 
             {/* Full Name */}

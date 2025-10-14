@@ -51,11 +51,24 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Shop not found", 404));
   }
 
-  // Validate that the user associated with this shop email has Supplier role
+  // Check if there's a user with this email
   const user = await User.findOne({ email: shop.email });
-  if (user && user.role !== "Supplier") {
-    return next(new ErrorHandler("Access denied. Your role has been changed. Please login with your current role.", 401));
+  
+  console.log(`[SELLER AUTH] Shop email: ${shop.email}`);
+  console.log(`[SELLER AUTH] User found:`, user ? `Yes, role: ${user.role}` : 'No');
+  
+  // If user exists, validate their role
+  if (user) {
+    // Allow Supplier and User roles, block others (like Admin)
+    if (!['Supplier', 'User'].includes(user.role)) {
+      console.log(`[SELLER AUTH] Blocking access for role: ${user.role}`);
+      return next(new ErrorHandler("Access denied. Your role has been changed. Please login with your current role.", 401));
+    }
+    console.log(`[SELLER AUTH] Allowing access for role: ${user.role}`);
+  } else {
+    console.log(`[SELLER AUTH] No user found with email, allowing shop-only access`);
   }
+  // If no user exists with this email, it's a shop-only registration, which is fine
 
   // Don't block login for banned shops - let them access dashboard to see ban message
   // The ban check will be handled in the frontend components

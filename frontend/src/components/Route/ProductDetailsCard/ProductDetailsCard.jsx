@@ -198,6 +198,25 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                     <h1 className="text-xl font-bold text-gray-900 leading-tight mb-3">
                       {data.name}
                     </h1>
+
+                    {/* Seller Tag */}
+                    {data.isSellerProduct && data.sellerShop && (
+                      <div className="mb-3">
+                        <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                          <span>🏪</span>
+                          <span>Seller Product</span>
+                          <span className="text-blue-600">
+                            • {data.sellerShop.name}
+                          </span>
+                        </div>
+                        {data.sellerShop.phoneNumber && (
+                          <div className="mt-1 text-xs text-gray-600">
+                            Contact: {data.sellerShop.phoneNumber}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-gray-600 leading-relaxed text-sm">
                       {data.description}
                     </p>

@@ -26,12 +26,18 @@ app.use(cookieParser());
 // Enable CORS for all routes
 app.use(
   cors({
-  origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com","https://www.wanttar.in"],
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com","https://www.wanttar.in","http://72.60.103.18:3000","http://72.60.103.18", "https://72.60.103.18","https://samrudhigroup.in","https://www.samrudhigroup.in","https://samrudhigroup.in:8000","https://samrudhigroup.in:4000"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "X-Requested-With"],
+    exposedHeaders: ["set-cookie"],
+    preflightContinue: false,
+    optionsSuccessStatus: 200
   })
 );
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use("/", express.static("uploads"));
 
@@ -57,11 +63,12 @@ const withdraw = require("./controller/withdraw");
 const newsletter = require("./controller/newsletter");
 const notification = require("./controller/notification");
 const pincode = require("./routes/pincode");
-const shipping = require("./controller/shipping");
+const shipping = require("./routes/shipping");
 const aiChat = require("./routes/ai-chat");
 const banner = require("./controller/banner");
 const category = require("./routes/category");
 const migration = require("./routes/migration");
+const review = require("./routes/review");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -82,8 +89,7 @@ app.use("/api/v2/ai-chat", aiChat);
 app.use("/api/v2/banner", banner);
 app.use("/api/v2/category", category);
 app.use("/api/v2/migration", migration);
-app.use("/api/v2/migration", migration);
-app.use("/api/v2/migration", migration);
+app.use("/api/v2/review", review);
 
 // error handler middleware
 app.use(ErrorHandler);

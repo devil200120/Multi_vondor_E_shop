@@ -4,6 +4,10 @@ frontend/node_modules
 backend/node_modules
 socket/node_modules
 
+# Exclude routes and controller folders
+backend/routes/
+backend/controller/
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

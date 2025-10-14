@@ -608,6 +608,7 @@ export const footerProductLinks = [
   },
   {
     name: "Reviews",
+    link: "/reviews",
   },
 ];
 
@@ -632,15 +633,19 @@ export const footercompanyLinks = [
 export const footerSupportLinks = [
   {
     name: "FAQ",
+    link: "/faq",
   },
   {
     name: "Reviews",
+    link: "/reviews",
   },
   {
     name: "Contact Us",
+    link: "/inbox",
   },
   {
     name: "Shipping",
+    link: "/shipping",
   },
   {
     name: "Live chat",

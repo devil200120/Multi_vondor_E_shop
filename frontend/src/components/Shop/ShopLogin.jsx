@@ -31,8 +31,16 @@ const ShopLogin = () => {
       );
 
       toast.success("Login Success!");
-      dispatch(loadSeller()); // Load seller data into Redux state
-      navigate("/dashboard");
+
+      // Wait for seller data to load before navigating
+      try {
+        await dispatch(loadSeller());
+        navigate("/dashboard");
+      } catch (loadError) {
+        console.error("Error loading seller data:", loadError);
+        // Still navigate to dashboard, let SellerProtectedRoute handle it
+        navigate("/dashboard");
+      }
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Login failed";
 

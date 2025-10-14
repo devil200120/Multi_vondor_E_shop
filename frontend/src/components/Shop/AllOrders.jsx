@@ -13,6 +13,14 @@ import {
 } from "react-icons/fi";
 import { MdFilterList, MdSearch } from "react-icons/md";
 
+// Helper function to get order number for display
+const getOrderNumber = (order) => {
+  // Use new orderNumber if available, otherwise fall back to old format
+  return (
+    order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`
+  );
+};
+
 const AllOrders = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
@@ -67,7 +75,7 @@ const AllOrders = () => {
       flex: 0.8,
       renderCell: (params) => (
         <div className="font-medium text-gray-900 text-sm">
-          #{params.value.slice(-8)}
+          {getOrderNumber(params.row)}
         </div>
       ),
     },
@@ -161,6 +169,8 @@ const AllOrders = () => {
     filteredOrders.forEach((item) => {
       row.push({
         id: item._id,
+        _id: item._id, // Include _id for getOrderNumber function
+        orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty:
           item.cart?.reduce((acc, cartItem) => acc + cartItem.qty, 0) || 0,
         total: "₹" + item.totalPrice?.toFixed(2),
@@ -195,7 +205,7 @@ const AllOrders = () => {
     <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
         <span className="font-semibold text-gray-900 text-sm">
-          #{order.id.slice(-8)}
+          {getOrderNumber(order)}
         </span>
         <span
           className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -278,7 +288,7 @@ const AllOrders = () => {
             />
             <StatsCard
               title="Total Revenue"
-              value={`$${totalRevenue.toLocaleString()}`}
+              value={`₹${totalRevenue.toLocaleString()}`}
               icon={FiDollarSign}
               color="text-purple-600"
               bgColor="bg-white"

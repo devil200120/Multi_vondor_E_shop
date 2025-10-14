@@ -19,11 +19,12 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { backend_url, server } from "../../server";
 import { getAllOrdersOfShop } from "../../redux/actions/order";
+import { getOrderNumber } from "../../utils/orderUtils";
 import { getProductImageUrl } from "../../utils/mediaUtils";
 import { useDispatch, useSelector } from "react-redux";
 import OrderLocationMap from "./OrderLocationMap";
 import socketIO from "socket.io-client";
-const SOCKET_ENDPOINT = "https://multi-vondor-e-shop-2.onrender.com";
+const SOCKET_ENDPOINT = process.env.SOCKET_URL || "http://localhost:4000";
 
 const OrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
@@ -536,7 +537,7 @@ const OrderDetails = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
-                    #{data._id.slice(0, 8)}
+                    {getOrderNumber(data)}
                   </h2>
                   <div className="flex items-center space-x-4 mt-1">
                     <div className="flex items-center space-x-1 text-sm text-gray-600">
@@ -563,7 +564,7 @@ const OrderDetails = () => {
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Total Amount</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    US${data.totalPrice}
+                    ₹{data.totalPrice}
                   </p>
                 </div>
               </div>
@@ -598,7 +599,7 @@ const OrderDetails = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold text-gray-900">
-                      US${item.discountPrice}
+                      ₹{item.discountPrice}
                     </p>
                     <p className="text-sm text-gray-600">Each</p>
                   </div>
@@ -682,7 +683,7 @@ const OrderDetails = () => {
                       <div className="flex justify-between items-center text-lg font-semibold">
                         <span>Total Amount:</span>
                         <span className="text-[#1c4980]">
-                          US${data.totalPrice}
+                          ₹{data.totalPrice?.toFixed(2)}
                         </span>
                       </div>
                     </div>

@@ -1,7 +1,11 @@
 const multer = require("multer");
 const path = require("path");
 
-const storage = multer.diskStorage({
+// Use memory storage for Cloudinary uploads
+const storage = multer.memoryStorage();
+
+// Alternative disk storage for local development/backup
+const diskStorage = multer.diskStorage({
   destination: function (req, res, cb) {
     cb(null, path.join(__dirname, "./uploads"));
   },
@@ -22,8 +26,9 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Primary upload configuration using memory storage for Cloudinary
 exports.upload = multer({ 
-  storage: storage,
+  storage: storage, // Use memory storage
   fileFilter: fileFilter,
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB limit for videos
@@ -32,7 +37,7 @@ exports.upload = multer({
 
 // Create separate upload handlers for specific field names
 exports.uploadFields = multer({ 
-  storage: storage,
+  storage: storage, // Use memory storage
   fileFilter: fileFilter,
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB limit for videos
@@ -41,3 +46,12 @@ exports.uploadFields = multer({
   { name: 'images', maxCount: 10 },
   { name: 'videos', maxCount: 5 }
 ]);
+
+// Disk storage version for local development if needed
+exports.uploadToDisk = multer({ 
+  storage: diskStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB limit for videos
+  }
+});

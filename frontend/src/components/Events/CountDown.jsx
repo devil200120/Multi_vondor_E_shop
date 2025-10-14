@@ -1,30 +1,14 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { server } from "../../server";
-
+import { useSelector } from "react-redux";
 import { HiOutlineClock } from "react-icons/hi";
 
 const CountDown = ({ data }) => {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [hasExpired, setHasExpired] = useState(false);
+  const { seller } = useSelector((state) => state.seller);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    if (
-      typeof timeLeft.days === "undefined" &&
-      typeof timeLeft.hours === "undefined" &&
-      typeof timeLeft.minutes === "undefined" &&
-      typeof timeLeft.seconds === "undefined"
-    ) {
-      axios.delete(`${server}/event/delete-shop-event/${data._id}`);
-    }
-
-    return () => clearTimeout(timer);
-  });
-
-  function calculateTimeLeft() {
+  const calculateTimeLeft = useCallback(() => {
     const difference = +new Date(data.Finish_Date) - +new Date();
     let timeLeft = {};
 
@@ -37,7 +21,43 @@ const CountDown = ({ data }) => {
       };
     }
     return timeLeft;
-  }
+  }, [data.Finish_Date]);
+
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+
+      // Check if event has expired and hasn't been processed yet
+      if (
+        !hasExpired &&
+        typeof newTimeLeft.days === "undefined" &&
+        typeof newTimeLeft.hours === "undefined" &&
+        typeof newTimeLeft.minutes === "undefined" &&
+        typeof newTimeLeft.seconds === "undefined"
+      ) {
+        setHasExpired(true);
+
+        // Only delete if user is authenticated seller and owns the event
+        if (seller && seller._id && data.shopId === seller._id) {
+          axios
+            .delete(`${server}/event/delete-shop-event/${data._id}`, {
+              withCredentials: true,
+            })
+            .catch((error) => {
+              // Silently handle 401 errors as they're expected for non-owners
+              if (error.response?.status !== 401) {
+                console.log("Event deletion failed:", error.response?.status);
+              }
+            });
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [calculateTimeLeft, data._id, data.shopId, hasExpired, seller]);
 
   const timeComponents = [
     { label: "days", value: timeLeft.days },

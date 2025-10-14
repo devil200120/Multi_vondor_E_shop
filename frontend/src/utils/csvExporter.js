@@ -66,16 +66,14 @@ export const generateInvoiceCSV = (order) => {
       csvData.push(['Discount', `-₹${order.discountPrice.toFixed(2)}`]);
     }
     
-    csvData.push(['Total Amount', `₹${order.totalPrice}`]);
+    csvData.push(['Total Amount', `₹${order.totalPrice?.toFixed(2)}`]);
     csvData.push([]);
 
     // Additional information
     csvData.push(['Additional Information']);
     csvData.push(['Company', 'Wanttar']);
     csvData.push(['Website', 'www.wanttar.com']);
-    csvData.push(['Support Email', 'support@wanttar.com']);
-    csvData.push(['Support Phone', '+91 7349727270']);
-    csvData.push(['Business Address', 'Manohar Enterprises, 5-25 , 15th main road,3rd stage,4th block, Basaveswaranagar,near Guru sagar hotel, Bangalore 560079']);
+    csvData.push(['Support Email', 'support@wanttar.in']);
     csvData.push(['Support Phone', '+91 7349727270']);
 
     return csvData;
@@ -162,7 +160,7 @@ export const generateBulkOrderCSV = (orders) => {
         order.paymentInfo?.status || 'Pending',
         order.paymentInfo?.type || 'N/A',
         order.cart?.length || 0,
-        `₹${order.totalPrice}`,
+        `₹${order.totalPrice?.toFixed(2)}`,
         order.shippingAddress?.address1 || 'N/A',
         order.shippingAddress?.city || 'N/A',
         order.shippingAddress?.country || 'N/A'

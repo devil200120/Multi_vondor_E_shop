@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #6789ABCD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .invoice-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .invoice-number {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .invoice-body {
+            padding: 30px;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .detail-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .detail-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .detail-value {
+            color: #333;
+        }
+        
+        .address-section {
+            grid-column: span 2;
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .items-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .items-table tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .quantity {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .price {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .totals-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        
+        .total-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .total-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .grand-total {
+            border-top: 2px solid #667eea;
+            margin-top: 15px;
+            padding-top: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .grand-total .total-label,
+        .grand-total .total-value {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+        
+        .payment-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .payment-info h3 {
+            color: #2e7d2e;
+            margin-bottom: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-shipped {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .company-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .invoice-container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+        
+        .shop-info {
+            background: #fff8e1;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .shop-info h3 {
+            color: #e65100;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <h1>INVOICE</h1>
+            <div class="invoice-number">#6789ABCD</div>
+        </div>
+        
+        <div class="invoice-body">
+            <div class="invoice-details">
+                <div class="detail-section">
+                    <h3>Order Information</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Order ID:</span>
+                        <span class="detail-value">#6789ABCD</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Order Date:</span>
+                        <span class="detail-value">15 January 2024 at 03:55 pm</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">
+                            <span class="status-badge status-processing">Processing</span>
+                        </span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Payment ID:</span>
+                        <span class="detail-value">razorpay_pay_KGkQzOvEcc8NGm</span>
+                    </div>
+                    
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Tracking:</span>
+                        <span class="detail-value">BLUEDART12345678</span>
+                    </div>
+                    
+                </div>
+                
+                <div class="detail-section">
+                    <h3>Customer Information</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">Rajesh Kumar</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">rajesh.kumar@example.com</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Phone:</span>
+                        <span class="detail-value">+91-9876543210</span>
+                    </div>
+                    
+                </div>
+                
+                
+                <div class="detail-section shop-info">
+                    <h3>Seller Information</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Shop Name:</span>
+                        <span class="detail-value">TechStyle Fashion Hub</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">contact@techstyle.com</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Phone:</span>
+                        <span class="detail-value">+91-9123456789</span>
+                    </div>
+                    
+                </div>
+                
+                
+                <div class="detail-section address-section">
+                    <h3>Shipping Address</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Address:</span>
+                        <span class="detail-value">123 Tech Park Avenue</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Address 2:</span>
+                        <span class="detail-value">Building C, Floor 4</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">City:</span>
+                        <span class="detail-value">Bhubaneswar</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">State:</span>
+                        <span class="detail-value">Odisha</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Pincode:</span>
+                        <span class="detail-value">751024</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Country:</span>
+                        <span class="detail-value">India</span>
+                    </div>
+                </div>
+            </div>
+            
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>
+                            <div class="product-name">Premium Cotton T-Shirt</div>
+                            <div class="product-description">Size: M</div>
+                            <div class="product-description">Color: Navy Blue</div>
+                        </td>
+                        <td class="quantity">2</td>
+                        <td class="price">₹1,499.00</td>
+                        <td class="price">₹2,998.00</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>
+                            <div class="product-name">Wireless Bluetooth Headphones</div>
+                            
+                            <div class="product-description">Color: Black</div>
+                        </td>
+                        <td class="quantity">1</td>
+                        <td class="price">₹2,999.00</td>
+                        <td class="price">₹2,999.00</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>
+                            <div class="product-name">Leather Wallet</div>
+                            
+                            <div class="product-description">Color: Brown</div>
+                        </td>
+                        <td class="quantity">1</td>
+                        <td class="price">₹1,200.00</td>
+                        <td class="price">₹1,200.00</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+            
+            <div class="totals-section">
+                <div class="total-row">
+                    <span class="total-label">Subtotal:</span>
+                    <span class="total-value">₹5,697.00</span>
+                </div>
+                
+                
+                <div class="total-row">
+                    <span class="total-label">Discount:</span>
+                    <span class="total-value">-₹250.00</span>
+                </div>
+                
+                
+                
+                <div class="total-row">
+                    <span class="total-label">Shipping:</span>
+                    <span class="total-value">₹150.00</span>
+                </div>
+                
+                
+                
+                <div class="total-row">
+                    <span class="total-label">Tax:</span>
+                    <span class="total-value">₹500.00</span>
+                </div>
+                
+                
+                <div class="total-row grand-total">
+                    <span class="total-label">Grand Total:</span>
+                    <span class="total-value">₹6,097.00</span>
+                </div>
+            </div>
+            
+            
+            <div class="payment-info">
+                <h3>Payment Information</h3>
+                <div class="detail-item">
+                    <span class="detail-label">Payment Method:</span>
+                    <span class="detail-value">UPI</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Payment Status:</span>
+                    <span class="detail-value">captured</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Payment Date:</span>
+                    <span class="detail-value">15 January 2024 at 04:00 pm</span>
+                </div>
+                
+            </div>
+            
+            
+            <div class="footer">
+                <p>Thank you for your business!</p>
+                <p>If you have any questions about this invoice, please contact our support team.</p>
+            </div>
+            
+            <div class="company-info">
+                <p><strong>Your E-Commerce Store</strong></p>
+                <p>Generated on 29 September 2025 at 09:20 am</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+  

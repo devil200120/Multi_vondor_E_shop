@@ -19,6 +19,18 @@ const AdminBannerEditor = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  
+  // New state for sliding functionality
+  const [slidingImages, setSlidingImages] = useState([]);
+  const [slidingImageFiles, setSlidingImageFiles] = useState([]);
+  const [displayMode, setDisplayMode] = useState('single');
+  const [slidingSettings, setSlidingSettings] = useState({
+    autoSlide: true,
+    slideDuration: 5000,
+    showDots: true,
+    showArrows: true,
+    transitionEffect: 'fade'
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -48,6 +60,26 @@ const AdminBannerEditor = () => {
 
       if (data.success) {
         setBanner(data.banner);
+        setDisplayMode(data.banner.displayMode || 'single');
+        
+        // Set sliding settings
+        // Load sliding settings from individual fields
+        setSlidingSettings({
+          autoSlideInterval: data.banner.autoSlideInterval || 7,
+          transitionEffect: data.banner.transitionEffect || 'slide'
+        });
+        
+        // Set sliding images and clear file state when loading existing data
+        if (data.banner.images && data.banner.images.length > 0) {
+          setSlidingImages(data.banner.images);
+          // Important: Clear the file state when loading existing images
+          setSlidingImageFiles([]);
+          console.log('Loaded existing images from database:', data.banner.images.length);
+        } else {
+          setSlidingImages([]);
+          setSlidingImageFiles([]);
+        }
+        
         setFormData({
           title: data.banner.title || "",
           subtitle: data.banner.subtitle || "",
@@ -61,7 +93,11 @@ const AdminBannerEditor = () => {
           satisfactionCount: data.banner.stats?.satisfaction?.count || "",
           satisfactionLabel: data.banner.stats?.satisfaction?.label || "",
         });
-        setImagePreview(getBannerImageUrl(data.banner.image, server));
+        
+        // Set single image preview
+        if (data.banner.image) {
+          setImagePreview(getBannerImageUrl(data.banner.image, server));
+        }
       }
     } catch (error) {
       toast.error("Failed to fetch banner data");
@@ -91,6 +127,99 @@ const AdminBannerEditor = () => {
     }
   };
 
+  // New handlers for sliding functionality
+  const handleDisplayModeChange = (mode) => {
+    setDisplayMode(mode);
+    if (mode === 'single') {
+      setSlidingImages([]);
+      setSlidingImageFiles([]);
+    }
+  };
+
+  const handleSlidingImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    console.log('New files selected:', files.length, files.map(f => f.name));
+    
+    if (files.length > 0) {
+      // ADD to existing files (additive behavior)
+      const existingFiles = [...slidingImageFiles];
+      const newFiles = [...existingFiles, ...files];
+      console.log('Existing files:', existingFiles.length);
+      console.log('Adding files:', files.length);
+      console.log('Total files after adding:', newFiles.length);
+      
+      setSlidingImageFiles(newFiles);
+      
+      // Create previews for NEW files only (don't duplicate existing ones)
+      const newImagePreviews = [];
+      let filesProcessed = 0;
+      
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          newImagePreviews.push({
+            url: e.target.result,
+            title: '',
+            description: '',
+            isNew: true,
+            fileIndex: existingFiles.length + index // Track which file this preview corresponds to
+          });
+          
+          filesProcessed++;
+          
+          // When all new files are processed, update the state
+          if (filesProcessed === files.length) {
+            setSlidingImages(prev => {
+              const updated = [...prev, ...newImagePreviews];
+              console.log('Preview images updated. Total:', updated.length);
+              return updated;
+            });
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      console.log('Files added. Total files now:', newFiles.length);
+      
+      // Clear the input value to allow re-selecting the same files
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveSlidingImage = (index) => {
+    console.log('Removing image at index:', index);
+    
+    // Get the image being removed to check if it's a new file
+    const imageToRemove = slidingImages[index];
+    
+    // Remove from preview
+    setSlidingImages(prev => prev.filter((_, i) => i !== index));
+    
+    // If it's a new file (has fileIndex), also remove from files array
+    if (imageToRemove && imageToRemove.isNew && typeof imageToRemove.fileIndex === 'number') {
+      // Calculate the actual file index to remove
+      const newFileImages = slidingImages.filter(img => img.isNew);
+      const newFileIndex = newFileImages.findIndex(img => img.fileIndex === imageToRemove.fileIndex);
+      
+      if (newFileIndex >= 0) {
+        setSlidingImageFiles(prev => prev.filter((_, i) => i !== newFileIndex));
+        console.log('Removed corresponding file from files array');
+      }
+    }
+    
+    console.log('Image removed from preview and files array');
+  };
+
+  const handleSlidingImageTextChange = (index, field, value) => {
+    setSlidingImages(prev => prev.map((img, i) => 
+      i === index ? { ...img, [field]: value } : img
+    ));
+  };
+
+  const handleSlidingSettingsChange = (field, value) => {
+    setSlidingSettings(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -98,12 +227,55 @@ const AdminBannerEditor = () => {
       setSaving(true);
 
       const submitData = new FormData();
+      
+      // Add display mode and sliding settings
+      submitData.append('displayMode', displayMode);
+      submitData.append('autoSlideInterval', slidingSettings.autoSlideInterval);
+      submitData.append('transitionEffect', slidingSettings.transitionEffect);
+      
+      // Add form data
       Object.keys(formData).forEach((key) => {
         submitData.append(key, formData[key]);
       });
 
-      if (imageFile) {
-        submitData.append("image", imageFile);
+      // Add sliding images if in sliding mode
+      if (displayMode === 'sliding') {
+        console.log('=== FORM SUBMISSION DEBUG ===');
+        console.log('slidingImageFiles array length:', slidingImageFiles.length);
+        console.log('slidingImageFiles array:', slidingImageFiles.map(f => ({name: f.name, size: f.size})));
+        console.log('slidingImages array length:', slidingImages.length);
+        console.log('slidingImages array:', slidingImages.map((img, i) => ({
+          index: i,
+          isNew: img.isNew,
+          hasUrl: !!img.url,
+          title: img.title,
+          fileIndex: img.fileIndex
+        })));
+        
+        // Only append files if there are NEW files to upload
+        if (slidingImageFiles.length > 0) {
+          console.log('Sending sliding images:', slidingImageFiles.length, 'new files');
+          slidingImageFiles.forEach((file, index) => {
+            console.log(`Adding file ${index}:`, file.name, file.size, 'bytes');
+            submitData.append('slidingImages', file);
+          });
+        } else {
+          console.log('No new files to upload, keeping existing images');
+        }
+        
+        // Add sliding images data (text content for ALL images - existing + new)
+        const slidingImagesData = slidingImages.map(img => ({
+          title: img.title || '',
+          description: img.description || ''
+        }));
+        console.log('Sliding images text data length:', slidingImagesData.length);
+        console.log('Sliding images text data:', slidingImagesData);
+        submitData.append('slidingImagesData', JSON.stringify(slidingImagesData));
+      }
+
+      // Add single image if in single mode (not sliding)
+      if (displayMode === 'single' && imageFile) {
+        submitData.append('slidingImages', imageFile); // Backend expects 'slidingImages' array
       }
 
       const { data } = await axios.put(
@@ -280,13 +452,26 @@ const AdminBannerEditor = () => {
 
                 {/* Right Content - Hero Image */}
                 <div className="relative">
-                  <img
-                    src={
-                      imagePreview || getBannerImageUrl(banner.image, server)
-                    }
-                    alt="Banner"
-                    className="w-full h-auto rounded-2xl shadow-lg"
-                  />
+                  {displayMode === 'sliding' && slidingImages.length > 0 ? (
+                    <div className="relative w-full h-96 overflow-hidden rounded-2xl">
+                      <img
+                        src={slidingImages[0]?.url || getBannerImageUrl(banner.image, server)}
+                        alt="Sliding Banner Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                        Sliding Mode - {slidingImages.length} images
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={
+                        imagePreview || getBannerImageUrl(banner.image, server)
+                      }
+                      alt="Banner"
+                      className="w-full h-auto rounded-2xl shadow-lg"
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -378,40 +563,236 @@ const AdminBannerEditor = () => {
               {/* Right Column - Image Upload */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                  Banner Image
+                  Banner Images
                 </h2>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload New Image
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Recommended size: 800x600px or larger. Max size: 5MB
-                    </p>
-                  </div>
-
-                  {/* Image Preview */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    {imagePreview ? (
-                      <img
-                        src={imagePreview}
-                        alt="Banner preview"
-                        className="w-full h-48 object-cover rounded-lg"
+                {/* Display Mode Toggle */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Display Mode
+                  </label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="displayMode"
+                        value="single"
+                        checked={displayMode === 'single'}
+                        onChange={(e) => setDisplayMode(e.target.value)}
+                        className="mr-2 text-blue-500 focus:ring-blue-500"
                       />
-                    ) : (
-                      <div className="w-full h-48 flex items-center justify-center text-gray-400">
-                        <HiOutlinePhotograph className="h-12 w-12" />
+                      <span className="text-sm text-gray-700">Single Image</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="displayMode"
+                        value="sliding"
+                        checked={displayMode === 'sliding'}
+                        onChange={(e) => setDisplayMode(e.target.value)}
+                        className="mr-2 text-blue-500 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Sliding Images</span>
+                    </label>
+                  </div>
+                </div>
+
+                {displayMode === 'single' ? (
+                  /* Single Image Upload */
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Upload Banner Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Recommended size: 800x600px or larger. Max size: 5MB
+                      </p>
+                    </div>
+
+                    {/* Image Preview */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      {imagePreview ? (
+                        <img
+                          src={imagePreview}
+                          alt="Banner preview"
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 flex items-center justify-center text-gray-400">
+                          <HiOutlinePhotograph className="h-12 w-12" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* Sliding Images Management */
+                  <div className="space-y-6">
+                    {/* Sliding Settings */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-sm font-medium text-gray-700 mb-3">Sliding Settings</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Auto Slide Interval (seconds)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={slidingSettings.autoSlideInterval}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Allow empty value during editing, but ensure it's a valid number when complete
+                              if (value === '' || value === '0') {
+                                setSlidingSettings(prev => ({
+                                  ...prev,
+                                  autoSlideInterval: ''
+                                }));
+                              } else {
+                                const numValue = parseInt(value);
+                                if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
+                                  setSlidingSettings(prev => ({
+                                    ...prev,
+                                    autoSlideInterval: numValue
+                                  }));
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              // Ensure we have a valid value when user finishes editing
+                              const value = e.target.value;
+                              if (value === '' || isNaN(parseInt(value)) || parseInt(value) < 1) {
+                                setSlidingSettings(prev => ({
+                                  ...prev,
+                                  autoSlideInterval: 5
+                                }));
+                              }
+                            }}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Transition Effect
+                          </label>
+                          <select
+                            value={slidingSettings.transitionEffect}
+                            onChange={(e) => setSlidingSettings(prev => ({
+                              ...prev,
+                              transitionEffect: e.target.value
+                            }))}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="fade">Fade</option>
+                            <option value="slide">Slide</option>
+                            <option value="zoom">Zoom</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Add Sliding Images */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Add Sliding Images
+                        </label>
+                        {slidingImages.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSlidingImages([]);
+                              setSlidingImageFiles([]);
+                              console.log('Cleared all sliding images');
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Clear All ({slidingImages.length})
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleSlidingImagesChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Select multiple images or add them one by one. Current: {slidingImages.length} images, {slidingImageFiles.length} files ready to upload.
+                      </p>
+                      
+                      {/* Debug Button - Remove this in production */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('=== DEBUG STATE ===');
+                          console.log('slidingImages:', slidingImages.length, slidingImages);
+                          console.log('slidingImageFiles:', slidingImageFiles.length, slidingImageFiles.map(f => ({name: f.name, size: f.size})));
+                        }}
+                        className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300"
+                      >
+                        Debug State
+                      </button>
+                    </div>
+
+                    {/* Sliding Images List */}
+                    {slidingImages.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-medium text-gray-700">
+                          Sliding Images ({slidingImages.length})
+                        </h4>
+                        <div className="max-h-96 overflow-y-auto space-y-3">
+                          {slidingImages.map((image, index) => (
+                            <div key={index} className="border border-gray-200 rounded-lg p-3">
+                              <div className="flex items-start space-x-3">
+                                <img
+                                  src={image.url}
+                                  alt={`Slide ${index + 1}`}
+                                  className="w-20 h-16 object-cover rounded"
+                                />
+                                <div className="flex-1 space-y-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Image title (optional)"
+                                    value={image.title || ''}
+                                    onChange={(e) => handleSlidingImageTextChange(index, 'title', e.target.value)}
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Image description (optional)"
+                                    value={image.description || ''}
+                                    onChange={(e) => handleSlidingImageTextChange(index, 'description', e.target.value)}
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                                  />
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">
+                                      Slide {index + 1}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSlidingImage(index)}
+                                      className="text-red-500 hover:text-red-700 text-sm"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

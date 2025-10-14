@@ -272,20 +272,7 @@ const PincodeValidationDialog = ({
               </form>
 
               {/* Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                <div className="flex items-start space-x-2">
-                  <FiAlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-blue-800 text-sm">
-                      Why do we need this?
-                    </h4>
-                    <p className="text-blue-700 text-sm mt-1 leading-relaxed">
-                      We currently deliver only within Karnataka state. Enter
-                      your pincode to confirm delivery availability.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           )}
 

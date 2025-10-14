@@ -14,6 +14,7 @@ import ShopInboxPage from "../pages/Shop/ShopInboxPage";
 import ShopEditProductPage from "../pages/Shop/ShopEditProductPage";
 import ShopForgotPasswordPage from "../pages/ShopForgotPasswordPage";
 import ShopResetPasswordPage from "../pages/ShopResetPasswordPage";
+import ShippingManagementPage from "../pages/Shop/ShippingManagementPage";
 
 export {
   ShopDashboardPage,
@@ -32,4 +33,5 @@ export {
   ShopEditProductPage,
   ShopForgotPasswordPage,
   ShopResetPasswordPage,
+  ShippingManagementPage,
 };

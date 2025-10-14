@@ -14,6 +14,7 @@ import { getAllEventsShop } from "../../redux/actions/event";
 import { DataGrid } from "@material-ui/data-grid";
 import { IoStatsChart } from "react-icons/io5";
 import { BsBox, BsGraphUp } from "react-icons/bs";
+import { getOrderNumber } from "../../utils/orderUtils";
 
 const DashboardHero = () => {
   const dispatch = useDispatch();
@@ -93,7 +94,7 @@ const DashboardHero = () => {
       flex: 0.8,
       renderCell: (params) => (
         <span className="font-medium text-gray-900 text-xs md:text-sm truncate">
-          #{params.value.slice(-6)}
+          {getOrderNumber(params.row)}
         </span>
       ),
     },
@@ -164,8 +165,10 @@ const DashboardHero = () => {
     orders.forEach((item) => {
       row.push({
         id: item._id,
+        _id: item._id, // Include _id for getOrderNumber function
+        orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty: item.cart.reduce((acc, item) => acc + item.qty, 0),
-        total: "₹" + item.totalPrice,
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
       });
     });
@@ -175,7 +178,7 @@ const DashboardHero = () => {
     <div className="bg-white rounded-xl border border-gray-200/50 p-4 hover:shadow-lg transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
         <span className="font-bold text-gray-900 text-sm">
-          #{order.id.slice(-6)}
+          {getOrderNumber(order)}
         </span>
         <span
           className={`px-2 py-1 rounded-full text-xs font-bold ${

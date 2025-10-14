@@ -148,15 +148,15 @@ export const getBannerImageUrl = (image, backendUrl = '') => {
  * Handles new Cloudinary object format only
  * @param {object} avatar - Avatar data (object with url property)
  * @param {string} backendUrl - Backend URL (not used for Cloudinary URLs)
- * @returns {string} - Cloudinary URL for the avatar
+ * @returns {string} - Cloudinary URL for the avatar or default avatar
  */
 export const getAvatarUrl = (avatar, backendUrl = '') => {
-  if (!avatar) return '';
+  if (!avatar) return 'https://via.placeholder.com/150/6366F1/FFFFFF?text=User';
   
   // New Cloudinary format - object with URL property
   if (typeof avatar === 'object' && avatar.url) {
     return avatar.url;
   }
   
-  return '';
+  return 'https://via.placeholder.com/150/6366F1/FFFFFF?text=User';
 };

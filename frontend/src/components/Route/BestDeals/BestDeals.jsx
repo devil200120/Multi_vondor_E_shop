@@ -298,13 +298,13 @@ const BestDeals = () => {
                   {data.map((product, index) => (
                     <div
                       key={index}
-                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[200px]"
+                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[180px] min-w-[180px] max-w-[180px]"
                       style={{
                         animationDelay: `${index * 150}ms`,
                         animation: "fadeInUp 0.6s ease-out forwards",
                       }}
                     >
-                      <div className="relative w-full flex">
+                      <div className="relative w-full h-full">
                         {/* Enhanced Trending Badge */}
                         {index === 0 && (
                           <div className="absolute top-2 -right-1 z-20">
@@ -336,9 +336,9 @@ const BestDeals = () => {
                         )}
 
                         {/* Glow Effect on Hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
 
-                        <ProductCard data={product} />
+                        <ProductCard data={product} isCompact={true} />
                       </div>
                     </div>
                   ))}
@@ -367,17 +367,17 @@ const BestDeals = () => {
               </div>
 
               {/* Desktop/Tablet View - Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-stretch">
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-stretch auto-rows-fr">
                 {data.map((product, index) => (
                   <div
                     key={index}
-                    className="group transform transition-all duration-500 hover:scale-110 hover:z-10 flex"
+                    className="group transform transition-all duration-500 hover:scale-110 hover:z-10 h-full"
                     style={{
                       animationDelay: `${index * 150}ms`,
                       animation: "fadeInUp 0.6s ease-out forwards",
                     }}
                   >
-                    <div className="relative w-full flex">
+                    <div className="relative w-full h-full">
                       {/* Enhanced Trending Badge */}
                       {index === 0 && (
                         <div className="absolute top-2 -right-1 z-20">
@@ -409,7 +409,7 @@ const BestDeals = () => {
                       )}
 
                       {/* Glow Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
 
                       <ProductCard data={product} />
                     </div>

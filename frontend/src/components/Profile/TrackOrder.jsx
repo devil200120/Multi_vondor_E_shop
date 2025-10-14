@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
+import { getOrderNumber } from "../../utils/orderUtils";
 import {
   FiPackage,
   FiTruck,
@@ -205,7 +206,7 @@ const TrackOrder = () => {
             <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Order ID:{" "}
               <span className="font-semibold text-blue-600">
-                #{data._id.slice(-8).toUpperCase()}
+                {getOrderNumber(data)}
               </span>
             </p>
 
@@ -405,7 +406,7 @@ const TrackOrder = () => {
                     Total Amount
                   </p>
                   <p className="font-bold text-gray-900 text-lg">
-                    ₹{data.totalPrice}
+                    ₹{data.totalPrice?.toFixed(2)}
                   </p>
                 </div>
 
@@ -413,8 +414,34 @@ const TrackOrder = () => {
                   <p className="text-sm text-gray-500 font-medium">
                     Payment Status
                   </p>
-                  <p className="font-semibold text-green-600">
-                    {data.paymentInfo?.status || "Paid"}
+                  <p
+                    className={`font-semibold ${
+                      // Check if it's a COD order
+                      data.paymentInfo?.type === "Cash On Delivery" ||
+                      data.paymentInfo?.type === "COD" ||
+                      data.paymentInfo?.type === "cash_on_delivery" ||
+                      data.paymentInfo?.type?.toLowerCase().includes("cash") ||
+                      data.paymentInfo?.type?.toLowerCase().includes("cod")
+                        ? "text-yellow-600"
+                        : data.paymentInfo?.status === "succeeded" ||
+                          data.paymentInfo?.status === "Succeeded"
+                        ? "text-green-600"
+                        : "text-yellow-600"
+                    }`}
+                  >
+                    {
+                      // Show appropriate status based on payment type
+                      data.paymentInfo?.type === "Cash On Delivery" ||
+                      data.paymentInfo?.type === "COD" ||
+                      data.paymentInfo?.type === "cash_on_delivery" ||
+                      data.paymentInfo?.type?.toLowerCase().includes("cash") ||
+                      data.paymentInfo?.type?.toLowerCase().includes("cod")
+                        ? "COD - Pending"
+                        : data.paymentInfo?.status === "succeeded" ||
+                          data.paymentInfo?.status === "Succeeded"
+                        ? "Paid"
+                        : data.paymentInfo?.status || "Pending"
+                    }
                   </p>
                 </div>
 

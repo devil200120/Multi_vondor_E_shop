@@ -14,14 +14,58 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { RxCross1 } from "react-icons/rx";
+import Lottie from "react-lottie";
+import * as loadingAnimationData from "../../Assests/animations/loading.json";
 
 const Payment = () => {
   const [orderData, setOrderData] = useState([]);
   const [open, setOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isCodProcessing, setIsCodProcessing] = useState(false);
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const stripe = useStripe();
   const elements = useElements();
+
+  // Loading animation configuration
+  const loadingOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: loadingAnimationData.default || loadingAnimationData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+
+  // Enhanced loading spinner component
+  const LoadingSpinner = ({ text = "Processing..." }) => (
+    <div className="flex items-center justify-center space-x-3">
+      {/* Animated dots */}
+      <div className="flex space-x-1">
+        <div
+          className="w-2 h-2 bg-white rounded-full animate-bounce"
+          style={{ animationDelay: "0ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-white rounded-full animate-bounce"
+          style={{ animationDelay: "150ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-white rounded-full animate-bounce"
+          style={{ animationDelay: "300ms" }}
+        ></div>
+      </div>
+
+      {/* Spinner */}
+      <div className="relative">
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+        <div className="absolute inset-0 animate-ping rounded-full h-6 w-6 border border-white opacity-25"></div>
+      </div>
+
+      {/* Text with pulse effect */}
+      <span className="text-[16px] font-[600] animate-pulse">{text}</span>
+    </div>
+  );
 
   useEffect(() => {
     const orderData = JSON.parse(localStorage.getItem("latestOrder"));
@@ -56,6 +100,10 @@ const Payment = () => {
     shippingAddress: orderData?.shippingAddress,
     user: user && user,
     totalPrice: orderData?.totalPrice,
+    subTotalPrice: orderData?.subTotalPrice,
+    shippingPrice: orderData?.shipping,
+    discountPrice: orderData?.discountPrice,
+    tax: orderData?.tax || 0,
   };
 
   const onApprove = async (data, actions) => {
@@ -86,11 +134,21 @@ const Payment = () => {
       .post(`${server}/order/create-order`, order, config)
       .then((res) => {
         setOpen(false);
+        // Store order data for success page
+        localStorage.setItem(
+          "latestOrderData",
+          JSON.stringify({
+            orders: res.data.orders,
+            paymentMethod: res.data.paymentMethod,
+            totalAmount: orderData?.totalPrice,
+            user: user,
+            timestamp: new Date().toISOString(),
+          })
+        );
         navigate("/order/success");
         toast.success("Order successful!");
         localStorage.setItem("cartItems", JSON.stringify([]));
         localStorage.setItem("latestOrder", JSON.stringify([]));
-        window.location.reload();
       });
   };
 
@@ -100,6 +158,7 @@ const Payment = () => {
 
   const paymentHandler = async (e) => {
     e.preventDefault();
+    setIsProcessing(true);
     try {
       const config = {
         headers: {
@@ -136,22 +195,35 @@ const Payment = () => {
             .post(`${server}/order/create-order`, order, config)
             .then((res) => {
               setOpen(false);
+              // Store order data for success page
+              localStorage.setItem(
+                "latestOrderData",
+                JSON.stringify({
+                  orders: res.data.orders,
+                  paymentMethod: res.data.paymentMethod,
+                  totalAmount: orderData?.totalPrice,
+                  user: user,
+                  timestamp: new Date().toISOString(),
+                })
+              );
               navigate("/order/success");
               toast.success("Order successful!");
               localStorage.setItem("cartItems", JSON.stringify([]));
               localStorage.setItem("latestOrder", JSON.stringify([]));
-              window.location.reload();
             });
         }
       }
     } catch (error) {
       toast.error(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   //  Cash on Delevery Handler (COD)
   const cashOnDeliveryHandler = async (e) => {
     e.preventDefault();
+    setIsCodProcessing(true);
 
     const config = {
       headers: {
@@ -167,11 +239,21 @@ const Payment = () => {
       .post(`${server}/order/create-order`, order, config)
       .then((res) => {
         setOpen(false);
+        // Store order data for success page
+        localStorage.setItem(
+          "latestOrderData",
+          JSON.stringify({
+            orders: res.data.orders,
+            paymentMethod: res.data.paymentMethod,
+            totalAmount: orderData?.totalPrice,
+            user: user,
+            timestamp: new Date().toISOString(),
+          })
+        );
         navigate("/order/success");
         toast.success("Order successful!");
         localStorage.setItem("cartItems", JSON.stringify([]));
         localStorage.setItem("latestOrder", JSON.stringify([]));
-        window.location.reload();
       });
   };
 
@@ -187,6 +269,10 @@ const Payment = () => {
             createOrder={createOrder}
             paymentHandler={paymentHandler}
             cashOnDeliveryHandler={cashOnDeliveryHandler}
+            isProcessing={isProcessing}
+            isCodProcessing={isCodProcessing}
+            loadingOptions={loadingOptions}
+            LoadingSpinner={LoadingSpinner}
           />
         </div>
         <div className="w-full 800px:w-[35%] 800px:mt-0 mt-8">
@@ -205,6 +291,10 @@ const PaymentInfo = ({
   createOrder,
   paymentHandler,
   cashOnDeliveryHandler,
+  isProcessing,
+  isCodProcessing,
+  loadingOptions,
+  LoadingSpinner,
 }) => {
   const [select, setSelect] = useState(1);
 
@@ -309,11 +399,43 @@ const PaymentInfo = ({
                   />
                 </div>
               </div>
-              <input
-                type="submit"
-                value="Submit"
-                className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600]`}
-              />
+              {isProcessing ? (
+                <div
+                  className={`${styles.button} !bg-gradient-to-r !from-[#f63b60] !to-[#ff4757] text-[#fff] h-[45px] rounded-[5px] flex items-center justify-center shadow-lg transform transition-all duration-200`}
+                >
+                  {loadingAnimationData ? (
+                    <div className="flex items-center justify-center space-x-3">
+                      <Lottie options={loadingOptions} width={30} height={30} />
+                      <span className="text-[16px] font-[600] animate-pulse">
+                        Processing Payment...
+                      </span>
+                      <div className="flex space-x-1 ml-2">
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <LoadingSpinner text="Processing Payment..." />
+                  )}
+                </div>
+              ) : (
+                <input
+                  type="submit"
+                  value="Submit"
+                  disabled={isProcessing}
+                  className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600] disabled:opacity-50 disabled:cursor-not-allowed hover:!bg-[#e53e3e] transition-all duration-200 transform hover:scale-105`}
+                />
+              )}
             </form>
           </div>
         ) : null}
@@ -395,11 +517,43 @@ const PaymentInfo = ({
         {select === 3 ? (
           <div className="w-full flex">
             <form className="w-full" onSubmit={cashOnDeliveryHandler}>
-              <input
-                type="submit"
-                value="Confirm"
-                className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600]`}
-              />
+              {isCodProcessing ? (
+                <div
+                  className={`${styles.button} !bg-gradient-to-r !from-[#f63b60] !to-[#ff4757] text-[#fff] h-[45px] rounded-[5px] flex items-center justify-center w-full shadow-lg transform transition-all duration-200`}
+                >
+                  {loadingAnimationData ? (
+                    <div className="flex items-center justify-center space-x-3">
+                      <Lottie options={loadingOptions} width={30} height={30} />
+                      <span className="text-[16px] font-[600] animate-pulse">
+                        Confirming Order...
+                      </span>
+                      <div className="flex space-x-1 ml-2">
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <LoadingSpinner text="Confirming Order..." />
+                  )}
+                </div>
+              ) : (
+                <input
+                  type="submit"
+                  value="Confirm"
+                  disabled={isCodProcessing}
+                  className={`${styles.button} !bg-[#f63b60] text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600] disabled:opacity-50 disabled:cursor-not-allowed hover:!bg-[#e53e3e] transition-all duration-200 transform hover:scale-105`}
+                />
+              )}
             </form>
           </div>
         ) : null}
@@ -409,12 +563,20 @@ const PaymentInfo = ({
 };
 
 const CartData = ({ orderData }) => {
-  const shipping = orderData?.shipping?.toFixed(2);
+  const shipping =
+    orderData?.shipping && !isNaN(orderData.shipping)
+      ? Number(orderData.shipping).toFixed(2)
+      : "0.00";
   return (
     <div className="w-full bg-[#fff] rounded-md p-5 pb-8">
       <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">subtotal:</h3>
-        <h5 className="text-[18px] font-[600]">₹{orderData?.subTotalPrice}</h5>
+        <h5 className="text-[18px] font-[600]">
+          ₹
+          {orderData?.subTotalPrice && !isNaN(orderData.subTotalPrice)
+            ? Number(orderData.subTotalPrice).toFixed(2)
+            : "0.00"}
+        </h5>
       </div>
       <br />
       <div className="flex justify-between">
@@ -429,7 +591,10 @@ const CartData = ({ orderData }) => {
         </h5>
       </div>
       <h5 className="text-[18px] font-[600] text-end pt-3">
-        ₹{orderData?.totalPrice}
+        ₹
+        {orderData?.totalPrice && !isNaN(orderData.totalPrice)
+          ? Number(orderData.totalPrice).toFixed(2)
+          : "0.00"}
       </h5>
       <br />
     </div>

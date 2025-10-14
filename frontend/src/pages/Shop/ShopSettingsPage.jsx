@@ -9,7 +9,7 @@ const ShopSettingsPage = () => {
       <DashboardHeader />
       <div className="flex items-start justify-between w-full">
         <div className="w-[80px] 800px:w-[330px] hidden lg:block">
-          <DashboardSideBar active={11} />
+          <DashboardSideBar active={12} />
         </div>
         <div className="flex-1 mobile-content-padding">
           <ShopSettings />
@@ -17,7 +17,7 @@ const ShopSettingsPage = () => {
       </div>
       {/* Mobile Bottom Navigation */}
       <div className="lg:hidden">
-        <DashboardSideBar active={11} />
+        <DashboardSideBar active={12} />
       </div>
     </div>
   );

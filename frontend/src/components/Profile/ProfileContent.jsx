@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { backend_url, server } from "../../server";
 import { getAvatarUrl } from "../../utils/mediaUtils";
+import { getOrderNumber } from "../../utils/orderUtils";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteUserAddress,
@@ -19,12 +20,10 @@ import {
   HiOutlineClock,
 } from "react-icons/hi";
 import { TbAddressBook } from "react-icons/tb";
-import { MdLocationOn, MdMyLocation } from "react-icons/md";
+import { MdLocationOn, MdMyLocation, MdTrackChanges } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { DataGrid } from "@material-ui/data-grid";
-import { Button } from "@material-ui/core";
 import { RxCross1 } from "react-icons/rx";
-import { MdTrackChanges } from "react-icons/md";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { Country, State } from "country-state-city";
@@ -332,7 +331,7 @@ const AllOrders = () => {
       flex: 0.8,
       renderCell: (params) => (
         <span className="font-mono text-sm font-semibold text-gray-700">
-          #{params.value.slice(-8).toUpperCase()}
+          {getOrderNumber(params.row)}
         </span>
       ),
     },
@@ -404,8 +403,10 @@ const AllOrders = () => {
   const rows = orders
     ? orders.map((item) => ({
         id: item._id,
+        _id: item._id, // Include _id for getOrderNumber function
+        orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice,
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
       }))
     : [];
@@ -564,77 +565,191 @@ const AllRefundOrders = () => {
     orders && orders.filter((item) => item.status === "Processing refund");
 
   const columns = [
-    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
-
+    {
+      field: "id",
+      headerName: "Order ID",
+      minWidth: 160,
+      flex: 0.8,
+      renderCell: (params) => (
+        <span className="font-mono text-sm font-bold text-gray-800">
+          {getOrderNumber(params.row)}
+        </span>
+      ),
+    },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 130,
+      minWidth: 140,
       flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      renderCell: (params) => (
+        <span
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+            params.value === "Processing refund"
+              ? "bg-orange-100 text-orange-800 border border-orange-200"
+              : "bg-red-100 text-red-800 border border-red-200"
+          }`}
+        >
+          {params.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      minWidth: 100,
+      flex: 0.5,
+      renderCell: (params) => (
+        <span className="font-medium text-gray-900 text-sm">
+          {params.value} item{params.value !== 1 ? "s" : ""}
+        </span>
+      ),
     },
-
     {
       field: "total",
-      headerName: "Total",
+      headerName: "Total Amount",
       type: "number",
-      minWidth: 130,
+      minWidth: 140,
       flex: 0.8,
+      renderCell: (params) => (
+        <span className="font-bold text-base text-gray-900">
+          {params.value}
+        </span>
+      ),
     },
-
     {
-      field: " ",
+      field: "actions",
+      headerName: "Actions",
       flex: 1,
       minWidth: 150,
-      headerName: "",
-      type: "number",
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/order/${params.id}`}>
-              <Button>
-                <AiOutlineArrowRight size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Link to={`/user/order/${params.id}`}>
+          <button className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm font-medium group text-sm">
+            <span>View Details</span>
+            <AiOutlineArrowRight
+              size={14}
+              className="group-hover:translate-x-1 transition-transform duration-200"
+            />
+          </button>
+        </Link>
+      ),
     },
   ];
 
-  const row = [];
-
-  eligibleOrders &&
-    eligibleOrders.forEach((item) => {
-      row.push({
+  const rows = eligibleOrders
+    ? eligibleOrders.map((item) => ({
         id: item._id,
+        _id: item._id,
+        orderNumber: item.orderNumber,
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice,
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
-      });
-    });
+      }))
+    : [];
 
   return (
-    <div className="pl-8 pt-1">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        autoHeight
-        disableSelectionOnClick
-      />
+    <div className="space-y-6">
+      {eligibleOrders && eligibleOrders.length > 0 ? (
+        <>
+          {/* Summary Info */}
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-100 rounded-xl p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-orange-100 rounded-lg mr-4">
+                <AiOutlineArrowRight className="w-6 h-6 text-orange-600 transform rotate-180" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-orange-600">
+                  Refund Requests
+                </p>
+                <p className="text-2xl font-bold text-orange-900">
+                  {eligibleOrders.length}
+                </p>
+                <p className="text-xs text-orange-600 mt-1">
+                  Orders eligible for refund processing
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Refund Orders Table */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <AiOutlineArrowRight className="mr-2 text-orange-600 transform rotate-180" />
+                Refund Orders
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Track your refund requests and their processing status
+              </p>
+            </div>
+            <div className="overflow-hidden">
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                pageSize={10}
+                autoHeight
+                disableSelectionOnClick
+                className="border-0"
+                sx={{
+                  "& .MuiDataGrid-cell": {
+                    borderBottom: "1px solid #f3f4f6",
+                    padding: "16px",
+                    fontSize: "14px",
+                  },
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#fffbf5",
+                    borderBottom: "2px solid #e5e7eb",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#374151",
+                  },
+                  "& .MuiDataGrid-row": {
+                    "&:hover": {
+                      backgroundColor: "#fffef7",
+                    },
+                  },
+                  "& .MuiDataGrid-cell:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-columnHeader:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-root": {
+                    border: "none",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    borderTop: "2px solid #e5e7eb",
+                    backgroundColor: "#fffbf5",
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-16">
+          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-orange-100 to-red-200 rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <AiOutlineArrowRight
+              size={48}
+              className="text-orange-400 transform rotate-180"
+            />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            No refund requests
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            You currently have no orders eligible for refund. Refund requests
+            will appear here when applicable.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-sm font-medium"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
@@ -650,77 +765,193 @@ const TrackOrder = () => {
   }, []);
 
   const columns = [
-    { field: "id", headerName: "Order ID", minWidth: 150, flex: 0.7 },
-
+    {
+      field: "id",
+      headerName: "Order ID",
+      minWidth: 160,
+      flex: 0.8,
+      renderCell: (params) => (
+        <span className="font-mono text-sm font-bold text-gray-800">
+          {getOrderNumber(params.row)}
+        </span>
+      ),
+    },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 150,
+      minWidth: 140,
       flex: 0.7,
-      cellClassName: (params) => {
-        return params.getValue(params.id, "status") === "Delivered"
-          ? "greenColor"
-          : "redColor";
-      },
+      renderCell: (params) => (
+        <span
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+            params.value === "Delivered"
+              ? "bg-green-100 text-green-800 border border-green-200"
+              : params.value === "Processing"
+              ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+              : params.value === "Shipping" || params.value === "On the way"
+              ? "bg-blue-100 text-blue-800 border border-blue-200"
+              : params.value === "Processing refund"
+              ? "bg-orange-100 text-orange-800 border border-orange-200"
+              : "bg-gray-100 text-gray-800 border border-gray-200"
+          }`}
+        >
+          {params.value}
+        </span>
+      ),
     },
     {
       field: "itemsQty",
-      headerName: "Items Qty",
+      headerName: "Items",
       type: "number",
-      minWidth: 130,
-      flex: 0.7,
+      minWidth: 100,
+      flex: 0.5,
+      renderCell: (params) => (
+        <span className="font-medium text-gray-900 text-sm">
+          {params.value} item{params.value !== 1 ? "s" : ""}
+        </span>
+      ),
     },
-
     {
       field: "total",
-      headerName: "Total",
+      headerName: "Total Amount",
       type: "number",
-      minWidth: 130,
+      minWidth: 140,
       flex: 0.8,
+      renderCell: (params) => (
+        <span className="font-bold text-base text-gray-900">
+          {params.value}
+        </span>
+      ),
     },
-
     {
-      field: " ",
+      field: "actions",
+      headerName: "Actions",
       flex: 1,
       minWidth: 150,
-      headerName: "",
-      type: "number",
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Link to={`/user/track/order/${params.id}`}>
-              <Button>
-                <MdTrackChanges size={20} />
-              </Button>
-            </Link>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Link to={`/user/track/order/${params.id}`}>
+          <button className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-sm font-medium group text-sm">
+            <MdTrackChanges
+              size={16}
+              className="group-hover:rotate-12 transition-transform duration-200"
+            />
+            <span>Track</span>
+          </button>
+        </Link>
+      ),
     },
   ];
 
-  const row = [];
-
-  orders &&
-    orders.forEach((item) => {
-      row.push({
+  const rows = orders
+    ? orders.map((item) => ({
         id: item._id,
+        _id: item._id,
+        orderNumber: item.orderNumber,
         itemsQty: item.cart.length,
-        total: "₹ " + item.totalPrice,
+        total: "₹" + item.totalPrice?.toFixed(2),
         status: item.status,
-      });
-    });
+      }))
+    : [];
 
   return (
-    <div className="pl-8 pt-1">
-      <DataGrid
-        rows={row}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+    <div className="space-y-6">
+      {orders && orders.length > 0 ? (
+        <>
+          {/* Summary Info */}
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-xl p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-lg mr-4">
+                <MdTrackChanges className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-purple-600">
+                  Trackable Orders
+                </p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {orders.length}
+                </p>
+                <p className="text-xs text-purple-600 mt-1">
+                  Click "Track" to view detailed order progress
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Orders Table */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <MdTrackChanges className="mr-2 text-purple-600" />
+                Order Tracking
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Monitor the status and progress of your orders
+              </p>
+            </div>
+            <div className="overflow-hidden">
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                pageSize={10}
+                disableSelectionOnClick
+                autoHeight
+                className="border-0"
+                sx={{
+                  "& .MuiDataGrid-cell": {
+                    borderBottom: "1px solid #f3f4f6",
+                    padding: "16px",
+                    fontSize: "14px",
+                  },
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#faf5ff",
+                    borderBottom: "2px solid #e5e7eb",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#374151",
+                  },
+                  "& .MuiDataGrid-row": {
+                    "&:hover": {
+                      backgroundColor: "#fefbff",
+                    },
+                  },
+                  "& .MuiDataGrid-cell:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-columnHeader:focus": {
+                    outline: "none",
+                  },
+                  "& .MuiDataGrid-root": {
+                    border: "none",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    borderTop: "2px solid #e5e7eb",
+                    backgroundColor: "#faf5ff",
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-16">
+          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-purple-100 to-indigo-200 rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <MdTrackChanges size={48} className="text-purple-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            No orders to track
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            When you place orders, you'll be able to track their progress here.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-sm font-medium"
+          >
+            Start Shopping
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

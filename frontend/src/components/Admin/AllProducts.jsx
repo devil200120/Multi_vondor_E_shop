@@ -1,30 +1,157 @@
 import { Button } from "@material-ui/core";
 import { DataGrid } from "@material-ui/data-grid";
-import React, { useEffect } from "react";
-import { AiOutlineEye } from "react-icons/ai";
+import React, { useEffect, useState } from "react";
+import {
+  AiOutlineEye,
+  AiOutlineEdit,
+  AiOutlineDelete,
+  AiOutlinePlus,
+} from "react-icons/ai";
+import { MdPublish, MdUnpublished } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getAllCategories } from "../../redux/actions/category";
 import Loader from "../Layout/Loader";
 import axios from "axios";
 import { server } from "../../server";
-import { useState } from "react";
 import styles from "../../styles/styles";
+import ProductFormModal from "./ProductFormModal";
+import { toast } from "react-toastify";
 
 const AllProducts = () => {
+  const dispatch = useDispatch();
+  const { categories } = useSelector((state) => state.categories);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios
-      .get(`${server}/product/admin-all-products`, { withCredentials: true })
-      .then((res) => {
-        setData(res.data.products);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false);
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${server}/product/admin-all-products`, {
+        withCredentials: true,
       });
-  }, []);
+      setData(res.data.products);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to fetch products");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    dispatch(getAllCategories());
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log("Categories loaded:", categories);
+  }, [categories]);
+
+  const handleCreate = () => {
+    setSelectedProduct(null);
+    setIsEdit(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+    setIsEdit(true);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (product) => {
+    if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      try {
+        await axios.delete(
+          `${server}/product/admin-delete-product/${product._id}`,
+          {
+            withCredentials: true,
+          }
+        );
+        toast.success("Product deleted successfully!");
+        fetchProducts(); // Refresh the list
+      } catch (error) {
+        console.error("Delete error:", error);
+        toast.error("Failed to delete product");
+      }
+    }
+  };
+
+  const handleTogglePublish = async (product) => {
+    const newStatus = !product.isPublished;
+    const action = newStatus ? "publish" : "unpublish";
+
+    if (
+      window.confirm(`Are you sure you want to ${action} "${product.name}"?`)
+    ) {
+      try {
+        await axios.patch(
+          `${server}/product/admin-toggle-product-status/${product._id}`,
+          {
+            isPublished: newStatus,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        toast.success(`Product ${action}ed successfully!`);
+        fetchProducts(); // Refresh the list
+      } catch (error) {
+        console.error("Toggle status error:", error);
+        toast.error(`Failed to ${action} product`);
+      }
+    }
+  };
+
+  const handleSubmit = async (formData, productId) => {
+    setFormLoading(true);
+    try {
+      if (isEdit && productId) {
+        await axios.put(
+          `${server}/product/admin-update-product/${productId}`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        toast.success("Product updated successfully!");
+      } else {
+        await axios.post(`${server}/product/admin-create-product`, formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success("Product created successfully!");
+      }
+      fetchProducts(); // Refresh the list
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error(
+        isEdit ? "Failed to update product" : "Failed to create product"
+      );
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    setIsEdit(false);
+  };
 
   const columns = [
     {
@@ -105,24 +232,114 @@ const AllProducts = () => {
       ),
     },
     {
+      field: "status",
+      headerName: "Status",
+      minWidth: 120,
+      flex: 0.7,
+      headerAlign: "center",
+      align: "center",
+      renderCell: (params) => {
+        const product = data?.find((p) => p._id === params.id);
+        const isPublished = product?.isPublished !== false; // Default to true if undefined
+
+        return (
+          <div
+            className={`font-medium px-2 py-1 rounded-full text-xs capitalize ${
+              isPublished
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {isPublished ? "Published" : "Unpublished"}
+          </div>
+        );
+      },
+    },
+    {
+      field: "seller",
+      headerName: "Type",
+      minWidth: 150,
+      flex: 0.8,
+      headerAlign: "center",
+      align: "center",
+      renderCell: (params) => {
+        const product = data?.find((p) => p._id === params.id);
+        const isSellerProduct = product?.isSellerProduct;
+
+        if (isSellerProduct && product.sellerShop) {
+          return (
+            <div className="space-y-1">
+              <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                Seller Product
+              </div>
+              <div
+                className="text-xs text-gray-600 truncate"
+                title={product.sellerShop.name}
+              >
+                {product.sellerShop.name}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-medium">
+            Own Product
+          </div>
+        );
+      },
+    },
+    {
       field: "Preview",
-      flex: 0.5,
-      minWidth: 80,
+      flex: 1,
+      minWidth: 200,
       headerName: "Actions",
       headerAlign: "center",
       align: "center",
       sortable: false,
       renderCell: (params) => {
+        const product = data?.find((p) => p._id === params.id);
+        const isPublished = product?.isPublished !== false;
+
         return (
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-2">
             <Link to={`/product/${params.id}`}>
               <Button
-                className="!min-w-0 !p-2 !text-primary-600 hover:!bg-primary-50 !rounded-lg transition-all duration-200"
+                className="!min-w-0 !p-2 !text-blue-600 hover:!bg-blue-50 !rounded-lg transition-all duration-200"
                 title="View Product"
               >
-                <AiOutlineEye size={18} />
+                <AiOutlineEye size={16} />
               </Button>
             </Link>
+            <Button
+              className="!min-w-0 !p-2 !text-green-600 hover:!bg-green-50 !rounded-lg transition-all duration-200"
+              title="Edit Product"
+              onClick={() => handleEdit(product)}
+            >
+              <AiOutlineEdit size={16} />
+            </Button>
+            <Button
+              className={`!min-w-0 !p-2 !rounded-lg transition-all duration-200 ${
+                isPublished
+                  ? "!text-orange-600 hover:!bg-orange-50"
+                  : "!text-green-600 hover:!bg-green-50"
+              }`}
+              title={isPublished ? "Unpublish Product" : "Publish Product"}
+              onClick={() => handleTogglePublish(product)}
+            >
+              {isPublished ? (
+                <MdUnpublished size={16} />
+              ) : (
+                <MdPublish size={16} />
+              )}
+            </Button>
+            <Button
+              className="!min-w-0 !p-2 !text-red-600 hover:!bg-red-50 !rounded-lg transition-all duration-200"
+              title="Delete Product"
+              onClick={() => handleDelete(product)}
+            >
+              <AiOutlineDelete size={16} />
+            </Button>
           </div>
         );
       },
@@ -136,7 +353,7 @@ const AllProducts = () => {
       row.push({
         id: item._id,
         name: item.name,
-                price: "₹" + item.discountPrice,
+        price: "₹" + item.discountPrice,
 
         Stock: item.stock,
         sold: item?.sold_out,
@@ -183,11 +400,22 @@ const AllProducts = () => {
 
       {/* Products Table */}
       <div className={`${styles.card} overflow-hidden`}>
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Products List</h3>
-          <p className="text-sm text-gray-600">
-            Manage all products in your marketplace
-          </p>
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Products List
+            </h3>
+            <p className="text-sm text-gray-600">
+              Manage all products in your marketplace
+            </p>
+          </div>
+          <Button
+            onClick={handleCreate}
+            className="!bg-primary-600 !text-white !px-4 !py-2 !rounded-lg hover:!bg-primary-700 !flex !items-center !space-x-2 !normal-case !font-medium"
+          >
+            <AiOutlinePlus size={18} />
+            <span>Create Product</span>
+          </Button>
         </div>
 
         <div className="h-[600px] w-full">
@@ -230,6 +458,17 @@ const AllProducts = () => {
           />
         </div>
       </div>
+
+      {/* Product Form Modal */}
+      <ProductFormModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        product={selectedProduct}
+        onSubmit={handleSubmit}
+        isEdit={isEdit}
+        loading={formLoading}
+        categories={categories || []}
+      />
     </div>
   );
 };

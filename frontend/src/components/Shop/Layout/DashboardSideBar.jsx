@@ -6,7 +6,7 @@ import {
   AiOutlineClose,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { FiPackage, FiShoppingBag } from "react-icons/fi";
+import { FiPackage, FiShoppingBag, FiTruck } from "react-icons/fi";
 import { MdOutlineLocalOffer } from "react-icons/md";
 import { RxDashboard } from "react-icons/rx";
 import { VscNewFile } from "react-icons/vsc";
@@ -169,6 +169,13 @@ const DashboardSideBar = ({ active }) => {
     },
     {
       id: 11,
+      title: "Shipping ",
+      link: "/dashboard-shipping",
+      icon: FiTruck,
+      badge: null,
+    },
+    {
+      id: 12,
       title: "Shop Settings",
       link: "/settings",
       icon: CiSettings,
@@ -890,11 +897,11 @@ const DashboardSideBar = ({ active }) => {
                     )}
                   </Link>
 
-                  {/* Shop Settings */}
+                  {/* Shipping Management */}
                   <Link
-                    to="/settings"
+                    to="/dashboard-shipping"
                     onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`flex items-center p-4 transition-all duration-200 ${
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
                       active === 11
                         ? "bg-blue-50 border-r-4 border-blue-500"
                         : "hover:bg-gray-50"
@@ -907,12 +914,48 @@ const DashboardSideBar = ({ active }) => {
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      <CiSettings size={18} />
+                      <FiTruck size={18} />
                     </div>
                     <div className="ml-3 flex-1">
                       <h4
                         className={`font-semibold text-base ${
                           active === 11 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Shipping Management
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Configure shipping
+                      </p>
+                    </div>
+                    {active === 11 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Shop Settings */}
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 12
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 12
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <CiSettings size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 12 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
                         Shop Settings
@@ -921,7 +964,7 @@ const DashboardSideBar = ({ active }) => {
                         Store configuration
                       </p>
                     </div>
-                    {active === 11 && (
+                    {active === 12 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>

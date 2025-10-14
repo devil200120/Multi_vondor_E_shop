@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { backend_url, server } from "../server";
 import { getProductImageUrl } from "../utils/mediaUtils";
+import { getOrderNumber } from "../utils/orderUtils";
 import { RxCross1 } from "react-icons/rx";
 import { getAllOrdersOfUser } from "../redux/actions/order";
 import { useDispatch, useSelector } from "react-redux";
@@ -167,7 +168,7 @@ const UserOrderDetails = () => {
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                  Order #{data._id.slice(-8).toUpperCase()}
+                  Order {getOrderNumber(data)}
                 </h2>
                 <div
                   className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
@@ -318,7 +319,7 @@ const UserOrderDetails = () => {
                         Total Amount
                       </span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        ₹{data.totalPrice}
+                        ₹{data.totalPrice?.toFixed(2)}
                       </span>
                     </div>
                   </div>

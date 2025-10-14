@@ -50,17 +50,21 @@ const userSchema = new mongoose.Schema({
   ],
   role: {
     type: String,
-    default: "user",
+    default: "User",
   },
   avatar: {
-    url: {
-      type: String,
-      required: true,
+    type: {
+      url: {
+        type: String,
+        required: false,
+      },
+      public_id: {
+        type: String,
+        required: false,
+      },
     },
-    public_id: {
-      type: String,
-      required: true,
-    },
+    required: false,
+    default: null,
   },
   // Ban system fields
   isBanned: {

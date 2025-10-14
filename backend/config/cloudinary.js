@@ -110,12 +110,27 @@ const uploadFileToCloudinary = async (filePath, mimetype, options = {}) => {
 // Upload buffer to Cloudinary (for multer memory storage)
 const uploadToCloudinary = async (buffer, options = {}) => {
   try {
+    console.log('Uploading buffer to Cloudinary, size:', buffer?.length || 0);
+    
+    // Check if buffer is valid
+    if (!buffer || buffer.length === 0) {
+      throw new Error('Buffer is empty or invalid');
+    }
+
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
+      // Set appropriate formats based on resource type
+      let allowedFormats;
+      if (options.resource_type === 'video') {
+        allowedFormats = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'];
+      } else {
+        allowedFormats = options.allowed_formats || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+      }
+
+      const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: options.resource_type || 'image',
           folder: options.folder || 'uploads',
-          allowed_formats: options.allowed_formats || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'],
+          allowed_formats: allowedFormats,
           ...options
         },
         (error, result) => {
@@ -123,13 +138,19 @@ const uploadToCloudinary = async (buffer, options = {}) => {
             console.error('Cloudinary upload error:', error);
             reject(new Error(`Cloudinary upload failed: ${error.message}`));
           } else {
+            console.log('Cloudinary upload success:', result.public_id);
+            console.log('Full Cloudinary result:', JSON.stringify(result, null, 2));
+            console.log('Secure URL:', result.secure_url);
+            console.log('Public ID:', result.public_id);
             resolve({
               url: result.secure_url,
               public_id: result.public_id
             });
           }
         }
-      ).end(buffer);
+      );
+      
+      uploadStream.end(buffer);
     });
   } catch (error) {
     console.error('Cloudinary buffer upload error:', error);

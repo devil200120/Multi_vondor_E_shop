@@ -1,11 +1,6 @@
 import React, { useEffect } from "react";
-import { 
-  AiOutlineArrowRight
-} from "react-icons/ai";
-import { 
-  MdDashboard, 
-  MdStore
-} from "react-icons/md";
+import { AiOutlineArrowRight } from "react-icons/ai";
+import { MdDashboard, MdStore } from "react-icons/md";
 import { FiShoppingBag, FiDollarSign } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { DataGrid } from "@material-ui/data-grid";
@@ -34,14 +29,16 @@ const AdminDashboardMain = () => {
   const adminBalance = adminEarning?.toFixed(2);
 
   const columns = [
-    { 
-      field: "id", 
-      headerName: "Order ID", 
-      minWidth: 150, 
+    {
+      field: "id",
+      headerName: "Order ID",
+      minWidth: 150,
       flex: 0.7,
       renderCell: (params) => (
-        <span className="text-[#27b3e2] font-medium">#{params.value.slice(0, 8)}</span>
-      )
+        <span className="text-[#27b3e2] font-medium">
+          #{params.value.slice(0, 8)}
+        </span>
+      ),
     },
     {
       field: "status",
@@ -49,16 +46,18 @@ const AdminDashboardMain = () => {
       minWidth: 130,
       flex: 0.7,
       renderCell: (params) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          params.value === "Delivered" 
-            ? "bg-green-100 text-green-800" 
-            : params.value === "Processing"
-            ? "bg-blue-100 text-blue-800"
-            : "bg-orange-100 text-orange-800"
-        }`}>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            params.value === "Delivered"
+              ? "bg-green-100 text-green-800"
+              : params.value === "Processing"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-orange-100 text-orange-800"
+          }`}
+        >
           {params.value}
         </span>
-      )
+      ),
     },
     {
       field: "itemsQty",
@@ -75,7 +74,7 @@ const AdminDashboardMain = () => {
       flex: 0.8,
       renderCell: (params) => (
         <span className="font-semibold text-gray-800">{params.value}</span>
-      )
+      ),
     },
     {
       field: "createdAt",
@@ -92,7 +91,7 @@ const AdminDashboardMain = () => {
       row.push({
         id: item._id,
         itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: "₹" + item?.totalPrice,
+        total: "₹" + item?.totalPrice?.toFixed(2),
 
         status: item?.status,
         createdAt: item?.createdAt.slice(0, 10),
@@ -106,7 +105,7 @@ const AdminDashboardMain = () => {
       icon: FiDollarSign,
       gradient: "from-emerald-500 to-teal-600",
       change: "+12.5%",
-      changeType: "positive"
+      changeType: "positive",
     },
     {
       title: "Total Sellers",
@@ -116,7 +115,7 @@ const AdminDashboardMain = () => {
       change: "+5.2%",
       changeType: "positive",
       link: "/admin-sellers",
-      linkText: "View Sellers"
+      linkText: "View Sellers",
     },
     {
       title: "Total Orders",
@@ -126,8 +125,8 @@ const AdminDashboardMain = () => {
       change: "+8.1%",
       changeType: "positive",
       link: "/admin-orders",
-      linkText: "View Orders"
-    }
+      linkText: "View Orders",
+    },
   ];
 
   return (
@@ -143,8 +142,12 @@ const AdminDashboardMain = () => {
                 <MdDashboard className="text-white text-xl" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-                <p className="text-gray-600">Welcome back! Here's what's happening.</p>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-600">
+                  Welcome back! Here's what's happening.
+                </p>
               </div>
             </div>
           </div>
@@ -155,24 +158,32 @@ const AdminDashboardMain = () => {
               <div key={index} className="group relative overflow-hidden">
                 <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 h-full">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-r ${card.gradient} text-white shadow-lg`}>
+                    <div
+                      className={`p-3 rounded-xl bg-gradient-to-r ${card.gradient} text-white shadow-lg`}
+                    >
                       <card.icon size={24} />
                     </div>
-                    <div className={`text-sm font-semibold px-2 py-1 rounded-full ${
-                      card.changeType === 'positive' 
-                        ? 'text-green-600 bg-green-100' 
-                        : 'text-red-600 bg-red-100'
-                    }`}>
+                    <div
+                      className={`text-sm font-semibold px-2 py-1 rounded-full ${
+                        card.changeType === "positive"
+                          ? "text-green-600 bg-green-100"
+                          : "text-red-600 bg-red-100"
+                      }`}
+                    >
                       {card.change}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <h3 className="text-gray-600 text-sm font-medium">{card.title}</h3>
-                    <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-                    
+                    <h3 className="text-gray-600 text-sm font-medium">
+                      {card.title}
+                    </h3>
+                    <p className="text-3xl font-bold text-gray-800">
+                      {card.value}
+                    </p>
+
                     {card.link && (
-                      <Link 
+                      <Link
                         to={card.link}
                         className="inline-flex items-center text-[#27b3e2] hover:text-[#38cb89] font-medium text-sm transition-colors mt-3 group"
                       >
@@ -195,11 +206,15 @@ const AdminDashboardMain = () => {
                     <FiShoppingBag className="text-white text-sm" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-800">Latest Orders</h2>
-                    <p className="text-gray-600 text-sm">Recent order activity</p>
+                    <h2 className="text-xl font-bold text-gray-800">
+                      Latest Orders
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      Recent order activity
+                    </p>
                   </div>
                 </div>
-                <Link 
+                <Link
                   to="/admin-orders"
                   className="px-4 py-2 bg-gradient-to-r from-[#27b3e2] to-[#38cb89] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
                 >
@@ -207,7 +222,7 @@ const AdminDashboardMain = () => {
                 </Link>
               </div>
             </div>
-            
+
             <div className="p-0">
               <DataGrid
                 rows={row}
@@ -217,20 +232,20 @@ const AdminDashboardMain = () => {
                 autoHeight
                 className="border-0"
                 style={{
-                  border: 'none',
-                  '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #f3f4f6',
-                    padding: '12px 16px',
+                  border: "none",
+                  "& .MuiDataGrid-cell": {
+                    borderBottom: "1px solid #f3f4f6",
+                    padding: "12px 16px",
                   },
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#f9fafb',
-                    border: 'none',
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#f9fafb",
+                    border: "none",
                     fontWeight: 600,
-                    color: '#374151',
+                    color: "#374151",
                   },
-                  '& .MuiDataGrid-row:hover': {
-                    backgroundColor: '#f9fafb',
-                  }
+                  "& .MuiDataGrid-row:hover": {
+                    backgroundColor: "#f9fafb",
+                  },
                 }}
               />
             </div>

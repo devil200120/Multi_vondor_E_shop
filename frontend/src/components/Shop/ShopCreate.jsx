@@ -37,6 +37,7 @@ const ShopCreate = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
   const [address, setAddress] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [avatar, setAvatar] = useState(null);
@@ -258,11 +259,6 @@ const ShopCreate = () => {
     e.preventDefault();
 
     // Validate required fields
-    if (!avatar) {
-      toast.error("Please select a shop avatar/logo");
-      return;
-    }
-
     if (!name.trim()) {
       toast.error("Please enter shop name");
       return;
@@ -299,13 +295,23 @@ const ShopCreate = () => {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
 
       const newForm = new FormData();
-      newForm.append("file", avatar);
+
+      // Only append avatar if it exists
+      if (avatar) {
+        newForm.append("file", avatar);
+      }
+
       newForm.append("name", name);
       newForm.append("email", email);
       newForm.append("password", password);
       newForm.append("zipCode", zipCode);
       newForm.append("address", address);
       newForm.append("phoneNumber", phoneNumber);
+
+      // Add GST number if provided
+      if (gstNumber.trim()) {
+        newForm.append("gstNumber", gstNumber);
+      }
 
       // Include coordinates if available
       if (latitude && longitude) {
@@ -328,6 +334,7 @@ const ShopCreate = () => {
       setZipCode("");
       setAddress("");
       setPhoneNumber("");
+      setGstNumber("");
       setLatitude("");
       setLongitude("");
       setShowMap(false);
@@ -408,7 +415,10 @@ const ShopCreate = () => {
                   {/* Shop Avatar */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Shop Logo/Avatar
+                      Shop Logo/Avatar{" "}
+                      <span className="text-gray-500 text-xs font-normal">
+                        (Optional)
+                      </span>
                     </label>
                     <div className="flex items-center space-x-3">
                       <div className="relative">
@@ -489,6 +499,28 @@ const ShopCreate = () => {
                       placeholder="Enter your phone number"
                       required
                     />
+                  </div>
+
+                  {/* GST Number */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      GST Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={gstNumber}
+                      onChange={(e) =>
+                        setGstNumber(e.target.value.toUpperCase())
+                      }
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      placeholder="22AAAAA0000A1Z5"
+                      pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
+                      title="Enter a valid 15-digit GST number (e.g., 22AAAAA0000A1Z5)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Format: 2 digits + 5 letters + 4 digits + 1 letter + 1
+                      digit/letter + Z + 1 digit/letter
+                    </p>
                   </div>
 
                   {/* Password */}
