@@ -67,11 +67,12 @@ module.exports = {
         }
       },
       screens: {
+        "xs": "375px",
+        "400px": "400px",
+        "800px": "800px",
         "1000px": "1050px",
         "1100px": "1110px",
-        "800px": "800px",
         "1300px": "1300px",
-        "400px": "400px",
       },
       spacing: {
         '18': '4.5rem',
@@ -102,8 +103,6 @@ module.exports = {
         'slideInDown': 'slideInDown 0.3s ease-out',
         'scaleIn': 'scaleIn 0.2s ease-out',
         'scaleOut': 'scaleOut 0.15s ease-in',
-        'modalSlideIn': 'modalSlideIn 0.2s ease-out',
-        'modalSlideOut': 'modalSlideOut 0.2s ease-in',
         'modalSlideIn': 'modalSlideIn 0.2s ease-out',
         'modalSlideOut': 'modalSlideOut 0.2s ease-in',
       },
@@ -155,14 +154,6 @@ module.exports = {
         scaleOut: {
           '0%': { opacity: '1', transform: 'scale(1)' },
           '100%': { opacity: '0', transform: 'scale(0.95)' },
-        },
-        modalSlideIn: {
-          '0%': { opacity: '0', transform: 'translateY(-20px) scale(0.95)' },
-          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
-        },
-        modalSlideOut: {
-          '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
-          '100%': { opacity: '0', transform: 'translateY(-20px) scale(0.95)' },
         },
         modalSlideIn: {
           '0%': { opacity: '0', transform: 'translateY(-20px) scale(0.95)' },

@@ -4,18 +4,12 @@ export const navItems = [
     title: "Home",
     url: "/",
   },
-  {
-    title: "Best Selling",
-    url: "/best-selling",
-  },
+ 
   {
     title: "Products",
     url: "/products",
   },
-  {
-    title: "Events",
-    url: "/events",
-  },
+  
   {
     title: "FAQ",
     url: "/faq",
@@ -597,15 +591,11 @@ export const footerProductLinks = [
     link: "/about",
   },
   {
-    name: "Careers",
-    link: "/carrers",
+    name: "Seller Login",
+    link: "/shop-login",
   },
-  {
-    name: "Store Locations",
-  },
-  {
-    name: "Our Blog",
-  },
+  
+  
   {
     name: "Reviews",
     link: "/reviews",
@@ -614,19 +604,24 @@ export const footerProductLinks = [
 
 export const footercompanyLinks = [
   {
-    name: "Game & Video",
+    name: "About Us",
+    link: "/about",
   },
   {
-    name: "Phone &Tablets",
+    name: "Seller Login",
+    link: "/shop-login",
   },
   {
-    name: "Computers & Laptop",
+    name: "Store Locations",
+    link: "/stores",
   },
   {
-    name: "Sport Watches",
+    name: "Our Blog",
+    link: "/blog",
   },
   {
-    name: "Events",
+    name: "Reviews",
+    link: "/reviews",
   },
 ];
 

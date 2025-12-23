@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { FiDownload, FiChevronDown, FiFileText } from "react-icons/fi";
 import { BsFiletypeCsv, BsFiletypePdf } from "react-icons/bs";
 import { downloadInvoice, previewInvoice } from "../utils/invoiceGenerator";
@@ -11,9 +12,30 @@ const InvoiceDownloadButton = ({
   className = "",
   showDropdown = true,
   children,
+  userType = null, // Optional: specify user type explicitly
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Get user info from Redux to determine user type if not provided
+  const { user } = useSelector((state) => state.user);
+  const { seller } = useSelector((state) => state.seller);
+
+  // Determine user type if not explicitly provided
+  const getUserType = () => {
+    if (userType) return userType;
+
+    // Check if user is admin
+    if (user && user.role === "Admin") return "admin";
+
+    // Check if seller is logged in
+    if (seller && seller._id) return "seller";
+
+    // Default to regular user
+    return "user";
+  };
+
+  const currentUserType = getUserType();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,7 +57,7 @@ const InvoiceDownloadButton = ({
         previewInvoice(order);
         toast.success("Invoice preview opened!");
       } else {
-        downloadInvoice(order);
+        downloadInvoice(order, currentUserType);
         toast.success("PDF invoice downloaded successfully!");
       }
       setIsDropdownOpen(false);

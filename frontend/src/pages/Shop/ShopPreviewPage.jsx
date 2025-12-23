@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "../../styles/styles";
 import ShopInfo from "../../components/Shop/ShopInfo";
 import ShopProfileData from "../../components/Shop/ShopProfileData";
+import ShopVideoBanners from "../../components/Shop/ShopVideoBanners";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
 
@@ -19,7 +19,11 @@ const ShopPreviewPage = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-8">
+            {/* Shop Video Banners */}
+            <ShopVideoBanners />
+
+            {/* Shop Profile Data */}
             <ShopProfileData isOwner={false} />
           </div>
         </div>

@@ -215,7 +215,7 @@ const FeaturedProduct = () => {
             </div>
 
             {/* CTA Section */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
                 <h3 className="text-xl font-bold text-slate-900 mb-2">
                   Explore More Amazing Products
@@ -242,7 +242,7 @@ const FeaturedProduct = () => {
                   </button>
                 </Link>
               </div>
-            </div>
+            </div> */}
           </>
         ) : (
           // Enhanced Empty State

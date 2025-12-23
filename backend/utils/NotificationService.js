@@ -189,6 +189,71 @@ class NotificationService {
     }
   }
 
+  // Create notification for shop approval/rejection
+  static async createShopApprovalNotification(shop, status, adminUser, rejectionReason = null) {
+    try {
+      let message, type, title;
+      
+      if (status === "approved") {
+        title = "Shop Approved";
+        message = `Congratulations! Your shop "${shop.name}" has been approved by admin. You can now start selling.`;
+        type = "success";
+      } else if (status === "rejected") {
+        title = "Shop Application Rejected";
+        message = `Your shop "${shop.name}" application has been rejected. Reason: ${rejectionReason || 'No reason provided'}`;
+        type = "error";
+      } else {
+        title = "New Shop Registration";
+        message = `New shop "${shop.name}" is pending approval.`;
+        type = "info";
+      }
+
+      if (status === "pending") {
+        // Notify all admins about new shop registration
+        const adminUsers = await User.find({ role: "Admin" });
+        
+        const notifications = adminUsers.map(admin => ({
+          recipient: admin._id,
+          recipientType: "admin",
+          type: "info",
+          title: "New Shop Registration - Approval Required",
+          message: `Shop "${shop.name}" (${shop.email}) has registered and requires admin approval`,
+          data: {
+            shopId: shop._id,
+            shopName: shop.name,
+            shopEmail: shop.email,
+            approvalStatus: status,
+          },
+          actionUrl: `/admin/pending-sellers`,
+        }));
+
+        await Notification.insertMany(notifications);
+      } else {
+        // Create notification that would be sent to shop owner (if they had a user account)
+        // For now, we'll create a notification record that can be used for email purposes
+        await Notification.create({
+          recipient: null, // Shop doesn't have a user account yet
+          recipientType: "seller",
+          type: type,
+          title: title,
+          message: message,
+          data: {
+            shopId: shop._id,
+            shopName: shop.name,
+            shopEmail: shop.email,
+            approvalStatus: status,
+            adminId: adminUser ? adminUser._id : null,
+            adminName: adminUser ? adminUser.name : null,
+            rejectionReason: rejectionReason,
+          },
+          actionUrl: status === "approved" ? `/shop/dashboard` : null,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating shop approval notification:", error);
+    }
+  }
+
   // Create notification for order status update
   static async createOrderStatusNotification(order, newStatus) {
     try {
@@ -229,6 +294,50 @@ class NotificationService {
       }
     } catch (error) {
       console.error("Error creating order status notification:", error);
+    }
+  }
+
+  // Create notification for stock updates
+  static async createStockNotification(title, message, type, productId, shopId, recipients) {
+    try {
+      const adminUsers = await User.find({ role: "Admin" });
+      
+      const notifications = adminUsers.map(admin => ({
+        recipient: admin._id,
+        recipientType: "admin",
+        type: type === "stock_update" ? "info" : type === "low_stock" ? "warning" : "info",
+        title: title,
+        message: message,
+        data: {
+          productId: productId,
+          shopId: shopId,
+          actionType: type,
+        },
+        actionUrl: `/admin-products`,
+      }));
+
+      await Notification.insertMany(notifications);
+
+      // If specific recipients are provided (like shop owners), notify them too
+      if (recipients && recipients.length > 0) {
+        const recipientNotifications = recipients.map(recipientId => ({
+          recipient: recipientId,
+          recipientType: "seller",
+          type: type === "stock_update" ? "success" : type === "low_stock" ? "warning" : "info",
+          title: title,
+          message: message,
+          data: {
+            productId: productId,
+            shopId: shopId,
+            actionType: type,
+          },
+          actionUrl: `/dashboard-products`,
+        }));
+
+        await Notification.insertMany(recipientNotifications);
+      }
+    } catch (error) {
+      console.error("Error creating stock notification:", error);
     }
   }
 

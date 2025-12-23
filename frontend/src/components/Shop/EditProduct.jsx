@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
 import { backend_url } from "../../server";
 import Loader from "../Layout/Loader";
+import ProductAttributesForm from "./ProductAttributesForm";
 
 const EditProduct = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -40,6 +41,7 @@ const EditProduct = () => {
   const [originalPrice, setOriginalPrice] = useState();
   const [discountPrice, setDiscountPrice] = useState();
   const [stock, setStock] = useState();
+  const [attributes, setAttributes] = useState([]);
   const [productLoading, setProductLoading] = useState(true);
 
   // Fetch categories on component mount
@@ -66,6 +68,7 @@ const EditProduct = () => {
         setStock(product.stock);
         setExistingImages(product.images || []);
         setExistingVideos(product.videos || []);
+        setAttributes(product.attributes || []);
         setProductLoading(false);
 
         // If the product has a category, check if it's a subcategory
@@ -191,6 +194,11 @@ const EditProduct = () => {
     newForm.append("discountPrice", discountPrice);
     newForm.append("stock", stock);
     newForm.append("shopId", seller._id);
+    
+    // Add attributes to form data
+    if (attributes && attributes.length > 0) {
+      newForm.append("attributes", JSON.stringify(attributes));
+    }
 
     dispatch(updateProduct(id, newForm));
   };
@@ -416,6 +424,32 @@ const EditProduct = () => {
                     placeholder="0"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Product Attributes Section */}
+            <div className="space-y-4 md:space-y-6">
+              <div className="border-b border-gray-200/50 pb-3 md:pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <FiPackage className="text-white" size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold text-gray-900">
+                      Product Attributes
+                    </h2>
+                    <p className="text-xs md:text-sm text-gray-600">
+                      Configure product specifications and variations
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50/50 rounded-xl p-4 md:p-6">
+                <ProductAttributesForm 
+                  attributes={attributes} 
+                  onChange={setAttributes} 
+                />
               </div>
             </div>
 

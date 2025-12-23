@@ -16,12 +16,14 @@ import { toast } from "react-toastify";
 import { RxCross1 } from "react-icons/rx";
 import Lottie from "react-lottie";
 import * as loadingAnimationData from "../../Assests/animations/loading.json";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 
 const Payment = () => {
   const [orderData, setOrderData] = useState([]);
   const [open, setOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCodProcessing, setIsCodProcessing] = useState(false);
+  const [isPhonePeProcessing, setIsPhonePeProcessing] = useState(false);
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const stripe = useStripe();
@@ -257,6 +259,68 @@ const Payment = () => {
       });
   };
 
+  // PhonePe Payment Handler
+  const phonePePaymentHandler = async (e) => {
+    e.preventDefault();
+    setIsPhonePeProcessing(true);
+
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      // Prepare PhonePe payment data
+      const phonePeData = {
+        amount: orderData?.totalPrice,
+        orderId: `ORDER_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`,
+        userId: user?._id,
+        userPhone: user?.phoneNumber || "9999999999", // Default phone if not available
+        userName: user?.name,
+        userEmail: user?.email,
+      };
+
+      // Initiate PhonePe payment
+      const { data } = await axios.post(
+        `${server}/payment/phonepe/initiate`,
+        phonePeData,
+        {
+          ...config,
+          withCredentials: true, // Include authentication cookies
+        }
+      );
+
+      if (data.success) {
+        // Store order data temporarily
+        localStorage.setItem("tempOrderData", JSON.stringify(order));
+        localStorage.setItem("tempPhonePeTransaction", data.transactionId);
+
+        // Show test mode notification if applicable
+        if (data.isTestMode) {
+          toast.info("🧪 Redirecting to PhonePe Test Mode", {
+            position: "top-center",
+            autoClose: 2000,
+          });
+        }
+
+        // Redirect to PhonePe payment page (real or test)
+        window.location.href = data.paymentUrl;
+      } else {
+        toast.error("Failed to initiate PhonePe payment");
+        setIsPhonePeProcessing(false);
+      }
+    } catch (error) {
+      toast.error(
+        "PhonePe payment failed: " +
+          (error.response?.data?.message || error.message)
+      );
+      setIsPhonePeProcessing(false);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col items-center py-8">
       <div className="w-[90%] 1000px:w-[70%] block 800px:flex">
@@ -269,8 +333,10 @@ const Payment = () => {
             createOrder={createOrder}
             paymentHandler={paymentHandler}
             cashOnDeliveryHandler={cashOnDeliveryHandler}
+            phonePePaymentHandler={phonePePaymentHandler}
             isProcessing={isProcessing}
             isCodProcessing={isCodProcessing}
+            isPhonePeProcessing={isPhonePeProcessing}
             loadingOptions={loadingOptions}
             LoadingSpinner={LoadingSpinner}
           />
@@ -291,8 +357,10 @@ const PaymentInfo = ({
   createOrder,
   paymentHandler,
   cashOnDeliveryHandler,
+  phonePePaymentHandler,
   isProcessing,
   isCodProcessing,
+  isPhonePeProcessing,
   loadingOptions,
   LoadingSpinner,
 }) => {
@@ -558,6 +626,81 @@ const PaymentInfo = ({
           </div>
         ) : null}
       </div>
+
+      <br />
+      {/* PhonePe payment */}
+      <div>
+        <div className="flex w-full pb-5 border-b mb-2">
+          <div
+            className="w-[25px] h-[25px] rounded-full bg-transparent border-[3px] border-[#1d1a1ab4] relative flex items-center justify-center"
+            onClick={() => setSelect(4)}
+          >
+            {select === 4 ? (
+              <div className="w-[13px] h-[13px] bg-[#1d1a1acb] rounded-full" />
+            ) : null}
+          </div>
+          <h4 className="text-[18px] pl-2 font-[600] text-[#000000b1] flex items-center">
+            Pay with PhonePe
+            <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+              UPI
+            </span>
+          </h4>
+        </div>
+
+        {/* PhonePe payment */}
+        {select === 4 ? (
+          <div className="w-full flex">
+            <form className="w-full" onSubmit={phonePePaymentHandler}>
+              <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h5 className="text-[14px] font-[500] text-purple-800 mb-2">
+                  🚀 Quick & Secure UPI Payment
+                </h5>
+                <p className="text-[12px] text-purple-600">
+                  Pay instantly using PhonePe, Google Pay, Paytm, or any UPI app
+                </p>
+              </div>
+
+              {isPhonePeProcessing ? (
+                <div
+                  className={`${styles.button} !bg-gradient-to-r !from-purple-600 !to-purple-700 text-[#fff] h-[45px] rounded-[5px] flex items-center justify-center w-full shadow-lg transform transition-all duration-200`}
+                >
+                  {loadingAnimationData ? (
+                    <div className="flex items-center justify-center space-x-3">
+                      <Lottie options={loadingOptions} width={30} height={30} />
+                      <span className="text-[16px] font-[600] animate-pulse">
+                        Redirecting to PhonePe...
+                      </span>
+                      <div className="flex space-x-1 ml-2">
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        ></div>
+                        <div
+                          className="w-1 h-1 bg-white rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <LoadingSpinner text="Redirecting to PhonePe..." />
+                  )}
+                </div>
+              ) : (
+                <input
+                  type="submit"
+                  value="Pay with PhonePe"
+                  disabled={isPhonePeProcessing}
+                  className={`${styles.button} !bg-gradient-to-r !from-purple-600 !to-purple-700 text-[#fff] h-[45px] rounded-[5px] cursor-pointer text-[18px] font-[600] disabled:opacity-50 disabled:cursor-not-allowed hover:!from-purple-700 hover:!to-purple-800 transition-all duration-200 transform hover:scale-105 shadow-lg`}
+                />
+              )}
+            </form>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };
@@ -567,8 +710,95 @@ const CartData = ({ orderData }) => {
     orderData?.shipping && !isNaN(orderData.shipping)
       ? Number(orderData.shipping).toFixed(2)
       : "0.00";
+
   return (
     <div className="w-full bg-[#fff] rounded-md p-5 pb-8">
+      {/* Order Items Section */}
+      {orderData?.cart && orderData.cart.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-[18px] font-[600] text-[#000000] mb-4">
+            Order Items
+          </h3>
+          <div className="space-y-4 max-h-[300px] overflow-y-auto">
+            {orderData.cart.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center space-x-3 p-3 border border-[#00000010] rounded-lg"
+              >
+                {/* Product Image */}
+                <div className="w-16 h-16 flex-shrink-0">
+                  <img
+                    src={getProductImageUrl(
+                      item.images,
+                      0,
+                      process.env.REACT_APP_BACKEND_URL
+                    )}
+                    alt={item.name}
+                    className="w-full h-full object-cover rounded-md border border-[#00000010]"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://via.placeholder.com/64x64/f0f0f0/999999?text=No+Image";
+                    }}
+                  />
+                </div>
+
+                {/* Product Details */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-[14px] font-[500] text-[#000] truncate">
+                    {item.name}
+                  </h4>
+
+                  {/* Selected Attributes */}
+                  {item.selectedAttributes &&
+                    Object.keys(item.selectedAttributes).length > 0 && (
+                      <div className="mt-1">
+                        {Object.entries(item.selectedAttributes).map(
+                          ([key, value]) => (
+                            <span
+                              key={key}
+                              className="inline-block bg-[#f5f5f5] text-[#333] text-[12px] px-2 py-1 rounded-md mr-2 mb-1"
+                            >
+                              {key}: {value}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                  {/* Quantity and Price */}
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[12px] text-[#666]">
+                      Qty: {item.qty}
+                    </span>
+                    <div className="flex flex-col items-end">
+                      {/* Show final price if available (when attributes have price variations) */}
+                      {item.finalPrice ? (
+                        <>
+                          <span className="text-[14px] font-[600] text-[#f63b60]">
+                            ₹{(item.finalPrice * item.qty).toFixed(2)}
+                          </span>
+                          {item.finalPrice !== item.discountPrice && (
+                            <span className="text-[12px] text-[#999] line-through">
+                              ₹{(item.discountPrice * item.qty).toFixed(2)}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-[14px] font-[600] text-[#f63b60]">
+                          ₹{(item.discountPrice * item.qty).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <hr className="my-4 border-[#00000010]" />
+        </div>
+      )}
+
+      {/* Price Summary */}
       <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">subtotal:</h3>
         <h5 className="text-[18px] font-[600]">
@@ -584,18 +814,22 @@ const CartData = ({ orderData }) => {
         <h5 className="text-[18px] font-[600]">₹{shipping}</h5>
       </div>
       <br />
-      <div className="flex justify-between border-b pb-3">
+      <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">Discount:</h3>
         <h5 className="text-[18px] font-[600]">
           {orderData?.discountPrice ? "₹" + orderData.discountPrice : "-"}
         </h5>
       </div>
-      <h5 className="text-[18px] font-[600] text-end pt-3">
-        ₹
-        {orderData?.totalPrice && !isNaN(orderData.totalPrice)
-          ? Number(orderData.totalPrice).toFixed(2)
-          : "0.00"}
-      </h5>
+
+      <div className="flex justify-between border-t pt-3 mt-3">
+        <h3 className="text-[18px] font-[600] text-[#000000]">Total:</h3>
+        <h5 className="text-[18px] font-[600]">
+          ₹
+          {orderData?.totalPrice && !isNaN(orderData.totalPrice)
+            ? Number(orderData.totalPrice).toFixed(2)
+            : "0.00"}
+        </h5>
+      </div>
       <br />
     </div>
   );

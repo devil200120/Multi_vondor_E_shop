@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "../components/Layout/Header";
 import Hero from "../components/Route/Hero/Hero";
+import VideoBanners from "../components/Route/VideoBanners/VideoBanners";
 import Categories from "../components/Route/Categories/Categories";
 import BestDeals from "../components/Route/BestDeals/BestDeals";
 import Events from "../components/Events/Events";
@@ -14,13 +15,14 @@ const HomePage = () => {
     <div>
       <Header activeHeading={1} />
       <Hero />
+      <VideoBanners />
       <Categories />
-      <BestDeals />
-      <Events />
+      {/* <BestDeals /> */}
+      {/* <Events /> */}
       <FeaturedProduct />
-      <Sponsored />
+      {/* <Sponsored /> */}
       <Footer />
-      <FloatingAIChatbot />
+      {/* <FloatingAIChatbot /> */}
     </div>
   );
 };

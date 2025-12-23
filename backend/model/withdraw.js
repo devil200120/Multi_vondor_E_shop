@@ -12,6 +12,26 @@ const withdrawSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "Processing",
+    enum: ["Processing", "succeed", "failed", "payout_initiated", "payout_completed", "payout_failed"]
+  },
+  // PhonePe Payout Integration Fields
+  payoutTransactionId: {
+    type: String,
+    default: null,
+  },
+  payoutMethod: {
+    type: String,
+    enum: ["bank", "upi", "manual"],
+    default: "manual"
+  },
+  payoutStatus: {
+    type: String,
+    enum: ["pending", "completed", "failed"],
+    default: "pending"
+  },
+  payoutError: {
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

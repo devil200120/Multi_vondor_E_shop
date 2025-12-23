@@ -26,6 +26,23 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// File filter for documents (Word, PDF, etc.)
+const documentFilter = (req, file, cb) => {
+  // Allow Word documents and PDFs
+  const allowedMimes = [
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/msword', // .doc
+    'application/pdf', // .pdf
+    'text/plain' // .txt
+  ];
+  
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only Word documents (.docx, .doc), PDF files, and text files are allowed!'), false);
+  }
+};
+
 // Primary upload configuration using memory storage for Cloudinary
 exports.upload = multer({ 
   storage: storage, // Use memory storage
@@ -53,5 +70,23 @@ exports.uploadToDisk = multer({
   fileFilter: fileFilter,
   limits: {
     fileSize: 100 * 1024 * 1024 // 100MB limit for videos
+  }
+});
+
+// Document upload configuration for legal pages
+exports.uploadDocument = multer({
+  storage: storage, // Use memory storage for Cloudinary
+  fileFilter: documentFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for documents
+  }
+});
+
+// Document upload to disk (backup option)
+exports.uploadDocumentToDisk = multer({
+  storage: diskStorage,
+  fileFilter: documentFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for documents
   }
 });

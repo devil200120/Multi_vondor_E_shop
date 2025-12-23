@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getSubcategoriesPublic } from "../../redux/actions/category";
 import axios from "axios";
 import { server } from "../../server";
+import ProductAttributesForm from "../Shop/ProductAttributesForm";
 
 const ProductFormModal = ({
   open,
@@ -47,6 +48,7 @@ const ProductFormModal = ({
   const [imagePreviews, setImagePreviews] = useState([]);
   const [videos, setVideos] = useState([]);
   const [videoPreviews, setVideoPreviews] = useState([]);
+  const [attributes, setAttributes] = useState([]);
 
   // Fetch sellers when component mounts
   useEffect(() => {
@@ -95,6 +97,13 @@ const ProductFormModal = ({
       if (product.videos && product.videos.length > 0) {
         setVideoPreviews(product.videos.map((video) => video.url));
       }
+
+      // Set existing attributes
+      if (product.attributes && product.attributes.length > 0) {
+        setAttributes(product.attributes);
+      } else {
+        setAttributes([]);
+      }
     } else {
       // Reset form for creating new product
       resetForm();
@@ -118,6 +127,7 @@ const ProductFormModal = ({
     setImagePreviews([]);
     setVideos([]);
     setVideoPreviews([]);
+    setAttributes([]);
   };
 
   const handleInputChange = (e) => {
@@ -305,6 +315,26 @@ const ProductFormModal = ({
     videos.forEach((video) => {
       submitData.append("videos", video);
     });
+
+    // Add attributes (filter out empty ones)
+    const validAttributes = attributes.filter((attr) => {
+      // Only include attributes that have a name and at least one valid value
+      if (!attr.name || attr.name.trim() === "") {
+        return false;
+      }
+
+      if (!attr.values || !Array.isArray(attr.values)) {
+        return false;
+      }
+
+      const validValues = attr.values.filter(
+        (val) => val.value && val.value.trim() !== ""
+      );
+
+      return validValues.length > 0;
+    });
+
+    submitData.append("attributes", JSON.stringify(validAttributes));
 
     console.log("Submitting product data:", {
       formData,
@@ -593,6 +623,12 @@ const ProductFormModal = ({
               required
             />
           </div>
+
+          {/* Product Attributes */}
+          <ProductAttributesForm
+            attributes={attributes}
+            onChange={setAttributes}
+          />
 
           {/* Images */}
           <div>

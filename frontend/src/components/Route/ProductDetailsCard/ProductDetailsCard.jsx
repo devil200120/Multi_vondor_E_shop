@@ -203,12 +203,21 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                     {data.isSellerProduct && data.sellerShop && (
                       <div className="mb-3">
                         <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                          <span>🏪</span>
-                          <span>Seller Product</span>
+                          <span>{data.isAdminTagged ? "👑" : "🏪"}</span>
+                          <span>
+                            {data.isAdminTagged
+                              ? "Admin Tagged Product"
+                              : "Seller Product"}
+                          </span>
                           <span className="text-blue-600">
                             • {data.sellerShop.name}
                           </span>
                         </div>
+                        {data.isAdminTagged && (
+                          <div className="mt-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                            Curated and tagged by platform admin
+                          </div>
+                        )}
                         {data.sellerShop.phoneNumber && (
                           <div className="mt-1 text-xs text-gray-600">
                             Contact: {data.sellerShop.phoneNumber}

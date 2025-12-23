@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Loader from "../Layout/Loader";
 import { getAllOrdersOfShop } from "../../redux/actions/order";
 import { AiOutlineEye } from "react-icons/ai";
+import { FiDownload, FiLoader } from "react-icons/fi";
 import {
   FiPackage,
   FiDollarSign,
@@ -12,6 +13,9 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import { MdFilterList, MdSearch } from "react-icons/md";
+import axios from "axios";
+import { server } from "../../server";
+import { toast } from "react-toastify";
 
 // Helper function to get order number for display
 const getOrderNumber = (order) => {
@@ -27,8 +31,58 @@ const AllOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [downloadingInvoices, setDownloadingInvoices] = useState({});
 
   const dispatch = useDispatch();
+
+  // Handle invoice download
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      // Set loading state for this specific order
+      setDownloadingInvoices((prev) => ({ ...prev, [orderId]: true }));
+
+      const response = await axios.get(
+        `${server}/order/seller-invoice-pdf/${orderId}`,
+        {
+          withCredentials: true,
+          responseType: "blob", // Important for file download
+        }
+      );
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Get filename from response headers or create default
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = `Invoice_${orderId}.pdf`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Invoice downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      toast.error("Failed to download invoice. Please try again.");
+    } finally {
+      // Remove loading state for this specific order
+      setDownloadingInvoices((prev) => {
+        const newState = { ...prev };
+        delete newState[orderId];
+        return newState;
+      });
+    }
+  };
 
   useEffect(() => {
     if (seller?._id) {
@@ -148,17 +202,42 @@ const AllOrders = () => {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 0.8,
-      minWidth: 120,
+      flex: 1.2,
+      minWidth: 180,
       sortable: false,
       renderCell: (params) => (
-        <Link
-          to={`/order/${params.row.id}`}
-          className="inline-flex items-center px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 text-sm font-medium border border-blue-200 hover:border-blue-300"
-        >
-          <AiOutlineEye className="mr-1" size={16} />
-          <span className="hidden sm:inline">View</span>
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            to={`/order/${params.row.id}`}
+            className="inline-flex items-center px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all duration-200 text-sm font-medium border border-blue-200 hover:border-blue-300"
+          >
+            <AiOutlineEye className="mr-1" size={16} />
+            <span className="hidden sm:inline">View</span>
+          </Link>
+          <button
+            onClick={() => handleDownloadInvoice(params.row.id)}
+            disabled={downloadingInvoices[params.row.id]}
+            className={`inline-flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium border ${
+              downloadingInvoices[params.row.id]
+                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                : "bg-green-50 hover:bg-green-100 text-green-600 border-green-200 hover:border-green-300"
+            }`}
+            title={
+              downloadingInvoices[params.row.id]
+                ? "Generating Invoice..."
+                : "Download Invoice"
+            }
+          >
+            {downloadingInvoices[params.row.id] ? (
+              <FiLoader className="mr-1 animate-spin" size={16} />
+            ) : (
+              <FiDownload className="mr-1" size={16} />
+            )}
+            <span className="hidden sm:inline">
+              {downloadingInvoices[params.row.id] ? "Loading..." : "Invoice"}
+            </span>
+          </button>
+        </div>
       ),
     },
   ];

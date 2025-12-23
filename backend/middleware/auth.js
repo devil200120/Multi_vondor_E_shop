@@ -72,6 +72,10 @@ exports.isSeller = catchAsyncErrors(async (req, res, next) => {
 
   // Don't block login for banned shops - let them access dashboard to see ban message
   // The ban check will be handled in the frontend components
+  
+  // Note: We don't check approval status here because sellers should be able to access
+  // their dashboard to see their approval status. The approval check is handled
+  // during login in the shop controller.
   req.seller = shop;
   next();
 });
@@ -81,6 +85,23 @@ exports.isSellerNotBanned = catchAsyncErrors(async (req, res, next) => {
   if (req.seller && req.seller.isBanned) {
     return next(new ErrorHandler(`Your shop has been banned. Reason: ${req.seller.banReason}`, 403));
   }
+  next();
+});
+
+// Middleware to check if seller is approved for operations
+exports.isSellerApproved = catchAsyncErrors(async (req, res, next) => {
+  if (!req.seller) {
+    return next(new ErrorHandler("Seller authentication required", 401));
+  }
+  
+  if (req.seller.approvalStatus === 'pending') {
+    return next(new ErrorHandler("Your shop is pending admin approval. You cannot perform this action until approved.", 403));
+  }
+  
+  if (req.seller.approvalStatus === 'rejected') {
+    return next(new ErrorHandler(`Your shop has been rejected. Reason: ${req.seller.rejectionReason || 'No reason provided'}`, 403));
+  }
+  
   next();
 });
 

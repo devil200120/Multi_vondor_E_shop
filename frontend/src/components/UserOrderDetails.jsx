@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { backend_url, server } from "../server";
@@ -36,17 +36,51 @@ const UserOrderDetails = () => {
   const [comment, setComment] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [rating, setRating] = useState(1);
+  const [adminOrder, setAdminOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { id } = useParams();
 
+  // Check if this is being used in admin context
+  const isAdminView = location.pathname.includes("/admin/");
+
   useEffect(() => {
-    if (user?._id) {
+    if (isAdminView) {
+      // If admin view, fetch order directly by ID
+      fetchAdminOrder();
+    } else if (user?._id) {
+      // If user view, fetch user's orders
       dispatch(getAllOrdersOfUser(user._id));
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, id, isAdminView]);
 
-  const data = orders && orders.find((item) => item._id === id);
+  const fetchAdminOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${server}/order/admin-get-order/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        setAdminOrder(response.data.order);
+      }
+    } catch (error) {
+      console.error("Error fetching admin order:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get the order data based on context
+  const data = isAdminView
+    ? adminOrder
+    : orders && orders.find((item) => item._id === id);
 
   const reviewHandler = async (type) => {
     try {
@@ -110,6 +144,17 @@ const UserOrderDetails = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md mx-auto">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading order details...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
@@ -124,11 +169,11 @@ const UserOrderDetails = () => {
             The order you're looking for doesn't exist or may have been removed.
           </p>
           <button
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate(isAdminView ? "/admin-orders" : "/profile")}
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg font-medium group"
           >
             <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-            Back to Orders
+            {isAdminView ? "Back to Admin Orders" : "Back to Orders"}
           </button>
         </div>
       </div>
@@ -141,11 +186,13 @@ const UserOrderDetails = () => {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <button
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate(isAdminView ? "/admin-orders" : "/profile")}
             className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors duration-200 group"
           >
             <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="font-medium">Back to Orders</span>
+            <span className="font-medium">
+              {isAdminView ? "Back to Admin Orders" : "Back to Orders"}
+            </span>
           </button>
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
@@ -253,12 +300,39 @@ const UserOrderDetails = () => {
                       <h4 className="font-semibold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">
                         {item.name}
                       </h4>
+
+                      {/* Selected Attributes */}
+                      {item.selectedAttributes &&
+                        Object.keys(item.selectedAttributes).length > 0 && (
+                          <div className="mb-3">
+                            <div className="flex flex-wrap gap-2">
+                              {Object.entries(item.selectedAttributes).map(
+                                ([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                                  >
+                                    {key}: {value}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-gray-600">Price:</span>
                           <span className="font-medium text-blue-600">
-                            ₹{item.discountPrice}
+                            ₹
+                            {(item.finalPrice || item.discountPrice).toFixed(2)}
                           </span>
+                          {item.finalPrice &&
+                            item.finalPrice !== item.discountPrice && (
+                              <span className="text-sm text-gray-400 line-through">
+                                ₹{item.discountPrice.toFixed(2)}
+                              </span>
+                            )}
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-gray-600">Qty:</span>
@@ -269,7 +343,10 @@ const UserOrderDetails = () => {
                       </div>
                       <div className="mt-3">
                         <span className="text-lg font-bold text-gray-900">
-                          ₹{(item.discountPrice * item.qty).toFixed(2)}
+                          ₹
+                          {(
+                            (item.finalPrice || item.discountPrice) * item.qty
+                          ).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -304,13 +381,27 @@ const UserOrderDetails = () => {
                     <span>Subtotal:</span>
                     <span>
                       ₹
-                      {(data.totalPrice - (data.shippingPrice || 0)).toFixed(2)}
+                      {data.cart
+                        .reduce((total, item) => {
+                          const itemPrice =
+                            item.finalPrice || item.discountPrice;
+                          return total + itemPrice * item.qty;
+                        }, 0)
+                        .toFixed(2)}
                     </span>
                   </div>
                   {data.shippingPrice > 0 && (
                     <div className="flex justify-between items-center text-gray-600">
                       <span>Shipping:</span>
                       <span>₹{data.shippingPrice.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {data.discountPrice > 0 && (
+                    <div className="flex justify-between items-center text-gray-600">
+                      <span>Discount:</span>
+                      <span className="text-green-600">
+                        -₹{data.discountPrice.toFixed(2)}
+                      </span>
                     </div>
                   )}
                   <div className="border-t border-gray-200 pt-3">
@@ -441,7 +532,7 @@ const UserOrderDetails = () => {
                   Track Order
                 </Link>
 
-                {data.status === "Delivered" && (
+                {!isAdminView && data.status === "Delivered" && (
                   <button
                     onClick={refundHandler}
                     className="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm group"

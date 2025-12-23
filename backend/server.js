@@ -18,6 +18,35 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 // connect db
 connectDatabase();
 
+// Initialize default site settings
+const initializeSiteSettings = async () => {
+  try {
+    const SiteSettings = require("./model/siteSettings");
+    const existingSettings = await SiteSettings.findOne({ isActive: true });
+    
+    if (!existingSettings) {
+      const defaultSettings = new SiteSettings({});
+      await defaultSettings.save();
+      console.log('✅ Default site settings initialized');
+    }
+  } catch (error) {
+    console.error('❌ Error initializing site settings:', error.message);
+  }
+};
+
+// Initialize settings after database connection
+setTimeout(() => {
+  initializeSiteSettings();
+}, 2000);
+
+// Create uploads directory if it doesn't exist
+const fs = require("fs");
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Uploads directory created:', uploadsDir);
+}
+
 // middlewares
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -26,10 +55,10 @@ app.use(cookieParser());
 // Enable CORS for all routes
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com","https://www.wanttar.in","http://72.60.103.18:3000","http://72.60.103.18", "https://72.60.103.18","https://samrudhigroup.in","https://www.samrudhigroup.in","https://samrudhigroup.in:8000","https://samrudhigroup.in:4000"],
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000","https://multi-vondor-e-shop-1.onrender.com","https://multi-vondor-e-shop-2.onrender.com","https://www.wanttar.in","http://72.60.103.18:3000","http://72.60.103.18", "https://72.60.103.18","https://samrudhigroup.in","https://www.samrudhigroup.in","https://samrudhigroup.in:8000","https://samrudhigroup.in:4000","https://wanttar.in"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "X-Requested-With", "X-Context"],
     exposedHeaders: ["set-cookie"],
     preflightContinue: false,
     optionsSuccessStatus: 200
@@ -69,6 +98,12 @@ const banner = require("./controller/banner");
 const category = require("./routes/category");
 const migration = require("./routes/migration");
 const review = require("./routes/review");
+const legalPage = require("./controller/legalPage");
+const siteSettings = require("./controller/siteSettings");
+const faq = require("./controller/faq");
+const phonePePayment = require("./routes/phonePePayment");
+const videoBanner = require("./routes/videoBanner");
+const videoCall = require("./routes/videoCall");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -80,6 +115,7 @@ app.use("/api/v2/product", product);
 app.use("/api/v2/event", event);
 app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
+app.use("/api/v2/payment/phonepe", phonePePayment);
 app.use("/api/v2/withdraw", withdraw);
 app.use("/api/v2/newsletter", newsletter);
 app.use("/api/v2/notification", notification);
@@ -90,6 +126,11 @@ app.use("/api/v2/banner", banner);
 app.use("/api/v2/category", category);
 app.use("/api/v2/migration", migration);
 app.use("/api/v2/review", review);
+app.use("/api/v2/legal-page", legalPage);
+app.use("/api/v2/site-settings", siteSettings);
+app.use("/api/v2/faq", faq);
+app.use("/api/v2/video-banner", videoBanner);
+app.use("/api/v2/video-call", videoCall);
 
 // error handler middleware
 app.use(ErrorHandler);

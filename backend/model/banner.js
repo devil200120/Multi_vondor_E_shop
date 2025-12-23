@@ -27,6 +27,39 @@ const bannerSchema = new mongoose.Schema({
       default: ""
     }
   },
+  // Sliding images array for sliding mode
+  images: [{
+    url: {
+      type: String,
+      required: true
+    },
+    public_id: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      default: ""
+    },
+    description: {
+      type: String,
+      default: ""
+    }
+  }],
+  displayMode: {
+    type: String,
+    enum: ['single', 'sliding'],
+    default: 'single'
+  },
+  autoSlideInterval: {
+    type: Number,
+    default: 5000 // 5 seconds
+  },
+  transitionEffect: {
+    type: String,
+    enum: ['fade', 'slide', 'zoom'],
+    default: 'slide'
+  },
   buttonText: {
     type: String,
     default: "Shop Now"

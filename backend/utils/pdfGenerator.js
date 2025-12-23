@@ -18,7 +18,7 @@ const getCompanyLogoBase64 = () => {
 };
 
 // Generate HTML template for invoice
-const generateInvoiceHTML = (order, shop) => {
+const generateInvoiceHTML = async (order, shop) => {
   // Get company logo
   const logoBase64 = getCompanyLogoBase64();
   
@@ -46,6 +46,81 @@ const generateInvoiceHTML = (order, shop) => {
     return result || defaultValue;
   };
 
+  // Helper function to extract product attributes from cart item
+  const getProductAttributes = (item) => {
+    let attributes = [];
+    
+    // Check for various attribute naming conventions
+    const attributeKeys = [
+      'size', 'selectedSize', 'Size', 'product_size',
+      'color', 'selectedColor', 'Color', 'product_color',
+      'variant', 'selectedVariant', 'Variant',
+      'model', 'selectedModel', 'Model',
+      'brand', 'selectedBrand', 'Brand',
+      'material', 'selectedMaterial', 'Material',
+      'style', 'selectedStyle', 'Style'
+    ];
+    
+    // Check direct attributes
+    attributeKeys.forEach(key => {
+      if (item[key] && typeof item[key] === 'string' && item[key].trim() !== '') {
+        const attributeName = key.replace(/^selected/, '').toLowerCase();
+        const capitalizedName = attributeName.charAt(0).toUpperCase() + attributeName.slice(1);
+        if (!attributes.some(attr => attr.includes(capitalizedName))) {
+          attributes.push(`<strong>${capitalizedName}:</strong> ${item[key]}`);
+        }
+      }
+    });
+    
+    // Check if item has attributes object
+    if (item.attributes && typeof item.attributes === 'object') {
+      Object.keys(item.attributes).forEach(key => {
+        if (item.attributes[key] && typeof item.attributes[key] === 'string' && item.attributes[key].trim() !== '') {
+          const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+          if (!attributes.some(attr => attr.includes(capitalizedKey))) {
+            attributes.push(`<strong>${capitalizedKey}:</strong> ${item.attributes[key]}`);
+          }
+        }
+      });
+    }
+    
+    // Check if item has selectedAttributes object
+    if (item.selectedAttributes && typeof item.selectedAttributes === 'object') {
+      Object.keys(item.selectedAttributes).forEach(key => {
+        if (item.selectedAttributes[key] && typeof item.selectedAttributes[key] === 'string' && item.selectedAttributes[key].trim() !== '') {
+          const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+          if (!attributes.some(attr => attr.includes(capitalizedKey))) {
+            attributes.push(`<strong>${capitalizedKey}:</strong> ${item.selectedAttributes[key]}`);
+          }
+        }
+      });
+    }
+    
+    // Check if item has variants array (for complex attribute structures)
+    if (item.selectedVariant && typeof item.selectedVariant === 'object') {
+      Object.keys(item.selectedVariant).forEach(key => {
+        if (item.selectedVariant[key] && typeof item.selectedVariant[key] === 'string' && item.selectedVariant[key].trim() !== '' && key !== '_id' && key !== 'id') {
+          const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+          if (!attributes.some(attr => attr.includes(capitalizedKey))) {
+            attributes.push(`<strong>${capitalizedKey}:</strong> ${item.selectedVariant[key]}`);
+          }
+        }
+      });
+    }
+    
+    // If no attributes found, try to get from product configuration
+    if (attributes.length === 0 && item.productConfiguration) {
+      if (item.productConfiguration.size) {
+        attributes.push(`<strong>Size:</strong> ${item.productConfiguration.size}`);
+      }
+      if (item.productConfiguration.color) {
+        attributes.push(`<strong>Color:</strong> ${item.productConfiguration.color}`);
+      }
+    }
+    
+    return attributes.length > 0 ? attributes.join('<br>') + '<br>' : '';
+  };
+
   const orderNumber = order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`; // Use orderNumber if available
   const invoiceNumber = `INV${order.orderNumber || order._id.toString().slice(-12).toUpperCase()}`;
   
@@ -56,19 +131,49 @@ const generateInvoiceHTML = (order, shop) => {
   let discountPrice = safeGet(order, 'discountPrice') || 0;
   let grandTotalFromOrder = safeGet(order, 'totalPrice') || 0;
   
+  // Calculate GST from product configurations
+  let productGSTTotal = 0;
+  
   // If order doesn't have pricing fields, calculate from cart
   if (!subtotal && order.cart && order.cart.length > 0) {
     order.cart.forEach(item => {
-      subtotal += (item.qty || 1) * (item.discountPrice || 0);
+      const itemQty = item.qty || 1;
+      const itemDiscountPrice = item.discountPrice || 0;
+      const itemTaxableValue = itemQty * itemDiscountPrice;
+      subtotal += itemTaxableValue;
+      
+      // Calculate GST for this item
+      const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+      if (gstConfig.isGstApplicable) {
+        if (gstConfig.gstType === 'separate') {
+          productGSTTotal += (itemTaxableValue * (gstConfig.cgstRate || 0)) / 100;
+          productGSTTotal += (itemTaxableValue * (gstConfig.sgstRate || 0)) / 100;
+        } else {
+          productGSTTotal += (itemTaxableValue * (gstConfig.combinedGstRate || 0)) / 100;
+        }
+      }
+    });
+  } else if (order.cart && order.cart.length > 0) {
+    // Even if we have order pricing, calculate product GST for display
+    order.cart.forEach(item => {
+      const itemQty = item.qty || 1;
+      const itemDiscountPrice = item.discountPrice || 0;
+      const itemTaxableValue = itemQty * itemDiscountPrice;
+      
+      const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+      if (gstConfig.isGstApplicable) {
+        if (gstConfig.gstType === 'separate') {
+          productGSTTotal += (itemTaxableValue * (gstConfig.cgstRate || 0)) / 100;
+          productGSTTotal += (itemTaxableValue * (gstConfig.sgstRate || 0)) / 100;
+        } else {
+          productGSTTotal += (itemTaxableValue * (gstConfig.combinedGstRate || 0)) / 100;
+        }
+      }
     });
   }
   
-  // Calculate tax breakdown (assuming 18% GST split equally between CGST and SGST)
-  const cgst = taxAmount / 2;
-  const sgst = taxAmount / 2;
-  
-  // Use order's total price or calculate it
-  const grandTotal = grandTotalFromOrder || (subtotal + shippingPrice + taxAmount - discountPrice);
+  // Use order's total price or calculate it (include product GST in calculation)
+  const grandTotal = grandTotalFromOrder || (subtotal + shippingPrice + productGSTTotal - discountPrice);
 
   return `
 <!DOCTYPE html>
@@ -287,7 +392,7 @@ const generateInvoiceHTML = (order, shop) => {
                     Email: ${safeGet(shop, 'email')}<br>
                     Phone: ${safeGet(shop, 'phoneNumber')}
                 </div>
-                <div class="gstin">GSTIN - ${safeGet(shop, 'gstNumber')}</div>
+                ${safeGet(shop, 'gstNumber') ? `<div class="gstin">GSTIN - ${safeGet(shop, 'gstNumber')}</div>` : ''}
             </div>
             
             <div class="invoice-number">
@@ -340,37 +445,113 @@ const generateInvoiceHTML = (order, shop) => {
         
         <div class="items-section">
             <div class="items-header">Total items: ${order.cart.length}</div>
+            <div style="text-align: center; font-style: italic; margin-bottom: 10px; font-size: 11px;">
+                <strong>Note:</strong> All prices shown include applicable GST
+            </div>
             
             <table class="items-table">
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Title</th>
+                        <th>Description</th>
                         <th>Qty</th>
                         <th>Gross<br>Amount ₹</th>
                         <th>Discount ₹</th>
                         <th>Taxable<br>Value ₹</th>
-                        <th>CGST<br>₹</th>
-                        <th>SGST<br>/UTGST<br>₹</th>
+                        <th>CGST ₹</th>
+                        <th>SGST ₹</th>
                         <th>Total ₹</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${order.cart.map(item => {
-                      const itemQty = item.qty || 1;
-                      const itemDiscountPrice = item.discountPrice || 0; // Final price after discount
-                      const itemOriginalPrice = item.originalPrice || item.discountPrice || 0; // MRP/List price
+                      // Debug log to see what attributes are available
+                      console.log(`[PDF Generator] Item attributes for ${item.name}:`, {
+                        size: item.size,
+                        selectedSize: item.selectedSize,
+                        color: item.color,
+                        selectedColor: item.selectedColor,
+                        attributes: item.attributes,
+                        selectedAttributes: item.selectedAttributes,
+                        selectedVariant: item.selectedVariant,
+                        productConfiguration: item.productConfiguration,
+                        allKeys: Object.keys(item)
+                      });
                       
-                      // Standard invoice calculations:
+                      const itemQty = item.qty || 1;
+                      
+                      // Check for attribute-specific pricing first
+                      let itemDiscountPrice = item.discountPrice || 0;
+                      let itemOriginalPrice = item.originalPrice || item.discountPrice || 0;
+                      
+                      // If there's a selected variant with pricing, use that
+                      if (item.selectedVariant && item.selectedVariant.price) {
+                        itemDiscountPrice = item.selectedVariant.price;
+                        itemOriginalPrice = item.selectedVariant.originalPrice || item.selectedVariant.price;
+                      }
+                      // Check for attribute configuration pricing
+                      else if (item.productConfiguration && item.productConfiguration.price) {
+                        itemDiscountPrice = item.productConfiguration.price;
+                        itemOriginalPrice = item.productConfiguration.originalPrice || item.productConfiguration.price;
+                      }
+                      // Check for final calculated price (common when attributes affect pricing)
+                      else if (item.finalPrice) {
+                        itemDiscountPrice = item.finalPrice;
+                        itemOriginalPrice = item.finalOriginalPrice || item.finalPrice;
+                      }
+                      
+                      console.log(`[PDF Generator] Price calculation for ${item.name}:`, {
+                        baseDiscountPrice: item.discountPrice,
+                        baseOriginalPrice: item.originalPrice,
+                        selectedVariantPrice: item.selectedVariant?.price,
+                        configurationPrice: item.productConfiguration?.price,
+                        finalPrice: item.finalPrice,
+                        usedDiscountPrice: itemDiscountPrice,
+                        usedOriginalPrice: itemOriginalPrice
+                      });
+                      
+                      // GST breakdown calculations (since GST is included in the price)
+                      const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                      console.log(`[PDF Generator] Processing item: ${item.name}, GST Config:`, gstConfig);
+                      
+                      let itemCGST = 0;
+                      let itemSGST = 0;
+                      let itemGST = 0;
+                      let gstDisplay = 'Not Applicable';
+                      let priceWithoutGST = itemDiscountPrice; // Default to full price if no GST
+                      let itemTaxableValueForBreakdown = itemDiscountPrice;
+                      
+                      if (gstConfig.isGstApplicable) {
+                        if (gstConfig.gstType === 'separate') {
+                          const totalGSTRate = (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0);
+                          // Extract GST from inclusive price: Price without GST = Inclusive Price ÷ (1 + GST Rate/100)
+                          priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                          itemTaxableValueForBreakdown = priceWithoutGST;
+                          itemCGST = (priceWithoutGST * (gstConfig.cgstRate || 0)) / 100;
+                          itemSGST = (priceWithoutGST * (gstConfig.sgstRate || 0)) / 100;
+                          itemGST = itemCGST + itemSGST;
+                          gstDisplay = `CGST: ${(gstConfig.cgstRate || 0).toFixed(1)}% (₹${formatCurrency(itemCGST)}) | SGST: ${(gstConfig.sgstRate || 0).toFixed(1)}% (₹${formatCurrency(itemSGST)})`;
+                        } else {
+                          const totalGSTRate = gstConfig.combinedGstRate || 0;
+                          priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                          itemTaxableValueForBreakdown = priceWithoutGST;
+                          itemGST = itemDiscountPrice - priceWithoutGST;
+                          itemCGST = itemGST / 2; // Split combined GST equally
+                          itemSGST = itemGST / 2;
+                          gstDisplay = `Total GST: ${(totalGSTRate || 0).toFixed(1)}% | CGST: ₹${formatCurrency(itemCGST)} | SGST: ₹${formatCurrency(itemSGST)}`;
+                        }
+                      }
+                      
+                      // Apply quantity to all calculations
+                      const itemGrossWithoutGST = itemQty * priceWithoutGST;
+                      const itemTotalCGST = itemQty * itemCGST;
+                      const itemTotalSGST = itemQty * itemSGST;
+                      const itemTaxableValueFinal = itemQty * itemTaxableValueForBreakdown;
+                      
+                      // Standard invoice calculations with GST breakdown
                       const itemGross = itemQty * itemOriginalPrice; // Gross = Qty × Original Price (MRP)
                       const itemDiscount = itemQty * (itemOriginalPrice - itemDiscountPrice); // Total discount amount
-                      const itemTaxableValue = itemQty * itemDiscountPrice; // Amount on which tax is calculated
-                      
-                      // Calculate GST (18% total: 9% CGST + 9% SGST)
-                      const taxRate = 0.18;
-                      const itemCGST = (itemTaxableValue * taxRate) / 2; // 9% CGST
-                      const itemSGST = (itemTaxableValue * taxRate) / 2; // 9% SGST
-                      const itemTotal = itemTaxableValue + itemCGST + itemSGST; // Final amount including tax
+                      const itemTotal = itemDiscountPrice * itemQty; // Final total (GST inclusive)
                       
                       return `
                         <tr>
@@ -378,22 +559,21 @@ const generateInvoiceHTML = (order, shop) => {
                                 ${item.name || 'Product Name'}<br>
                                 <div class="product-code">
                                     SKU: ${item._id ? item._id.toString().slice(-8).toUpperCase() : 'N/A'}<br>
-                                    HSN/SAC: ${item.category || '62052000'}
+                                    HSN/SAC: ${gstConfig.hsnCode || item.category || '62052000'}
                                 </div>
                             </td>
                             <td class="title-cell">
                                 ${item.name || 'Product Name'}<br>
-                                ${item.size ? `<strong>Size:</strong> ${item.size}<br>` : ''}
-                                ${item.color ? `<strong>Color:</strong> ${item.color}<br>` : ''}
-                                <strong>Unit Price:</strong> ₹${formatCurrency(itemDiscountPrice)}<br>
-                                <strong>CGST:</strong> ${(taxRate * 50).toFixed(1)}% | <strong>SGST:</strong> ${(taxRate * 50).toFixed(1)}%
+                                ${getProductAttributes(item)}
+                                <strong>Unit Price:</strong> ₹${formatCurrency(itemDiscountPrice)} <em>(GST Included)</em><br>
+                                HSN: ${gstConfig.hsnCode || item.category || '9920'} | ${gstDisplay}
                             </td>
                             <td>${itemQty}</td>
                             <td>₹${formatCurrency(itemGross)}</td>
                             <td>-₹${formatCurrency(itemDiscount)}</td>
-                            <td>₹${formatCurrency(itemTaxableValue)}</td>
-                            <td>₹${formatCurrency(itemCGST)}</td>
-                            <td>₹${formatCurrency(itemSGST)}</td>
+                            <td>₹${formatCurrency(itemTaxableValueFinal)}</td>
+                            <td>₹${formatCurrency(itemTotalCGST)}</td>
+                            <td>₹${formatCurrency(itemTotalSGST)}</td>
                             <td>₹${formatCurrency(itemTotal)}</td>
                         </tr>
                       `;
@@ -404,10 +584,78 @@ const generateInvoiceHTML = (order, shop) => {
                         <td><strong>${order.cart.reduce((sum, item) => sum + (item.qty || 1), 0)}</strong></td>
                         <td><strong>₹${formatCurrency(subtotal + discountPrice)}</strong></td>
                         <td><strong>-₹${formatCurrency(discountPrice)}</strong></td>
+                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                          const itemQty = item.qty || 1;
+                          
+                          // Use the same price logic as individual rows
+                          let itemDiscountPrice = item.discountPrice || 0;
+                          if (item.selectedVariant && item.selectedVariant.price) {
+                            itemDiscountPrice = item.selectedVariant.price;
+                          } else if (item.productConfiguration && item.productConfiguration.price) {
+                            itemDiscountPrice = item.productConfiguration.price;
+                          } else if (item.finalPrice) {
+                            itemDiscountPrice = item.finalPrice;
+                          }
+                          
+                          const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                          if (gstConfig.isGstApplicable) {
+                            const totalGSTRate = gstConfig.gstType === 'separate' 
+                              ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                              : (gstConfig.combinedGstRate || 0);
+                            const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                            return sum + (itemQty * priceWithoutGST);
+                          }
+                          return sum + (itemQty * itemDiscountPrice);
+                        }, 0))}</strong></td>
+                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                          const itemQty = item.qty || 1;
+                          
+                          // Use the same price logic as individual rows
+                          let itemDiscountPrice = item.discountPrice || 0;
+                          if (item.selectedVariant && item.selectedVariant.price) {
+                            itemDiscountPrice = item.selectedVariant.price;
+                          } else if (item.productConfiguration && item.productConfiguration.price) {
+                            itemDiscountPrice = item.productConfiguration.price;
+                          } else if (item.finalPrice) {
+                            itemDiscountPrice = item.finalPrice;
+                          }
+                          
+                          const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                          if (gstConfig.isGstApplicable) {
+                            const cgstRate = gstConfig.cgstRate || (gstConfig.combinedGstRate || 0) / 2;
+                            const totalGSTRate = gstConfig.gstType === 'separate' 
+                              ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                              : (gstConfig.combinedGstRate || 0);
+                            const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                            return sum + (itemQty * priceWithoutGST * cgstRate / 100);
+                          }
+                          return sum;
+                        }, 0))}</strong></td>
+                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                          const itemQty = item.qty || 1;
+                          
+                          // Use the same price logic as individual rows
+                          let itemDiscountPrice = item.discountPrice || 0;
+                          if (item.selectedVariant && item.selectedVariant.price) {
+                            itemDiscountPrice = item.selectedVariant.price;
+                          } else if (item.productConfiguration && item.productConfiguration.price) {
+                            itemDiscountPrice = item.productConfiguration.price;
+                          } else if (item.finalPrice) {
+                            itemDiscountPrice = item.finalPrice;
+                          }
+                          
+                          const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                          if (gstConfig.isGstApplicable) {
+                            const sgstRate = gstConfig.sgstRate || (gstConfig.combinedGstRate || 0) / 2;
+                            const totalGSTRate = gstConfig.gstType === 'separate' 
+                              ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                              : (gstConfig.combinedGstRate || 0);
+                            const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                            return sum + (itemQty * priceWithoutGST * sgstRate / 100);
+                          }
+                          return sum;
+                        }, 0))}</strong></td>
                         <td><strong>₹${formatCurrency(subtotal)}</strong></td>
-                        <td><strong>₹${formatCurrency(cgst)}</strong></td>
-                        <td><strong>₹${formatCurrency(sgst)}</strong></td>
-                        <td><strong>₹${formatCurrency(subtotal + cgst + sgst)}</strong></td>
                     </tr>
                     ${shippingPrice > 0 ? `
                     <tr>
@@ -424,7 +672,89 @@ const generateInvoiceHTML = (order, shop) => {
             ${subtotal > 0 ? `<div>Subtotal: ₹${formatCurrency(subtotal)}</div>` : ''}
             ${shippingPrice > 0 ? `<div>Shipping: ₹${formatCurrency(shippingPrice)}</div>` : ''}
             ${discountPrice > 0 ? `<div>Discount: -₹${formatCurrency(discountPrice)}</div>` : ''}
-            ${taxAmount > 0 ? `<div>Tax (GST): ₹${formatCurrency(taxAmount)}</div>` : ''}
+        </div>
+        ` : ''}
+        
+        <!-- GST Breakdown Section -->
+        ${order.cart.some(item => (item.gstConfiguration || {}).isGstApplicable) ? `
+        <div style="text-align: right; margin-top: 15px; font-size: 12px; border-top: 1px solid #ddd; padding-top: 10px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">📊 GST Breakdown:</div>
+            ${order.cart.map(item => {
+              const itemQty = item.qty || 1;
+              let itemDiscountPrice = item.discountPrice || 0;
+              if (item.selectedVariant && item.selectedVariant.price) {
+                itemDiscountPrice = item.selectedVariant.price;
+              } else if (item.productConfiguration && item.productConfiguration.price) {
+                itemDiscountPrice = item.productConfiguration.price;
+              } else if (item.finalPrice) {
+                itemDiscountPrice = item.finalPrice;
+              }
+              
+              const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+              if (!gstConfig.isGstApplicable) return '';
+              
+              const totalGSTRate = gstConfig.gstType === 'separate' 
+                ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                : (gstConfig.combinedGstRate || 0);
+              const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+              const cgstRate = gstConfig.cgstRate || (gstConfig.combinedGstRate || 0) / 2;
+              const sgstRate = gstConfig.sgstRate || (gstConfig.combinedGstRate || 0) / 2;
+              const itemCGST = (priceWithoutGST * cgstRate) / 100;
+              const itemSGST = (priceWithoutGST * sgstRate) / 100;
+              
+              return `
+                <div style="margin-bottom: 5px;">
+                  <strong>${item.name}:</strong><br>
+                  &nbsp;&nbsp;• Base Price: ₹${formatCurrency(priceWithoutGST * itemQty)} (excl. GST)<br>
+                  &nbsp;&nbsp;• CGST ${cgstRate.toFixed(1)}%: ₹${formatCurrency(itemCGST * itemQty)}<br>
+                  &nbsp;&nbsp;• SGST ${sgstRate.toFixed(1)}%: ₹${formatCurrency(itemSGST * itemQty)}<br>
+                  &nbsp;&nbsp;• <strong>Total with GST: ₹${formatCurrency(itemDiscountPrice * itemQty)}</strong>
+                </div>
+              `;
+            }).join('')}
+              <div style="border-top: 1px solid #ccc; margin-top: 8px; padding-top: 5px; font-weight: bold;">
+              Total CGST: ₹${formatCurrency(order.cart.reduce((sum, item) => {
+                const itemQty = item.qty || 1;
+                let itemDiscountPrice = item.discountPrice || 0;
+                if (item.selectedVariant && item.selectedVariant.price) {
+                  itemDiscountPrice = item.selectedVariant.price;
+                } else if (item.productConfiguration && item.productConfiguration.price) {
+                  itemDiscountPrice = item.productConfiguration.price;
+                } else if (item.finalPrice) {
+                  itemDiscountPrice = item.finalPrice;
+                }
+
+                const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                if (!gstConfig.isGstApplicable) return sum;
+
+                const totalGSTRate = gstConfig.gstType === 'separate' 
+                  ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                  : (gstConfig.combinedGstRate || 0);
+                const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                const cgstRate = gstConfig.cgstRate || (gstConfig.combinedGstRate || 0) / 2;
+                return sum + (itemQty * priceWithoutGST * cgstRate / 100);
+              }, 0))} | Total SGST: ₹${formatCurrency(order.cart.reduce((sum, item) => {
+                const itemQty = item.qty || 1;
+                let itemDiscountPrice = item.discountPrice || 0;
+                if (item.selectedVariant && item.selectedVariant.price) {
+                  itemDiscountPrice = item.selectedVariant.price;
+                } else if (item.productConfiguration && item.productConfiguration.price) {
+                  itemDiscountPrice = item.productConfiguration.price;
+                } else if (item.finalPrice) {
+                  itemDiscountPrice = item.finalPrice;
+                }
+
+                const gstConfig = item.gstConfiguration || { isGstApplicable: false };
+                if (!gstConfig.isGstApplicable) return sum;
+
+                const totalGSTRate = gstConfig.gstType === 'separate' 
+                  ? (gstConfig.cgstRate || 0) + (gstConfig.sgstRate || 0)
+                  : (gstConfig.combinedGstRate || 0);
+                const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
+                const sgstRate = gstConfig.sgstRate || (gstConfig.combinedGstRate || 0) / 2;
+                return sum + (itemQty * priceWithoutGST * sgstRate / 100);
+              }, 0))}
+            </div>
         </div>
         ` : ''}
         
@@ -468,7 +798,7 @@ const generateInvoicePDF = async (order, shop = null) => {
     
     // Generate HTML content
     console.log(`📄 Generating HTML content for order ${order._id}`);
-    const htmlContent = generateInvoiceHTML(order, shop);
+    const htmlContent = await generateInvoiceHTML(order, shop);
     
     if (!htmlContent || htmlContent.length === 0) {
       throw new Error('Generated HTML content is empty');

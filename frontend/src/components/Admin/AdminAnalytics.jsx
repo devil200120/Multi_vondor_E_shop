@@ -227,8 +227,9 @@ const AdminAnalytics = () => {
     filteredOrders.forEach((order) => {
       order.cart.forEach((item) => {
         const category = item.category || "Others";
+        const itemPrice = item.finalPrice || item.discountPrice;
         categoryRevenue[category] =
-          (categoryRevenue[category] || 0) + item.discountPrice * item.qty;
+          (categoryRevenue[category] || 0) + itemPrice * item.qty;
         categoryOrders[category] = (categoryOrders[category] || 0) + item.qty;
       });
     });

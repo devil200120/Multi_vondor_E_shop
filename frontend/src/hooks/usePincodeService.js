@@ -50,6 +50,53 @@ export const usePincodeService = () => {
     }
   }, []);
 
+  const validateProductPincode = useCallback(async (pincode, productId) => {
+    if (!pincode || pincode.length !== 6) {
+      setError('Please provide a valid 6-digit pincode');
+      return { isValid: false, data: null };
+    }
+
+    if (!productId) {
+      setError('Product ID is required');
+      return { isValid: false, data: null };
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.get(`${server}/pincode/check-product/${pincode}/${productId}`);
+      
+      if (response.data.success && response.data.deliveryAvailable) {
+        setDeliveryInfo(response.data.data);
+        return { 
+          isValid: true, 
+          data: response.data.data,
+          message: response.data.message 
+        };
+      } else {
+        setError(response.data.message);
+        setDeliveryInfo(null);
+        return { 
+          isValid: false, 
+          data: null,
+          message: response.data.message 
+        };
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error checking product pincode delivery';
+      setError(errorMessage);
+      setDeliveryInfo(null);
+      return { 
+        isValid: false, 
+        data: null, 
+        message: errorMessage 
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const calculateShipping = useCallback(async (pincode, cartValue = 0, expressDelivery = false) => {
     if (!pincode || pincode.length !== 6) {
       throw new Error('Please provide a valid 6-digit pincode');
@@ -122,6 +169,7 @@ export const usePincodeService = () => {
     deliveryInfo,
     error,
     validatePincode,
+    validateProductPincode,
     calculateShipping,
     searchLocations,
     getPlaceDetails,

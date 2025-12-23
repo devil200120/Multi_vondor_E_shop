@@ -593,14 +593,40 @@ const OrderDetails = () => {
                     <h4 className="text-lg font-medium text-gray-900 truncate">
                       {item.name}
                     </h4>
+
+                    {/* Selected Attributes */}
+                    {item.selectedAttributes &&
+                      Object.keys(item.selectedAttributes).length > 0 && (
+                        <div className="mt-2 mb-2">
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(item.selectedAttributes).map(
+                              ([key, value]) => (
+                                <span
+                                  key={key}
+                                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                                >
+                                  {key}: {value}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                     <p className="text-sm text-gray-600">
                       Quantity: {item.qty}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold text-gray-900">
-                      ₹{item.discountPrice}
+                      ₹{(item.finalPrice || item.discountPrice).toFixed(2)}
                     </p>
+                    {item.finalPrice &&
+                      item.finalPrice !== item.discountPrice && (
+                        <p className="text-sm text-gray-400 line-through">
+                          ₹{item.discountPrice.toFixed(2)}
+                        </p>
+                      )}
                     <p className="text-sm text-gray-600">Each</p>
                   </div>
                 </div>

@@ -418,7 +418,7 @@ const ProductsPage = () => {
         <Loader />
       ) : (
         <div>
-          <Header activeHeading={3} />
+          <Header activeHeading={2} />
 
           {/* Main Content */}
           <div className="bg-gray-50 min-h-screen pt-6">

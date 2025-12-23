@@ -13,6 +13,7 @@ import {
 } from "../../redux/actions/category";
 import { toast } from "react-toastify";
 import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
+import ProductAttributesForm from "./ProductAttributesForm";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
@@ -33,6 +34,7 @@ const CreateProduct = () => {
   const [originalPrice, setOriginalPrice] = useState();
   const [discountPrice, setDiscountPrice] = useState();
   const [stock, setStock] = useState();
+  const [attributes, setAttributes] = useState([]);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -156,6 +158,7 @@ const CreateProduct = () => {
     newForm.append("discountPrice", discountPrice);
     newForm.append("stock", stock);
     newForm.append("shopId", seller._id);
+    newForm.append("attributes", JSON.stringify(attributes));
     dispatch(createProduct(newForm));
   };
 
@@ -397,6 +400,12 @@ const CreateProduct = () => {
               </div>
             </div>
 
+            {/* Product Attributes Section */}
+            <ProductAttributesForm
+              attributes={attributes}
+              onChange={setAttributes}
+            />
+
             {/* Product Images Section */}
             <div className="space-y-4 md:space-y-6">
               <div className="border-b border-gray-200/50 pb-3 md:pb-4">
@@ -452,7 +461,7 @@ const CreateProduct = () => {
                           onClick={() =>
                             setImages(images.filter((_, i) => i !== index))
                           }
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
                         >
                           <AiOutlineClose size={12} />
                         </button>
@@ -523,7 +532,7 @@ const CreateProduct = () => {
                           onClick={() =>
                             setVideos(videos.filter((_, i) => i !== index))
                           }
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-200"
                         >
                           <AiOutlineClose size={12} />
                         </button>

@@ -294,7 +294,7 @@ const generateOrderConfirmationEmail = (order, user) => {
                             <p style="color: #374151; margin-bottom: 20px; font-size: 16px; line-height: 1.6;">Have questions about your order? Our dedicated customer support team is ready to assist you anytime!</p>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                            <a href="mailto:support@samrudhigroup.in" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 16px 20px; text-decoration: none; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            <a href="mailto:support@wanttar.in" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 16px 20px; text-decoration: none; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                                 📧 Email Support
                             </a>
                             <a href="tel:+91-XXX-XXX-XXXX" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px 20px; text-decoration: none; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
@@ -352,7 +352,7 @@ const generateOrderConfirmationEmail = (order, user) => {
                         This email was sent to <strong>${user.email}</strong>
                     </p>
                     <p style="margin: 0; font-size: 12px; opacity: 0.7;">
-                        © 2025 Samrudhi Group. All rights reserved. | 🌐 www.samrudhigroup.in
+                        © 2025 Samrudhi Group. All rights reserved. | 🌐 www.wanttar.in
                     </p>
                 </div>
             </div>

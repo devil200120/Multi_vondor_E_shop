@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
+import { useLegalPage } from "../hooks/useLegalPage";
 import {
   HiOutlineLocationMarker,
   HiOutlinePhone,
@@ -11,24 +12,157 @@ import {
   HiOutlineTruck,
   HiOutlineShieldCheck,
   HiOutlineHeart,
-  HiOutlineStar,
   HiOutlineGlobe,
   HiOutlineGift,
 } from "react-icons/hi";
-import {
-  AiOutlineTeam,
-  AiOutlineRocket,
-  AiOutlineAim,
-  AiOutlineEye,
-  AiOutlineTrophy,
-  AiOutlineGift,
-} from "react-icons/ai";
+import { AiOutlineRocket, AiOutlineAim, AiOutlineEye } from "react-icons/ai";
 
 const AboutUsPage = () => {
+  const { legalPage, loading, error } = useLegalPage("about-us");
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Show loading spinner while fetching legal page content
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading About Us content...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // If admin has created custom About Us content, show it
+  if (legalPage && !error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+
+        {/* Dynamic Hero Section */}
+        <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-teal-600 py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          </div>
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              {legalPage.title}
+            </h1>
+            {legalPage.metaDescription && (
+              <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+                {legalPage.metaDescription}
+              </p>
+            )}
+
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/products"
+                className="px-8 py-4 bg-white text-purple-600 font-bold rounded-xl hover:bg-blue-50 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+              >
+                Explore Products
+              </Link>
+              <Link
+                to="/shop-create"
+                className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white hover:text-purple-600 transition-all duration-300"
+              >
+                Become a Seller
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Dynamic Content Section */}
+          <section className="py-20">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div
+                className="prose prose-lg max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: legalPage.content,
+                }}
+                style={{
+                  lineHeight: "1.6",
+                  color: "#374151",
+                }}
+              />
+            </div>
+          </section>
+
+          {/* Contact Section */}
+          <section className="py-20">
+            <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-12 text-white text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Get in Touch
+              </h2>
+              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                Have questions? We'd love to hear from you. Our team is here to
+                help.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                    <HiOutlineLocationMarker className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
+                  <p className="text-blue-100 text-center">
+                    5-25, 15th main road, 3rd stage, 4th block,
+                    <br />
+                    Basaveswaranagar, Bangalore 560079
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                    <HiOutlinePhone className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Call Us</h3>
+                  <p className="text-blue-100">+91 7349727270</p>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                    <HiOutlineMail className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Email Us</h3>
+                  <p className="text-blue-100">support@wanttar.com</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/faq"
+                  className="px-8 py-4 bg-white text-purple-600 font-bold rounded-xl hover:bg-blue-50 transition-all duration-300"
+                >
+                  View FAQ
+                </Link>
+                <Link
+                  to="/inbox"
+                  className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white hover:text-purple-600 transition-all duration-300"
+                >
+                  Contact Support
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  // Fallback to static content if no admin content is available or there's an error
   const teamMembers = [
     {
       name: "Subhankar Dash",
@@ -86,9 +220,23 @@ const AboutUsPage = () => {
     { number: "99.9%", label: "Uptime", icon: HiOutlineTruck },
   ];
 
+  // Render fallback static content
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+
+      {/* Error Message if there was an issue loading admin content */}
+      {error && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mt-4">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                Unable to load custom About Us content. Showing default content.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-teal-600 py-20 overflow-hidden">

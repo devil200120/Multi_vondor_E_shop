@@ -6,13 +6,16 @@ import {
   AiOutlineClose,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { FiPackage, FiShoppingBag, FiTruck } from "react-icons/fi";
+import { FiPackage, FiShoppingBag } from "react-icons/fi";
 import { MdOutlineLocalOffer } from "react-icons/md";
 import { RxDashboard } from "react-icons/rx";
 import { VscNewFile } from "react-icons/vsc";
 import { CiMoneyBill, CiSettings } from "react-icons/ci";
+import { HiOutlineCalculator } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
+import { FaVideo } from "react-icons/fa";
+import { MdVideoLibrary } from "react-icons/md";
 import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
@@ -125,20 +128,20 @@ const DashboardSideBar = ({ active }) => {
       icon: AiOutlineFolderAdd,
       badge: null,
     },
-    {
-      id: 5,
-      title: "All Events",
-      link: "/dashboard-events",
-      icon: MdOutlineLocalOffer,
-      badge: eventsCount > 0 ? eventsCount.toString() : null,
-    },
-    {
-      id: 6,
-      title: "Create Event",
-      link: "/dashboard-create-event",
-      icon: VscNewFile,
-      badge: null,
-    },
+    // {
+    //   id: 5,
+    //   title: "All Events",
+    //   link: "/dashboard-events",
+    //   icon: MdOutlineLocalOffer,
+    //   badge: eventsCount > 0 ? eventsCount.toString() : null,
+    // },
+    // {
+    //   id: 6,
+    //   title: "Create Event",
+    //   link: "/dashboard-create-event",
+    //   icon: VscNewFile,
+    //   badge: null,
+    // },
     {
       id: 7,
       title: "All Coupons",
@@ -148,37 +151,65 @@ const DashboardSideBar = ({ active }) => {
     },
     {
       id: 8,
+      title: "Video Calls",
+      link: "/dashboard-video-calls",
+      icon: FaVideo,
+      badge: null,
+    },
+    {
+      id: 9,
+      title: "Video Banners",
+      link: "/dashboard-video-banners",
+      icon: MdVideoLibrary,
+      badge: null,
+    },
+    {
+      id: 10,
+      title: "Create Video Banner",
+      link: "/dashboard-create-video-banner",
+      icon: AiOutlineFolderAdd,
+      badge: null,
+    },
+    {
+      id: 11,
       title: "Messages",
       link: "/dashboard-messages",
       icon: BiMessageSquareDetail,
       badge: conversationsCount > 0 ? conversationsCount.toString() : null,
     },
     {
-      id: 9,
+      id: 12,
       title: "Refund Requests",
       link: "/dashboard-refunds",
       icon: HiOutlineReceiptRefund,
       badge: refundRequestsCount > 0 ? refundRequestsCount.toString() : null,
     },
     {
-      id: 10,
+      id: 13,
       title: "Withdraw Money",
       link: "/dashboard-withdraw-money",
       icon: CiMoneyBill,
       badge: null,
     },
     {
-      id: 11,
-      title: "Shipping ",
-      link: "/dashboard-shipping",
-      icon: FiTruck,
+      id: 12,
+      title: "Product Shipping",
+      link: "/dashboard-product-shipping",
+      icon: FiPackage,
       badge: null,
     },
     {
-      id: 12,
+      id: 13,
       title: "Shop Settings",
       link: "/settings",
       icon: CiSettings,
+      badge: null,
+    },
+    {
+      id: 14,
+      title: "GST Settings",
+      link: "/dashboard-gst-settings",
+      icon: HiOutlineCalculator,
       badge: null,
     },
   ];
@@ -233,7 +264,14 @@ const DashboardSideBar = ({ active }) => {
       <div
         className={`flex-1 ${
           mobile ? "p-5 pt-4" : "p-6 pt-4"
-        } space-y-1 overflow-y-auto`}
+        } space-y-1 overflow-y-auto scrollbar-hide`}
+        style={{
+          /* Hide scrollbar for webkit browsers */
+          WebkitScrollbar: { display: "none" },
+          /* Hide scrollbar for IE, Edge and Firefox */
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
+        }}
       >
         {menuItems.map((item) => {
           const IconComponent = item.icon;
@@ -494,7 +532,7 @@ const DashboardSideBar = ({ active }) => {
             </div>
 
             {/* Main Menu Section */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6">
               {/* Dashboard Card */}
               <div className="mb-6">
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
@@ -777,9 +815,9 @@ const DashboardSideBar = ({ active }) => {
                   Communication
                 </h3>
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  {/* Messages */}
+                  {/* Video Calls */}
                   <Link
-                    to="/dashboard-messages"
+                    to="/dashboard-video-calls"
                     onClick={() => setIsMobileSidebarOpen(false)}
                     className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
                       active === 8
@@ -788,8 +826,42 @@ const DashboardSideBar = ({ active }) => {
                     }`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                         active === 8
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <FaVideo size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 8 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Video Calls
+                      </h4>
+                      <p className="text-sm text-gray-500">Customer support</p>
+                    </div>
+                    {active === 8 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Messages */}
+                  <Link
+                    to="/dashboard-messages"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 9
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                        active === 9
                           ? "bg-blue-100 text-blue-600"
                           : "bg-gray-100 text-gray-600"
                       }`}
@@ -804,14 +876,14 @@ const DashboardSideBar = ({ active }) => {
                     <div className="ml-3 flex-1">
                       <h4
                         className={`font-semibold text-base ${
-                          active === 8 ? "text-blue-900" : "text-gray-900"
+                          active === 9 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
                         Messages
                       </h4>
                       <p className="text-sm text-gray-500">Customer chat</p>
                     </div>
-                    {active === 8 && (
+                    {active === 9 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>
@@ -821,14 +893,14 @@ const DashboardSideBar = ({ active }) => {
                     to="/dashboard-refunds"
                     onClick={() => setIsMobileSidebarOpen(false)}
                     className={`flex items-center p-4 transition-all duration-200 ${
-                      active === 9
+                      active === 10
                         ? "bg-blue-50 border-r-4 border-blue-500"
                         : "hover:bg-gray-50"
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
-                        active === 9
+                        active === 10
                           ? "bg-blue-100 text-blue-600"
                           : "bg-gray-100 text-gray-600"
                       }`}
@@ -843,14 +915,14 @@ const DashboardSideBar = ({ active }) => {
                     <div className="ml-3 flex-1">
                       <h4
                         className={`font-semibold text-base ${
-                          active === 9 ? "text-blue-900" : "text-gray-900"
+                          active === 10 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
                         Refund Requests
                       </h4>
                       <p className="text-sm text-gray-500">Handle refunds</p>
                     </div>
-                    {active === 9 && (
+                    {active === 10 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>
@@ -868,40 +940,6 @@ const DashboardSideBar = ({ active }) => {
                     to="/dashboard-withdraw-money"
                     onClick={() => setIsMobileSidebarOpen(false)}
                     className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
-                      active === 10
-                        ? "bg-blue-50 border-r-4 border-blue-500"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        active === 10
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      <CiMoneyBill size={18} />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h4
-                        className={`font-semibold text-base ${
-                          active === 10 ? "text-blue-900" : "text-gray-900"
-                        }`}
-                      >
-                        Withdraw Money
-                      </h4>
-                      <p className="text-sm text-gray-500">Available: ₹0.00</p>
-                    </div>
-                    {active === 10 && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    )}
-                  </Link>
-
-                  {/* Shipping Management */}
-                  <Link
-                    to="/dashboard-shipping"
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
                       active === 11
                         ? "bg-blue-50 border-r-4 border-blue-500"
                         : "hover:bg-gray-50"
@@ -914,7 +952,7 @@ const DashboardSideBar = ({ active }) => {
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      <FiTruck size={18} />
+                      <CiMoneyBill size={18} />
                     </div>
                     <div className="ml-3 flex-1">
                       <h4
@@ -922,22 +960,20 @@ const DashboardSideBar = ({ active }) => {
                           active === 11 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
-                        Shipping Management
+                        Withdraw Money
                       </h4>
-                      <p className="text-sm text-gray-500">
-                        Configure shipping
-                      </p>
+                      <p className="text-sm text-gray-500">Available: ₹0.00</p>
                     </div>
                     {active === 11 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>
 
-                  {/* Shop Settings */}
+                  {/* Product Shipping */}
                   <Link
-                    to="/settings"
+                    to="/dashboard-product-shipping"
                     onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`flex items-center p-4 transition-all duration-200 ${
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
                       active === 12
                         ? "bg-blue-50 border-r-4 border-blue-500"
                         : "hover:bg-gray-50"
@@ -950,12 +986,48 @@ const DashboardSideBar = ({ active }) => {
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      <CiSettings size={18} />
+                      <FiPackage size={18} />
                     </div>
                     <div className="ml-3 flex-1">
                       <h4
                         className={`font-semibold text-base ${
                           active === 12 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Product Shipping
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Configure per product
+                      </p>
+                    </div>
+                    {active === 12 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Shop Settings */}
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 13
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 13
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <CiSettings size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 13 ? "text-blue-900" : "text-gray-900"
                         }`}
                       >
                         Shop Settings
@@ -964,7 +1036,7 @@ const DashboardSideBar = ({ active }) => {
                         Store configuration
                       </p>
                     </div>
-                    {active === 12 && (
+                    {active === 13 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>

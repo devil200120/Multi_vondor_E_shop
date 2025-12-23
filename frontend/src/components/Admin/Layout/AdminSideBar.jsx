@@ -13,6 +13,12 @@ import {
   HiOutlineLogout,
   HiOutlinePhotograph,
   HiOutlineCollection,
+  HiOutlineClock,
+  HiOutlineDocumentText,
+  HiOutlineStar,
+  HiOutlineCog,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineFilm,
 } from "react-icons/hi";
 import { logoutUser } from "../../../redux/actions/user";
 import { toast } from "react-toastify";
@@ -51,6 +57,13 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       color: "bg-orange-500",
     },
     {
+      id: 11,
+      name: "Pending Sellers",
+      icon: HiOutlineClock,
+      url: "/admin-pending-sellers",
+      color: "bg-yellow-500",
+    },
+    {
       id: 4,
       name: "All Users",
       icon: HiOutlineUsers,
@@ -64,13 +77,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       url: "/admin-products",
       color: "bg-indigo-500",
     },
-    {
-      id: 6,
-      name: "All Events",
-      icon: HiOutlineCalendar,
-      url: "/admin-events",
-      color: "bg-yellow-500",
-    },
+
     {
       id: 7,
       name: "Withdraw Request",
@@ -86,11 +93,46 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       color: "bg-pink-500",
     },
     {
+      id: 16,
+      name: "Video Banners",
+      icon: HiOutlineFilm,
+      url: "/admin-video-banners",
+      color: "bg-red-500",
+    },
+    {
       id: 9,
       name: "Categories",
       icon: HiOutlineCollection,
       url: "/admin-categories",
       color: "bg-cyan-500",
+    },
+    {
+      id: 12,
+      name: "Legal Pages",
+      icon: HiOutlineDocumentText,
+      url: "/admin-legal-pages",
+      color: "bg-emerald-500",
+    },
+    {
+      id: 13,
+      name: "Review Management",
+      icon: HiOutlineStar,
+      url: "/admin-reviews",
+      color: "bg-indigo-500",
+    },
+    {
+      id: 14,
+      name: "Site Settings",
+      icon: HiOutlineCog,
+      url: "/admin-site-settings",
+      color: "bg-gray-500",
+    },
+    {
+      id: 15,
+      name: "FAQ Management",
+      icon: HiOutlineQuestionMarkCircle,
+      url: "/admin-faq",
+      color: "bg-blue-500",
     },
     {
       id: 10,
@@ -197,12 +239,20 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
                         {item.name === "Dashboard" && "Overview & analytics"}
                         {item.name === "All Orders" && "Manage orders"}
                         {item.name === "All Sellers" && "Seller management"}
+                        {item.name === "Pending Sellers" && "Approve sellers"}
                         {item.name === "All Users" && "User management"}
                         {item.name === "All Products" && "Product inventory"}
                         {item.name === "All Events" && "Event management"}
                         {item.name === "Withdraw Request" && "Payment requests"}
                         {item.name === "Home Banner" && "Homepage banners"}
                         {item.name === "Categories" && "Category management"}
+                        {item.name === "Legal Pages" && "Terms & policies"}
+                        {item.name === "Review Management" &&
+                          "Manage product reviews"}
+                        {item.name === "Site Settings" &&
+                          "Configure site information"}
+                        {item.name === "FAQ Management" &&
+                          "Manage frequently asked questions"}
                         {item.name === "Analytics" && "Reports & insights"}
                       </span>
                     )}

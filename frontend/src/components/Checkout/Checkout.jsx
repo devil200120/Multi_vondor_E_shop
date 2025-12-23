@@ -5,7 +5,9 @@ import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
 import { server } from "../../server";
+import { backend_url } from "../../server";
 import { toast } from "react-toastify";
+import { getProductImageUrl } from "../../utils/mediaUtils";
 import {
   FiMapPin,
   FiUser,
@@ -215,6 +217,7 @@ const Checkout = () => {
       subTotalPrice,
       shipping,
       discountPrice,
+      tax: 0,
       shippingAddress,
       user,
     };
@@ -236,9 +239,13 @@ const Checkout = () => {
   const subTotalPrice = buyNowOrder
     ? buyNowOrder.subTotalPrice
     : cart.reduce((acc, item) => {
-        // Use discountPrice if available, otherwise use originalPrice
+        // Use finalPrice if available (for attribute variations), otherwise use discountPrice
         const price =
-          item.discountPrice || item.originalPrice || item.price || 0;
+          item.finalPrice ||
+          item.discountPrice ||
+          item.originalPrice ||
+          item.price ||
+          0;
         console.log(
           "Cart item:",
           item.name,
@@ -268,13 +275,17 @@ const Checkout = () => {
           };
         }
         const price =
-          item.discountPrice || item.originalPrice || item.price || 0;
+          item.finalPrice ||
+          item.discountPrice ||
+          item.originalPrice ||
+          item.price ||
+          0;
         acc[shopId].items.push(item);
         acc[shopId].totalValue += price * item.qty;
         return acc;
       }, {});
 
-      // Calculate total shipping from all shops
+      // Calculate total shipping with product-specific configurations
       let totalShipping = 0;
       console.log("Shop groups for shipping calculation:", shopGroups);
 
@@ -285,48 +296,105 @@ const Checkout = () => {
 
         // Get shipping configuration for this shop
         const shippingConfig = shopShippingConfigs[shopId];
+        let shopShippingCost = 0;
+        let hasProductSpecificShipping = false;
 
-        if (shippingConfig) {
-          console.log("Using shipping config:", shippingConfig);
+        // Calculate shipping for each product in this shop
+        group.items.forEach((item) => {
+          const productShipping = item.shipping;
+          let productShippingCost = 0;
 
-          // Check if order qualifies for free shipping
-          if (
-            shippingConfig.freeShippingThreshold &&
-            group.totalValue >= shippingConfig.freeShippingThreshold
-          ) {
-            console.log("Free shipping applied for shop:", shop.name);
-            return; // Free shipping for this shop
+          // Check if product has specific shipping configuration
+          if (productShipping && productShipping.baseShippingRate > 0) {
+            hasProductSpecificShipping = true;
+            console.log(
+              `Product ${item.name} has specific shipping rate: ₹${productShipping.baseShippingRate}`
+            );
+
+            // Check product-level free shipping threshold
+            const itemTotal =
+              (item.finalPrice ||
+                item.discountPrice ||
+                item.originalPrice ||
+                item.price ||
+                0) * item.qty;
+            if (
+              productShipping.freeShippingThreshold &&
+              itemTotal >= productShipping.freeShippingThreshold
+            ) {
+              console.log(`Free shipping applied for product: ${item.name}`);
+              productShippingCost = 0;
+            } else {
+              productShippingCost = productShipping.baseShippingRate * item.qty;
+            }
+          } else if (shippingConfig) {
+            // Use shop-level configuration for products without specific shipping
+            console.log(`Product ${item.name} using shop default shipping`);
+
+            // Check shop-level free shipping threshold for this product
+            const itemTotal =
+              (item.finalPrice ||
+                item.discountPrice ||
+                item.originalPrice ||
+                item.price ||
+                0) * item.qty;
+            if (
+              shippingConfig.freeShippingThreshold &&
+              itemTotal >= shippingConfig.freeShippingThreshold
+            ) {
+              console.log(
+                `Free shipping applied for product (shop threshold): ${item.name}`
+              );
+              productShippingCost = 0;
+            } else {
+              const shopShippingRate =
+                shippingConfig.baseShippingRate !== undefined
+                  ? shippingConfig.baseShippingRate
+                  : shippingConfig.shippingCharge !== undefined
+                  ? shippingConfig.shippingCharge
+                  : 30;
+              productShippingCost = shopShippingRate * item.qty;
+            }
+          } else {
+            // Fallback to default shipping
+            console.log(`Product ${item.name} using default ₹30 shipping`);
+            const itemTotal =
+              (item.finalPrice ||
+                item.discountPrice ||
+                item.originalPrice ||
+                item.price ||
+                0) * item.qty;
+            if (itemTotal >= 999) {
+              console.log(
+                `Free shipping applied for product (default threshold): ${item.name}`
+              );
+              productShippingCost = 0;
+            } else {
+              productShippingCost = 30 * item.qty;
+            }
           }
 
-          // Add configured shipping charge for this shop
-          const shippingCharge =
-            shippingConfig.baseShippingRate !== undefined
-              ? shippingConfig.baseShippingRate
-              : shippingConfig.shippingCharge !== undefined
-              ? shippingConfig.shippingCharge
-              : 30;
-          console.log("Adding shipping charge:", shippingCharge);
-          totalShipping += shippingCharge;
-        } else {
+          shopShippingCost += productShippingCost;
+        });
+
+        // Check if entire shop order qualifies for free shipping (only if no product-specific shipping)
+        if (
+          !hasProductSpecificShipping &&
+          shippingConfig &&
+          shippingConfig.freeShippingThreshold &&
+          group.totalValue >= shippingConfig.freeShippingThreshold
+        ) {
           console.log(
-            "No shipping config found for shop:",
-            shop.name,
-            "using default ₹30"
+            "Free shipping applied for entire shop order:",
+            shop.name
           );
-
-          // Fallback to default shipping if no config found
-          const defaultShippingCharge = 30;
-
-          // Check if order qualifies for free shipping (threshold ₹999)
-          if (group.totalValue >= 999) {
-            console.log("Free shipping applied for shop (default):", shop.name);
-            return;
-          }
-
-          // Add default shipping charge
-          console.log("Adding default shipping charge:", defaultShippingCharge);
-          totalShipping += defaultShippingCharge;
+          shopShippingCost = 0;
         }
+
+        console.log(
+          `Total shipping cost for shop ${shop.name}: ₹${shopShippingCost}`
+        );
+        totalShipping += shopShippingCost;
       });
 
       console.log("Total calculated shipping:", totalShipping);
@@ -410,7 +478,8 @@ const Checkout = () => {
           setCouponCode("");
         } else {
           const eligiblePrice = isCouponValid.reduce(
-            (acc, item) => acc + item.qty * item.discountPrice,
+            (acc, item) =>
+              acc + item.qty * (item.finalPrice || item.discountPrice),
             0
           );
           const discountPrice = (eligiblePrice * couponCodeValue) / 100;
@@ -443,7 +512,8 @@ const Checkout = () => {
           toast.error("Coupon code is not valid for this shop");
         } else {
           const eligiblePrice = isCouponValid.reduce(
-            (acc, item) => acc + item.qty * item.discountPrice,
+            (acc, item) =>
+              acc + item.qty * (item.finalPrice || item.discountPrice),
             0
           );
           const discountPrice = (eligiblePrice * couponCodeValue) / 100;
@@ -470,6 +540,7 @@ const Checkout = () => {
 
   const discountPercentenge = couponCodeData ? discountPrice : "";
 
+  // Calculate total price
   const totalPrice = couponCodeData
     ? Number(subTotalPrice + shipping - discountPercentenge).toFixed(2)
     : Number(subTotalPrice + shipping).toFixed(2);
@@ -873,6 +944,112 @@ const CartData = ({
 
         {/* Summary Content */}
         <div className="p-4 space-y-4">
+          {/* Order Items */}
+          {activeCart && activeCart.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-800 border-b pb-2">
+                Order Items ({activeCart.length})
+              </h3>
+              {activeCart.map((item, index) => {
+                console.log("Cart item for checkout:", {
+                  name: item.name,
+                  images: item.images,
+                  imageUrl: getProductImageUrl(item?.images, 0, backend_url),
+                });
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start space-x-3 p-2 bg-gray-50 rounded-lg"
+                  >
+                    <img
+                      src={
+                        getProductImageUrl(item?.images, 0, backend_url) ||
+                        "https://via.placeholder.com/48x48/E5E7EB/6B7280?text=No+Image"
+                      }
+                      alt={item.name}
+                      className="w-12 h-12 object-cover rounded-md flex-shrink-0 bg-gray-200"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/48x48/E5E7EB/6B7280?text=No+Image";
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-800 truncate">
+                        {item.name}
+                      </h4>
+                      <div className="text-xs text-gray-600">
+                        Qty: {item.qty}
+                      </div>
+
+                      {/* Selected Attributes */}
+                      {item.selectedAttributes &&
+                        Object.keys(item.selectedAttributes).length > 0 && (
+                          <div className="mt-1">
+                            {Object.entries(item.selectedAttributes).map(
+                              ([key, value]) => (
+                                <span
+                                  key={key}
+                                  className="inline-block mr-2 mb-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full"
+                                >
+                                  {key}: {value}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        )}
+
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="text-xs text-gray-600">
+                          {item.finalPrice &&
+                          item.finalPrice !==
+                            (item.discountPrice ||
+                              item.originalPrice ||
+                              item.price) ? (
+                            <div>
+                              <span className="line-through text-gray-400">
+                                ₹
+                                {item.discountPrice ||
+                                  item.originalPrice ||
+                                  item.price}
+                              </span>
+                              <span className="ml-1 text-green-600 font-semibold">
+                                ₹{item.finalPrice}
+                              </span>
+                              <span className="block text-xs text-green-600">
+                                Attribute price applied
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-800">
+                              ₹
+                              {item.finalPrice ||
+                                item.discountPrice ||
+                                item.originalPrice ||
+                                item.price}
+                            </span>
+                          )}
+                          <span className="ml-1 text-gray-600">
+                            × {item.qty}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-indigo-600">
+                          ₹
+                          {(
+                            (item.finalPrice ||
+                              item.discountPrice ||
+                              item.originalPrice ||
+                              item.price) * item.qty
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Price Breakdown */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">

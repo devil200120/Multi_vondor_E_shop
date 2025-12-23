@@ -535,13 +535,37 @@ const TrackOrder = () => {
                       <p className="text-sm font-semibold text-gray-900 truncate mb-1">
                         {item.name}
                       </p>
+                      
+                      {/* Selected Attributes */}
+                      {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
+                        <div className="mb-2">
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(item.selectedAttributes).map(([key, value]) => (
+                              <span
+                                key={key}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                              >
+                                {key}: {value}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600">
                           Qty: <span className="font-medium">{item.qty}</span>
                         </p>
-                        <p className="text-sm font-bold text-blue-600">
-                          ₹{item.discountPrice}
-                        </p>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-blue-600">
+                            ₹{(item.finalPrice || item.discountPrice).toFixed(2)}
+                          </p>
+                          {item.finalPrice && item.finalPrice !== item.discountPrice && (
+                            <p className="text-xs text-gray-400 line-through">
+                              ₹{item.discountPrice.toFixed(2)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

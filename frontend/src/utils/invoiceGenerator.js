@@ -2,15 +2,30 @@ import { server } from "../server";
 import { toast } from "react-toastify";
 
 // Download single invoice PDF
-export const downloadInvoice = async (order) => {
+export const downloadInvoice = async (order, userType = 'user') => {
   try {
-    console.log('🔄 Downloading invoice for order:', order._id);
+    console.log('🔄 Downloading invoice for order:', order._id, 'userType:', userType);
     
     if (!order || !order._id) {
       throw new Error('Order is required');
     }
 
-    const response = await fetch(`${server}/order/admin-invoice-pdf/${order._id}`, {
+    // Determine the correct endpoint based on user type
+    let endpoint;
+    switch (userType) {
+      case 'admin':
+        endpoint = `${server}/order/admin-invoice-pdf/${order._id}`;
+        break;
+      case 'seller':
+        endpoint = `${server}/order/seller-invoice-pdf/${order._id}`;
+        break;
+      case 'user':
+      default:
+        endpoint = `${server}/order/user-invoice-pdf/${order._id}`;
+        break;
+    }
+
+    const response = await fetch(endpoint, {
       method: "GET",
       credentials: "include"
     });
@@ -31,7 +46,13 @@ export const downloadInvoice = async (order) => {
       }
       
       if (response.status === 401 || response.status === 403) {
-        throw new Error("Authentication required. Please login as admin.");
+        if (userType === 'admin') {
+          throw new Error("Authentication required. Please login as admin.");
+        } else if (userType === 'seller') {
+          throw new Error("Authentication required. Please login as seller.");
+        } else {
+          throw new Error("Authentication required. Please login to download your invoice.");
+        }
       }
       
       throw new Error(errorMessage);
@@ -273,7 +294,7 @@ export const formatDate = (date) => {
 export const testInvoiceDownload = async () => {
   try {
     const sampleOrder = { _id: "67078a1b2c3d4e5f6789abcd" };
-    await downloadInvoice(sampleOrder);
+    await downloadInvoice(sampleOrder, 'user');
   } catch (error) {
     console.error('Test failed:', error);
   }

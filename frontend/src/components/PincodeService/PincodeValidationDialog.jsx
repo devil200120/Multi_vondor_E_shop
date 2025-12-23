@@ -19,6 +19,7 @@ const PincodeValidationDialog = ({
   onValidationResult,
   userAddresses = [],
   productName = "this product",
+  productId = null,
 }) => {
   const [pincode, setPincode] = useState("");
   const [loading, setLoading] = useState(false); // eslint-disable-line
@@ -41,9 +42,12 @@ const PincodeValidationDialog = ({
       setStep("checking");
 
       try {
-        const response = await axios.get(
-          `${server}/pincode/check/${pincodeValue}`
-        );
+        // Use product-specific validation if productId is provided
+        const endpoint = productId
+          ? `${server}/pincode/check-product/${pincodeValue}/${productId}`
+          : `${server}/pincode/check/${pincodeValue}`;
+
+        const response = await axios.get(endpoint);
 
         if (response.data.success && response.data.deliveryAvailable) {
           setIsValid(true);
@@ -101,7 +105,7 @@ const PincodeValidationDialog = ({
         setLoading(false);
       }
     },
-    [onValidationResult]
+    [onValidationResult, productId]
   );
 
   // Handle entrance animation
@@ -272,7 +276,6 @@ const PincodeValidationDialog = ({
               </form>
 
               {/* Info */}
-              
             </div>
           )}
 
@@ -370,7 +373,7 @@ const PincodeValidationDialog = ({
                         </h4>
                         <p className="text-red-700 text-sm mt-1 leading-relaxed">
                           {validationResult?.message ||
-                            "We currently deliver only within Karnataka state. We're working to expand to more areas soon!"}
+                            "We currently deliver only within Karnataka state. We're working to expand to more areas soon"}
                         </p>
                       </div>
                     </div>

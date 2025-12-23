@@ -265,12 +265,19 @@ const AllProducts = () => {
       renderCell: (params) => {
         const product = data?.find((p) => p._id === params.id);
         const isSellerProduct = product?.isSellerProduct;
+        const isAdminTagged = product?.isAdminTagged;
 
         if (isSellerProduct && product.sellerShop) {
           return (
             <div className="space-y-1">
-              <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                Seller Product
+              <div
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  isAdminTagged
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                {isAdminTagged ? "👑 Admin Tagged" : "🏪 Seller Product"}
               </div>
               <div
                 className="text-xs text-gray-600 truncate"

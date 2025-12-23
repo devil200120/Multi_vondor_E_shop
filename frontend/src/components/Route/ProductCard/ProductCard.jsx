@@ -107,9 +107,20 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
     const cartItem = { ...data, qty: 1 };
     const subTotalPrice = data.discountPrice;
 
-    // Calculate shipping using simple shipping system
+    // Calculate shipping - prioritize product-specific shipping
     let shipping = 0;
-    if (shippingInfo && shippingInfo.isShippingEnabled) {
+
+    // Check for product-specific shipping configuration first
+    if (data.shipping && data.shipping.baseShippingRate > 0) {
+      if (
+        !data.shipping.freeShippingThreshold ||
+        subTotalPrice < data.shipping.freeShippingThreshold
+      ) {
+        shipping = data.shipping.baseShippingRate;
+      }
+    }
+    // Fall back to shop-level shipping configuration
+    else if (shippingInfo && shippingInfo.isShippingEnabled) {
       if (subTotalPrice < shippingInfo.freeShippingThreshold) {
         shipping = shippingInfo.baseShippingRate || 50;
       }
@@ -318,18 +329,27 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
                     : data.name}
                 </h3>
 
-                {/* Seller Tag */}
-                {data.isSellerProduct && (
+                {/* Seller/Shop Tag */}
+                {(data.isSellerProduct ||
+                  (data.sellerShop && !data.isSellerProduct)) && (
                   <div
                     className={`mt-1 ${
                       isCompact ? "min-h-[16px]" : "min-h-[20px]"
                     }`}
                   >
                     <span className="inline-flex items-center bg-blue-100 text-blue-800 text-[8px] px-1.5 py-0.5 rounded-full font-medium">
-                      🏪{" "}
-                      {data.sellerShop &&
-                      typeof data.sellerShop === "object" &&
-                      data.sellerShop.name
+                      {data.isAdminTagged ? "👑" : "🏪"}{" "}
+                      {data.isSellerProduct
+                        ? data.sellerShop &&
+                          typeof data.sellerShop === "object" &&
+                          data.sellerShop.name
+                          ? `${data.sellerShop.name}${
+                              data.isAdminTagged ? " (Admin Tagged)" : ""
+                            }`
+                          : data.shop?.name || "Seller Product"
+                        : data.sellerShop &&
+                          typeof data.sellerShop === "object" &&
+                          data.sellerShop.name
                         ? `${data.sellerShop.name} (Admin Tagged)`
                         : "Admin Tagged"}
                     </span>
@@ -421,22 +441,55 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
                   isCompact ? "text-[7px]" : "text-[10px]"
                 } text-gray-500 mt-1`}
               >
-                {shippingInfo && shippingInfo.isShippingEnabled ? (
-                  shippingInfo.freeShippingThreshold &&
-                  data.discountPrice >= shippingInfo.freeShippingThreshold ? (
-                    <span className="text-green-600 font-medium">
-                      🚚 Free Shipping
-                    </span>
-                  ) : (
-                    <span>🚚 Shipping: ₹{shippingInfo.baseShippingRate}</span>
-                  )
-                ) : shippingInfo && !shippingInfo.isShippingEnabled ? (
-                  <span className="text-orange-600">
-                    📞 Contact for delivery
-                  </span>
-                ) : (
-                  <span>🚚 Shipping charges apply</span>
-                )}
+                {(() => {
+                  // Check for product-specific shipping configuration first
+                  if (data.shipping && data.shipping.baseShippingRate > 0) {
+                    // Product has specific shipping configuration
+                    if (
+                      data.shipping.freeShippingThreshold &&
+                      data.discountPrice >= data.shipping.freeShippingThreshold
+                    ) {
+                      return (
+                        <span className="text-green-600 font-medium">
+                          🚚 Free Shipping
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span className="text-blue-600 font-medium">
+                          🚚 Shipping: ₹{data.shipping.baseShippingRate}
+                        </span>
+                      );
+                    }
+                  }
+                  // Fall back to shop-level shipping configuration
+                  else if (shippingInfo && shippingInfo.isShippingEnabled) {
+                    if (
+                      shippingInfo.freeShippingThreshold &&
+                      data.discountPrice >= shippingInfo.freeShippingThreshold
+                    ) {
+                      return (
+                        <span className="text-green-600 font-medium">
+                          🚚 Free Shipping
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span>
+                          🚚 Shipping: ₹{shippingInfo.baseShippingRate}
+                        </span>
+                      );
+                    }
+                  } else if (shippingInfo && !shippingInfo.isShippingEnabled) {
+                    return (
+                      <span className="text-orange-600">
+                        📞 Contact for delivery
+                      </span>
+                    );
+                  } else {
+                    return <span>🚚 Shipping charges apply</span>;
+                  }
+                })()}
               </div>
             </div>
 

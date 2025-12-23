@@ -15,6 +15,12 @@ import ShopEditProductPage from "../pages/Shop/ShopEditProductPage";
 import ShopForgotPasswordPage from "../pages/ShopForgotPasswordPage";
 import ShopResetPasswordPage from "../pages/ShopResetPasswordPage";
 import ShippingManagementPage from "../pages/Shop/ShippingManagementPage";
+import ProductShippingPage from "../pages/Shop/ProductShippingPage";
+import SellerGSTSettingsPage from "../pages/Shop/SellerGSTSettingsPage";
+import ShopVideoCallsPage from "../pages/Shop/ShopVideoCallsPage";
+import DashboardVideoBannersPage from "../pages/Shop/DashboardVideoBannersPage";
+import DashboardCreateVideoBannerPage from "../pages/Shop/DashboardCreateVideoBannerPage";
+import DashboardEditVideoBannerPage from "../pages/Shop/DashboardEditVideoBannerPage";
 
 export {
   ShopDashboardPage,
@@ -34,4 +40,10 @@ export {
   ShopForgotPasswordPage,
   ShopResetPasswordPage,
   ShippingManagementPage,
+  ProductShippingPage,
+  SellerGSTSettingsPage,
+  ShopVideoCallsPage,
+  DashboardVideoBannersPage,
+  DashboardCreateVideoBannerPage,
+  DashboardEditVideoBannerPage,
 };

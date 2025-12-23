@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
 import ProductDetails from "../components/Products/ProductDetails";
+import FloatingVideoBanner from "../components/Products/FloatingVideoBanner";
 import { useParams, useSearchParams } from "react-router-dom";
 import SuggestedProduct from "../components/Products/SuggestedProduct";
 import { useSelector, useDispatch } from "react-redux";
@@ -17,6 +18,10 @@ const ProductDetailsPage = () => {
   const [data, setData] = useState(null);
   const [searchParams] = useSearchParams();
   const eventData = searchParams.get("isEvent");
+
+  // Video banner states
+  const [showFloatingBanner, setShowFloatingBanner] = useState(false);
+  const [bannerData, setBannerData] = useState(null);
 
   useEffect(() => {
     if (eventData !== null) {
@@ -36,12 +41,37 @@ const ProductDetailsPage = () => {
     window.scrollTo(0, 0);
   }, [allProducts, allEvents, id, eventData, dispatch]);
 
+  // Check if user came from video banner
+  useEffect(() => {
+    const fromVideoBanner = searchParams.get("fromVideoBanner");
+    const bannerTitle = searchParams.get("bannerTitle");
+    const bannerVideo = searchParams.get("bannerVideo");
+    const bannerThumbnail = searchParams.get("bannerThumbnail");
+
+    if (fromVideoBanner && bannerTitle && bannerVideo) {
+      setBannerData({
+        bannerId: fromVideoBanner,
+        bannerTitle: decodeURIComponent(bannerTitle),
+        videoUrl: decodeURIComponent(bannerVideo),
+        thumbnailUrl: bannerThumbnail
+          ? decodeURIComponent(bannerThumbnail)
+          : null,
+      });
+      setShowFloatingBanner(true);
+    }
+  }, [searchParams]);
+
   // Update data when single product is fetched
   useEffect(() => {
     if (product && !eventData) {
       setData(product);
     }
   }, [product, eventData]);
+
+  const handleCloseBanner = () => {
+    setShowFloatingBanner(false);
+    setBannerData(null);
+  };
 
   return (
     <div>
@@ -61,6 +91,18 @@ const ProductDetailsPage = () => {
           {!eventData && <>{data && <SuggestedProduct data={data} />}</>}
         </>
       )}
+
+      {/* Floating Video Banner */}
+      {showFloatingBanner && bannerData && (
+        <FloatingVideoBanner
+          bannerId={bannerData.bannerId}
+          bannerTitle={bannerData.bannerTitle}
+          videoUrl={bannerData.videoUrl}
+          thumbnailUrl={bannerData.thumbnailUrl}
+          onClose={handleCloseBanner}
+        />
+      )}
+
       <Footer />
     </div>
   );

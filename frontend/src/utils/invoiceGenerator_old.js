@@ -115,7 +115,7 @@ export const generateInvoice = async (order) => {
     doc.text('4th block, Basaveswaranagar', 20, detailsY + 42);
     doc.text('Bangalore - 560079', 20, detailsY + 52);
     doc.text('Phone: +91 7349727270', 20, detailsY + 62);
-    doc.text('Email: support@samrudhigroup.in', 20, detailsY + 72);
+    doc.text('Email: support@wanttar.in', 20, detailsY + 72);
     
     // Date and payment information
     doc.setTextColor(...darkGray);
@@ -423,8 +423,8 @@ export const generateInvoice = async (order) => {
     doc.setTextColor(...darkGreen);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('support@samrudhigroup.in', 20, footerY + 12);
-    doc.text('www.samrudhigroup.in', pageWidth/2, footerY + 12, { align: 'center' });
+    doc.text('support@wanttar.in', 20, footerY + 12);
+    doc.text('www.wanttar.in', pageWidth/2, footerY + 12, { align: 'center' });
     doc.text('+91 7349727270', pageWidth - 20, footerY + 12, { align: 'right' });
     
     // Signature area

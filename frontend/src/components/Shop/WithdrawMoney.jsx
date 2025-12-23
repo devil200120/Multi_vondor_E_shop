@@ -17,11 +17,13 @@ const WithdrawMoney = () => {
   const [withdrawAmount, setWithdrawAmount] = useState(50);
   const [bankInfo, setBankInfo] = useState({
     bankName: "",
-    bankCountry: "",
-    bankSwiftCode: null,
+    bankCountry: "India",
+    bankSwiftCode: null, // Will be used as IFSC for Indian banks
+    ifscCode: "", // Dedicated IFSC field
     bankAccountNumber: null,
     bankHolderName: "",
     bankAddress: "",
+    upiId: "", // For UPI payouts
   });
 
   useEffect(() => {
@@ -34,10 +36,12 @@ const WithdrawMoney = () => {
     const withdrawMethod = {
       bankName: bankInfo.bankName,
       bankCountry: bankInfo.bankCountry,
-      bankSwiftCode: bankInfo.bankSwiftCode,
+      bankSwiftCode: bankInfo.bankSwiftCode || bankInfo.ifscCode, // Use IFSC as Swift for Indian banks
+      ifscCode: bankInfo.ifscCode, // Dedicated IFSC field
       bankAccountNumber: bankInfo.bankAccountNumber,
       bankHolderName: bankInfo.bankHolderName,
       bankAddress: bankInfo.bankAddress,
+      upiId: bankInfo.upiId, // UPI ID for instant payouts
     };
 
     setPaymentMethod(false);
@@ -55,11 +59,13 @@ const WithdrawMoney = () => {
         dispatch(loadSeller());
         setBankInfo({
           bankName: "",
-          bankCountry: "",
+          bankCountry: "India",
           bankSwiftCode: null,
+          ifscCode: "",
           bankAccountNumber: null,
           bankHolderName: "",
           bankAddress: "",
+          upiId: "",
         });
       })
       .catch((error) => {
@@ -105,7 +111,7 @@ const WithdrawMoney = () => {
     <div className="w-full h-[90vh] p-8">
       <div className="w-full bg-white h-full rounded flex items-center justify-center flex-col">
         <h5 className="text-[20px] pb-4">
-          Available Balance: ${availableBalance}
+          Available Balance: ₹{availableBalance}
         </h5>
         <div
           className={`${styles.button} text-white !h-[42px] !rounded`}
@@ -173,21 +179,45 @@ const WithdrawMoney = () => {
                   </div>
                   <div className="pt-2">
                     <label>
-                      Bank Swift Code <span className="text-red-500">*</span>
+                      IFSC Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name=""
                       id=""
                       required
-                      value={bankInfo.bankSwiftCode}
+                      value={bankInfo.ifscCode}
                       onChange={(e) =>
                         setBankInfo({
                           ...bankInfo,
-                          bankSwiftCode: e.target.value,
+                          ifscCode: e.target.value.toUpperCase(),
                         })
                       }
-                      placeholder="Enter your Bank Swift Code!"
+                      placeholder="Enter IFSC Code (e.g., HDFC0000123)"
+                      className={`${styles.input} mt-2`}
+                      maxLength={11}
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <label>
+                      UPI ID{" "}
+                      <span className="text-gray-500">
+                        (Optional - For Instant Payouts)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      name=""
+                      id=""
+                      value={bankInfo.upiId}
+                      onChange={(e) =>
+                        setBankInfo({
+                          ...bankInfo,
+                          upiId: e.target.value,
+                        })
+                      }
+                      placeholder="Enter UPI ID (e.g., seller@paytm)"
                       className={`${styles.input} mt-2`}
                     />
                   </div>
@@ -291,7 +321,7 @@ const WithdrawMoney = () => {
                       </div>
                     </div>
                     <br />
-                    <h4>Available Balance: {availableBalance}$</h4>
+                    <h4>Available Balance: ₹{availableBalance}</h4>
                     <br />
                     <div className="800px:flex w-full items-center">
                       <input

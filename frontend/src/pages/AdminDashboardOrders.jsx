@@ -18,6 +18,7 @@ import {
   FiRefreshCw,
   FiArrowUp,
   FiArrowDown,
+  FiLoader,
 } from "react-icons/fi";
 import { HiOutlineShoppingBag } from "react-icons/hi";
 import {
@@ -29,7 +30,7 @@ import {
 import { AiOutlineDollarCircle } from "react-icons/ai";
 import { Button } from "@material-ui/core";
 import { downloadBulkOrderCSV } from "../utils/csvExporter";
-import InvoiceDownloadButton from "../components/InvoiceDownloadButton";
+import { downloadInvoice } from "../utils/invoiceGenerator";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { server } from "../server";
@@ -41,6 +42,7 @@ const AdminDashboardOrders = () => {
   const [cancellingOrder, setCancellingOrder] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(null);
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState("All");
@@ -85,6 +87,18 @@ const AdminDashboardOrders = () => {
     } catch (error) {
       console.error("Error exporting orders:", error);
       toast.error("Error exporting orders");
+    }
+  };
+
+  // Download invoice handler
+  const handleDownloadInvoice = async (order) => {
+    try {
+      setDownloadingInvoice(order._id);
+      await downloadInvoice(order, "admin");
+    } catch (error) {
+      console.error("Failed to download invoice:", error);
+    } finally {
+      setDownloadingInvoice(null);
     }
   };
 
@@ -258,7 +272,7 @@ const AdminDashboardOrders = () => {
           order && order.status !== "Cancelled" && order.status !== "Delivered";
 
         return (
-          <div className="flex justify-center space-x-2">
+          <div className="flex justify-center items-center space-x-1">
             <Button
               className="!min-w-0 !p-2 !text-primary-600 hover:!bg-primary-50 !rounded-lg transition-all duration-200"
               title="View Order Details"
@@ -269,13 +283,22 @@ const AdminDashboardOrders = () => {
               <FiEye size={16} />
             </Button>
             {order && (
-              <InvoiceDownloadButton
-                order={order}
-                showDropdown={true}
-                className="!min-w-0 !p-2 !text-green-600 hover:!bg-green-50 !rounded-lg transition-all duration-200 !text-xs"
+              <Button
+                className={`!min-w-0 !px-2 !py-2 !text-blue-600 hover:!bg-blue-50 !rounded-lg transition-all duration-200 !text-xs !bg-blue-50 !border !border-blue-200 ${
+                  downloadingInvoice === order._id
+                    ? "!opacity-75 !cursor-not-allowed"
+                    : ""
+                }`}
+                title="Download Invoice"
+                onClick={() => handleDownloadInvoice(order)}
+                disabled={downloadingInvoice === order._id}
               >
-                <FiDownload size={16} />
-              </InvoiceDownloadButton>
+                {downloadingInvoice === order._id ? (
+                  <FiLoader size={16} className="animate-spin" />
+                ) : (
+                  <FiDownload size={16} />
+                )}
+              </Button>
             )}
             {canCancel && (
               <Button

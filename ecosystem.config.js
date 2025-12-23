@@ -6,7 +6,7 @@ module.exports = {
       env: {
         NODE_ENV: 'PRODUCTION',
         PORT: 8000,
-        FRONTEND_URL: 'https://samrudhigroup.in'
+        FRONTEND_URL: 'https://wanttar.in'
       },
       instances: 1,
       autorestart: true,

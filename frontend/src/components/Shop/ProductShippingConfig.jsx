@@ -1,6 +1,19 @@
 import React, { useState } from "react";
 import { FiTruck, FiPackage, FiClock, FiMapPin } from "react-icons/fi";
 
+// Helper function to safely parse float values without precision issues
+const safeParseFloat = (value, fallback = 0) => {
+  if (value === "" || value === null || value === undefined) {
+    return fallback;
+  }
+  const parsed = parseFloat(value);
+  if (isNaN(parsed)) {
+    return fallback;
+  }
+  // Round to 2 decimal places to avoid precision issues
+  return Math.round(parsed * 100) / 100;
+};
+
 const ProductShippingConfig = ({ productData, onShippingChange }) => {
   const [shippingConfig, setShippingConfig] = useState({
     baseShippingRate: productData?.shipping?.baseShippingRate || 0,
@@ -129,7 +142,7 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                   onChange={(e) =>
                     handleInputChange(
                       "baseShippingRate",
-                      parseFloat(e.target.value) || 0
+                      safeParseFloat(e.target.value, 0)
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -151,7 +164,9 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                   onChange={(e) =>
                     handleInputChange(
                       "freeShippingThreshold",
-                      parseFloat(e.target.value) || null
+                      e.target.value === ""
+                        ? null
+                        : safeParseFloat(e.target.value, null)
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -181,7 +196,10 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                   type="number"
                   value={shippingConfig.weight}
                   onChange={(e) =>
-                    handleInputChange("weight", parseFloat(e.target.value) || 1)
+                    handleInputChange(
+                      "weight",
+                      safeParseFloat(e.target.value, 1)
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                   placeholder="1"
@@ -201,7 +219,7 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                     onChange={(e) =>
                       handleInputChange(
                         "dimensions.length",
-                        parseFloat(e.target.value) || 10
+                        safeParseFloat(e.target.value, 10)
                       )
                     }
                     className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
@@ -214,7 +232,7 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                     onChange={(e) =>
                       handleInputChange(
                         "dimensions.width",
-                        parseFloat(e.target.value) || 10
+                        safeParseFloat(e.target.value, 10)
                       )
                     }
                     className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
@@ -227,7 +245,7 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                     onChange={(e) =>
                       handleInputChange(
                         "dimensions.height",
-                        parseFloat(e.target.value) || 5
+                        safeParseFloat(e.target.value, 5)
                       )
                     }
                     className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
@@ -348,7 +366,7 @@ const ProductShippingConfig = ({ productData, onShippingChange }) => {
                     onChange={(e) =>
                       handleInputChange(
                         "restrictions.specialHandlingCharge",
-                        parseFloat(e.target.value) || 0
+                        safeParseFloat(e.target.value, 0)
                       )
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"

@@ -20,7 +20,7 @@ const Cart = ({ setOpenCart }) => {
 
   // Total price
   const totalPrice = cart.reduce(
-    (acc, item) => acc + item.qty * item.discountPrice,
+    (acc, item) => acc + item.qty * (item.finalPrice || item.discountPrice),
     0
   );
 
@@ -117,7 +117,8 @@ const Cart = ({ setOpenCart }) => {
 
 const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
   const [value, setValue] = useState(data.qty);
-  const totalPrice = data.discountPrice * value;
+  const itemPrice = data.finalPrice || data.discountPrice;
+  const totalPrice = itemPrice * value;
 
   const increment = (data) => {
     if (data.stock < value) {
@@ -152,8 +153,29 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
           <h3 className="text-sm font-medium text-text-primary truncate mb-1">
             {data.name}
           </h3>
+
+          {/* Selected Attributes Display */}
+          {data.selectedAttributes &&
+            Object.keys(data.selectedAttributes).length > 0 && (
+              <div className="mb-2">
+                {Object.entries(data.selectedAttributes).map(
+                  ([attrName, attrValue]) => (
+                    <span
+                      key={attrName}
+                      className="inline-block text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mr-1 mb-1"
+                    >
+                      {attrName}: {attrValue}
+                    </span>
+                  )
+                )}
+              </div>
+            )}
+
           <p className="text-xs text-text-muted mb-2">
-            ₹{data.discountPrice} each
+            ₹{itemPrice} each
+            {data.finalPrice && data.finalPrice !== data.discountPrice && (
+              <span className="ml-1 text-blue-600">(variant price)</span>
+            )}
           </p>
 
           {/* Quantity Controls */}

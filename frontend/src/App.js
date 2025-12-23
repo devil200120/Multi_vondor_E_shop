@@ -8,6 +8,8 @@ import BanModal from "./components/BanDetection/BanModal";
 import BanProtection from "./components/BanDetection/BanProtection";
 import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import BuyerTermsOfServicePage from "./pages/BuyerTermsOfServicePage";
+import SellerTermsOfServicePage from "./pages/SellerTermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
@@ -54,12 +56,19 @@ import {
   ShopForgotPasswordPage,
   ShopResetPasswordPage,
   ShippingManagementPage,
+  ProductShippingPage,
+  SellerGSTSettingsPage,
+  ShopVideoCallsPage,
+  DashboardVideoBannersPage,
+  DashboardCreateVideoBannerPage,
+  DashboardEditVideoBannerPage,
 } from "./routes/ShopRoutes";
 
 import {
   AdminDashboardPage,
   AdminDashboardUsers,
   AdminDashboardSellers,
+  AdminDashboardPendingSellers,
   AdminDashboardOrders,
   AdminDashboardProducts,
   AdminDashboardEvents,
@@ -69,6 +78,15 @@ import {
 } from "./routes/AdminRoutes";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import AdminOrderDetailsPage from "./pages/AdminOrderDetailsPage";
+import AdminDashboardLegalPages from "./pages/AdminDashboardLegalPages";
+import AdminReviewsPage from "./pages/AdminReviewsPage";
+import AdminSiteSettingsPage from "./pages/AdminSiteSettingsPage";
+import AdminFAQPage from "./pages/AdminFAQPage";
+import AdminVideoBannersPage from "./pages/AdminVideoBannersPage";
+import CreateVideoBannerPage from "./pages/CreateVideoBannerPage";
+import PhonePeSuccessPage from "./pages/PhonePeSuccessPage";
+import PhonePeFailedPage from "./pages/PhonePeFailedPage";
+import PhonePeTestPayment from "./pages/PhonePeTestPayment";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -82,6 +100,9 @@ import { getAllEvents } from "./redux/actions/event";
 import { server } from "./server";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import CustomerVideoCall from "./components/Customer/CustomerVideoCall";
+import SellerVideoCall from "./components/Shop/SellerVideoCall";
+import { SocketProvider } from "./contexts/SocketContext";
 
 const App = () => {
   const [stripeApikey, setStripeApiKey] = useState("");
@@ -137,9 +158,10 @@ const App = () => {
   }
 
   return (
-    <BrowserRouter>
-      <BanModal />
-      {stripeApikey && (
+    <SocketProvider>
+      <BrowserRouter>
+        <BanModal />
+        {stripeApikey && (
         <Elements stripe={loadStripe(stripeApikey)}>
           <Routes>
             <Route
@@ -161,6 +183,8 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/buyer-terms" element={<BuyerTermsOfServicePage />} />
+        <Route path="/seller-terms" element={<SellerTermsOfServicePage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/refund" element={<RefundPolicyPage />} />
         <Route path="/shipping" element={<ShippingPolicyPage />} />
@@ -193,6 +217,9 @@ const App = () => {
         />
 
         <Route path="/order/success" element={<OrderSuccessPage />} />
+        <Route path="/phonepe/success" element={<PhonePeSuccessPage />} />
+        <Route path="/phonepe/failed" element={<PhonePeFailedPage />} />
+        <Route path="/phonepe/test-payment" element={<PhonePeTestPayment />} />
         <Route
           path="/profile"
           element={
@@ -271,6 +298,16 @@ const App = () => {
             <SellerProtectedRoute>
               <SellerBanProtection>
                 <ShippingManagementPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard-product-shipping"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ProductShippingPage />
               </SellerBanProtection>
             </SellerProtectedRoute>
           }
@@ -375,6 +412,50 @@ const App = () => {
         />
 
         <Route
+          path="/dashboard-video-calls"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopVideoCallsPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-video-banners"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <DashboardVideoBannersPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-create-video-banner"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <DashboardCreateVideoBannerPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-edit-video-banner/:id"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <DashboardEditVideoBannerPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard-create-event"
           element={
             <SellerProtectedRoute>
@@ -400,6 +481,16 @@ const App = () => {
             <SellerProtectedRoute>
               <SellerBanProtection>
                 <ShopAllCoupouns />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard-gst-settings"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <SellerGSTSettingsPage />
               </SellerBanProtection>
             </SellerProtectedRoute>
           }
@@ -435,6 +526,14 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminDashboardSellers />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-pending-sellers"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardPendingSellers />
             </ProtectedAdminRoute>
           }
         />
@@ -479,10 +578,58 @@ const App = () => {
           }
         />
         <Route
+          path="/admin-video-banners"
+          element={
+            <ProtectedAdminRoute>
+              <AdminVideoBannersPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-create-video-banner"
+          element={
+            <ProtectedAdminRoute>
+              <CreateVideoBannerPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin-categories"
           element={
             <ProtectedAdminRoute>
               <AdminDashboardCategories />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-legal-pages"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardLegalPages />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-reviews"
+          element={
+            <ProtectedAdminRoute>
+              <AdminReviewsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-site-settings"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSiteSettingsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-faq"
+          element={
+            <ProtectedAdminRoute>
+              <AdminFAQPage />
             </ProtectedAdminRoute>
           }
         />
@@ -495,6 +642,13 @@ const App = () => {
           }
         />
       </Routes>
+      
+      {/* Customer Video Call Component - Global */}
+      <CustomerVideoCall />
+      
+      {/* Seller Video Call Component - Global */}
+      <SellerVideoCall />
+      
       <ToastContainer
         position="bottom-center"
         autoClose={5000}
@@ -508,6 +662,7 @@ const App = () => {
         theme="dark"
       />
     </BrowserRouter>
+    </SocketProvider>
   );
 };
 export default App;

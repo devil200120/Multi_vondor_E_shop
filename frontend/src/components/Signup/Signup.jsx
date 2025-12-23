@@ -249,7 +249,7 @@ const Signup = () => {
               >
                 I agree to the{" "}
                 <Link
-                  to="/terms"
+                  to="/buyer-terms"
                   className="text-primary-500 hover:text-primary-600 font-medium"
                 >
                   Terms of Service

@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isAdminTagged: {
+    type: Boolean,
+    default: false,
+  },
   sellerShop: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Shop",
@@ -135,6 +139,8 @@ const productSchema = new mongoose.Schema({
     },
     // Shipping restrictions
     restrictions: {
+      // Custom serviceable pincodes - if set, only these pincodes are served
+      customServicePincodes: [String],
       // Pincodes where this product cannot be shipped
       excludePincodes: [String],
       // Special handling required
@@ -149,6 +155,70 @@ const productSchema = new mongoose.Schema({
       }
     }
   },
+  // GST Configuration (for invoice display only)
+  gstConfiguration: {
+    isGstApplicable: {
+      type: Boolean,
+      default: false,
+    },
+    gstType: {
+      type: String,
+      enum: ['separate', 'combined'],
+      default: 'separate',
+    },
+    cgstRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    sgstRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    combinedGstRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    hsnCode: {
+      type: String,
+      default: '',
+    },
+  },
+  // Custom attributes for the product
+  attributes: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      values: [
+        {
+          value: {
+            type: String,
+            required: true,
+          },
+          price: {
+            type: Number,
+            default: null, // null means no price variation, use base price
+          }
+        }
+      ],
+      type: {
+        type: String,
+        enum: ['text', 'number', 'boolean', 'color', 'size', 'other'],
+        default: 'text',
+      },
+      hasPriceVariation: {
+        type: Boolean,
+        default: false,
+      },
+    }
+  ],
   isPublished: {
     type: Boolean,
     default: true,

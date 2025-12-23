@@ -23,32 +23,7 @@ const Categories = () => {
     <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Trust Indicators */}
-        <div className="hidden sm:block mb-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 backdrop-blur-sm">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {brandingData &&
-                brandingData.map((item, index) => (
-                  <div
-                    className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300"
-                    key={index}
-                  >
-                    <div className="flex-shrink-0 p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl group-hover:from-blue-100 group-hover:to-indigo-100 transition-all duration-300 shadow-md">
-                      {item.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 text-base mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm leading-normal">
-                        {item.Description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-
+        
         {/* Categories Section */}
         <div className="mb-12">
           {/* Modern Section Header */}
@@ -153,36 +128,7 @@ const Categories = () => {
           </div>
 
           {/* Enhanced CTA Section */}
-          <div className="text-center">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can't Find What You're Looking For?
-              </h3>
-              <p className="text-gray-600 mb-4 text-sm max-w-md mx-auto">
-                Browse our complete product collection to discover thousands of
-                amazing items across all categories.
-              </p>
-              <button
-                onClick={() => navigate("/products")}
-                className="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:from-blue-700 hover:to-indigo-700"
-              >
-                <span>View All Products</span>
-                <svg
-                  className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform duration-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
+          
         </div>
       </div>
     </section>

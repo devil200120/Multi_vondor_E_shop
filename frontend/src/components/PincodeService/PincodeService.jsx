@@ -18,6 +18,7 @@ const PincodeService = ({
   savedAddresses = [],
   show = false,
   onClose,
+  productId = null, // Add productId prop for product-specific validation
 }) => {
   const [pincode, setPincode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,9 +35,12 @@ const PincodeService = ({
 
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${server}/pincode/check/${pincodeValue}`
-      );
+      // Use product-specific validation if productId is provided, otherwise use general validation
+      const endpoint = productId
+        ? `${server}/pincode/check-product/${pincodeValue}/${productId}`
+        : `${server}/pincode/check/${pincodeValue}`;
+
+      const response = await axios.get(endpoint);
 
       if (response.data.success && response.data.deliveryAvailable) {
         setIsValid(true);

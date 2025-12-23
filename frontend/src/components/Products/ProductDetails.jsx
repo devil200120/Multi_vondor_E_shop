@@ -41,6 +41,7 @@ import PincodeValidationDialog from "../PincodeService/PincodeValidationDialog";
 import { usePincodeService } from "../../hooks/usePincodeService";
 import ReadMoreText from "../UI/ReadMoreText";
 import axios from "axios";
+import ProductCallButtons from "../Product/ProductCallButtons";
 
 const ProductDetails = ({ data }) => {
   const { products } = useSelector((state) => state.products);
@@ -69,11 +70,61 @@ const ProductDetails = ({ data }) => {
   const [deliveryStatus, setDeliveryStatus] = useState(null); // 'available', 'not-available', 'checking'
   const [deliveryMessage, setDeliveryMessage] = useState("");
   const [showPincodeDialog, setShowPincodeDialog] = useState(false);
-  const { validatePincode, loading: pincodeLoading } = usePincodeService();
+  const { validateProductPincode, loading: pincodeLoading } =
+    usePincodeService();
+
+  // Attribute selection and price variation state
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [currentPrice, setCurrentPrice] = useState(null);
 
   // Combine images and videos into a single media array for viewer
   const allMedia = [...(data?.images || []), ...(data?.videos || [])];
   const navigate = useNavigate();
+
+  // Function to calculate current price based on selected attributes
+  const calculateCurrentPrice = (selectedAttrs) => {
+    if (!data || !data.attributes || data.attributes.length === 0) {
+      return data?.discountPrice || 0;
+    }
+
+    let basePrice = data.discountPrice || 0;
+    let priceAdjustment = 0;
+
+    // Check each selected attribute for price variations
+    Object.entries(selectedAttrs).forEach(([attributeName, selectedValue]) => {
+      const attribute = data.attributes.find(
+        (attr) => attr.name === attributeName
+      );
+      if (attribute && attribute.hasPriceVariation) {
+        const valueObj = attribute.values.find(
+          (val) => (typeof val === "string" ? val : val.value) === selectedValue
+        );
+        if (valueObj && typeof valueObj === "object" && valueObj.price) {
+          // Use the specific price for this attribute value
+          priceAdjustment += valueObj.price - basePrice;
+        }
+      }
+    });
+
+    return basePrice + priceAdjustment;
+  };
+
+  // Handle attribute selection
+  const handleAttributeSelect = (attributeName, value) => {
+    const newSelectedAttributes = {
+      ...selectedAttributes,
+      [attributeName]: value,
+    };
+    setSelectedAttributes(newSelectedAttributes);
+    setCurrentPrice(calculateCurrentPrice(newSelectedAttributes));
+  };
+
+  // Initialize current price when data loads
+  useEffect(() => {
+    if (data) {
+      setCurrentPrice(data.discountPrice);
+    }
+  }, [data]);
 
   useEffect(() => {
     dispatch(getAllProductsShop(data && data?.shop._id));
@@ -157,7 +208,7 @@ const ProductDetails = ({ data }) => {
           setUserPincode(pincode);
           setDeliveryStatus("checking");
 
-          validatePincode(pincode)
+          validateProductPincode(pincode, data._id)
             .then((result) => {
               if (result.isValid) {
                 setDeliveryStatus("available");
@@ -188,7 +239,7 @@ const ProductDetails = ({ data }) => {
         return () => clearTimeout(timer);
       }
     }
-  }, [isAuthenticated, user, validatePincode, data]);
+  }, [isAuthenticated, user, validateProductPincode, data]);
 
   // Handle pincode validation result from dialog
   const handlePincodeValidationResult = (result) => {
@@ -248,7 +299,17 @@ const ProductDetails = ({ data }) => {
       if (data.stock < 1) {
         toast.error("Product stock limited!");
       } else {
-        const cartData = { ...data, qty: count };
+        // Include selected attributes and current price in cart data
+        const cartData = {
+          ...data,
+          qty: count,
+          selectedAttributes: selectedAttributes,
+          finalPrice: currentPrice || data.discountPrice,
+          attributeSelection:
+            Object.keys(selectedAttributes).length > 0
+              ? selectedAttributes
+              : null,
+        };
         dispatch(addTocart(cartData));
         toast.success("Item added to cart Successfully!");
       }
@@ -275,13 +336,23 @@ const ProductDetails = ({ data }) => {
       return;
     }
 
-    // Create order data with selected quantity
+    // Use currentPrice if available (with selected attributes), otherwise use discountPrice
+    const itemPrice = currentPrice || data.discountPrice;
+
+    // Create order data with selected quantity and attributes
+    const cartItem = {
+      ...data,
+      qty: count,
+      selectedAttributes: selectedAttributes,
+      finalPrice: currentPrice || data.discountPrice, // Include finalPrice if attributes affect pricing
+    };
+
     const orderData = {
-      cart: [{ ...data, qty: count }],
-      subTotalPrice: data.discountPrice * count,
-      shipping: data.discountPrice * count * 0.1, // 10% shipping
+      cart: [cartItem],
+      subTotalPrice: itemPrice * count,
+      shipping: itemPrice * count * 0.1, // 10% shipping
       discountPrice: 0,
-      totalPrice: data.discountPrice * count + data.discountPrice * count * 0.1,
+      totalPrice: itemPrice * count + itemPrice * count * 0.1,
       user: user,
     };
 
@@ -613,20 +684,20 @@ const ProductDetails = ({ data }) => {
                         )}
                     </div>
 
-                    {/* Admin Tagging Indicator */}
-                    {isAdmin && (
+                    {/* Admin Tagging Indicator - Show for all users when product is admin-tagged */}
+                    {data.isAdminTagged && (
                       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-center text-xs text-yellow-700">
-                          <span className="mr-1">👤</span>
+                          <span className="mr-1">�</span>
                           <span className="font-medium">Admin Tagged:</span>
                           <span className="ml-1">
-                            This product was tagged to{" "}
+                            This product was curated and tagged to{" "}
                             {data.sellerShop &&
                             typeof data.sellerShop === "object" &&
                             data.sellerShop.name
                               ? data.sellerShop.name
                               : "Seller"}{" "}
-                            by admin
+                            by platform admin
                           </span>
                         </div>
                       </div>
@@ -646,29 +717,206 @@ const ProductDetails = ({ data }) => {
               {/* Price Section */}
               <div className="flex items-center space-x-2">
                 <span className="text-xl lg:text-2xl font-bold text-gray-900">
-                  ₹{data.discountPrice}
+                  ₹{currentPrice || data.discountPrice}
                 </span>
                 {data.originalPrice && (
                   <span className="text-base text-gray-500 line-through">
                     ₹{data.originalPrice}
                   </span>
                 )}
+                {currentPrice && currentPrice !== data.discountPrice && (
+                  <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    Price updated
+                  </span>
+                )}
               </div>
+
+              {/* Product Attributes Section - Flipkart Style */}
+              {data && data.attributes && data.attributes.length > 0 ? (
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                    Product Specifications
+                  </h4>
+                  {data.attributes.map((attr, index) => {
+                    // Handle backward compatibility - if attr has 'value', convert to 'values' array
+                    const values =
+                      attr.values || (attr.value ? [attr.value] : []);
+                    console.log("Attribute:", attr.name, "Values:", values);
+
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-700 capitalize">
+                            {attr.name}:
+                          </span>
+                        </div>
+
+                        {/* Different display based on attribute type */}
+                        {attr.type === "color" ? (
+                          <div className="flex flex-wrap gap-2">
+                            {values &&
+                              values.map((valueObj, valueIndex) => {
+                                const value =
+                                  typeof valueObj === "string"
+                                    ? valueObj
+                                    : valueObj.value;
+                                const price =
+                                  typeof valueObj === "object"
+                                    ? valueObj.price
+                                    : null;
+                                const isSelected =
+                                  selectedAttributes[attr.name] === value;
+
+                                return (
+                                  <button
+                                    key={valueIndex}
+                                    onClick={() =>
+                                      handleAttributeSelect(attr.name, value)
+                                    }
+                                    className={`flex items-center space-x-2 p-2 border-2 rounded-lg bg-white hover:bg-gray-50 transition-all ${
+                                      isSelected
+                                        ? "border-blue-500 bg-blue-50"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    <div
+                                      className="w-6 h-6 rounded-full border-2 border-gray-300 shadow-sm"
+                                      style={{
+                                        backgroundColor: value.toLowerCase(),
+                                      }}
+                                      title={value}
+                                    ></div>
+                                    <div className="text-left">
+                                      <span className="text-sm text-gray-600 capitalize block">
+                                        {value}
+                                      </span>
+                                      {price && attr.hasPriceVariation && (
+                                        <span className="text-xs text-blue-600 font-medium">
+                                          ₹{price}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                          </div>
+                        ) : attr.type === "size" ||
+                          attr.type === "memory" ||
+                          attr.name.toLowerCase().includes("ram") ||
+                          attr.name.toLowerCase().includes("storage") ? (
+                          <div className="flex flex-wrap gap-2">
+                            {values &&
+                              values.map((valueObj, valueIndex) => {
+                                const value =
+                                  typeof valueObj === "string"
+                                    ? valueObj
+                                    : valueObj.value;
+                                const price =
+                                  typeof valueObj === "object"
+                                    ? valueObj.price
+                                    : null;
+                                const isSelected =
+                                  selectedAttributes[attr.name] === value;
+
+                                return (
+                                  <button
+                                    key={valueIndex}
+                                    onClick={() =>
+                                      handleAttributeSelect(attr.name, value)
+                                    }
+                                    className={`px-4 py-2 border-2 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors ${
+                                      isSelected
+                                        ? "border-blue-500 bg-blue-100 text-blue-700"
+                                        : "border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-500"
+                                    }`}
+                                  >
+                                    <div className="text-center">
+                                      <div>{value}</div>
+                                      {price && attr.hasPriceVariation && (
+                                        <div className="text-xs text-blue-600 font-medium">
+                                          ₹{price}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                          </div>
+                        ) : attr.type === "boolean" ? (
+                          <div className="flex flex-wrap gap-2">
+                            {values &&
+                              values.map((valueObj, valueIndex) => {
+                                const value =
+                                  typeof valueObj === "string" ||
+                                  typeof valueObj === "boolean"
+                                    ? valueObj
+                                    : valueObj.value;
+
+                                return (
+                                  <span
+                                    key={valueIndex}
+                                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                      value === "true" || value === true
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {value === "true" || value === true
+                                      ? "✓ Yes"
+                                      : "✗ No"}
+                                  </span>
+                                );
+                              })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {values &&
+                              values.map((valueObj, valueIndex) => {
+                                const value =
+                                  typeof valueObj === "string"
+                                    ? valueObj
+                                    : valueObj.value;
+                                const price =
+                                  typeof valueObj === "object"
+                                    ? valueObj.price
+                                    : null;
+
+                                return (
+                                  <div
+                                    key={valueIndex}
+                                    className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg border"
+                                  >
+                                    <span className="text-sm text-gray-900 font-medium">
+                                      {value}
+                                    </span>
+                                    {price && attr.hasPriceVariation && (
+                                      <span className="text-xs text-blue-600 font-medium">
+                                        ₹{price}
+                                      </span>
+                                    )}
+                                    {attr.type && attr.type !== "text" && (
+                                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                        {attr.type}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">
+                    No specifications available for this product.
+                  </p>
+                </div>
+              )}
+
               {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-4 py-5 border-t border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <HiOutlineShieldCheck className="w-5 h-5 text-green-600" />
-                  <span className="text-sm text-gray-600">Secure Payment</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <HiOutlineTruck className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm text-gray-600">Fast Delivery</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <HiOutlineRefresh className="w-5 h-5 text-purple-600" />
-                  <span className="text-sm text-gray-600">Easy Returns</span>
-                </div>
-              </div>
 
               {/* Delivery Status Display */}
               {(deliveryStatus || pincodeLoading) && (
@@ -724,11 +972,6 @@ const ProductDetails = ({ data }) => {
                               ? `For pincode: ${userPincode}`
                               : "Based on your saved address")}
                         </p>
-                        {deliveryStatus === "not-available" && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            * We currently only deliver to Karnataka areas
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -857,7 +1100,7 @@ const ProductDetails = ({ data }) => {
                     </button>
                   </div>
 
-                  {/* Bottom Row: Write Review and Send Message */}
+                  {/* Bottom Row: Write Review, Send Message, and Call Buttons */}
                   <div className="flex flex-col sm:flex-row gap-2">
                     {/* Write Review Button */}
                     {isAuthenticated && userCanReview ? (
@@ -895,6 +1138,9 @@ const ProductDetails = ({ data }) => {
                       <span className="sm:hidden">Message</span>
                     </button>
                   </div>
+
+                  {/* Call Buttons */}
+                  <ProductCallButtons product={data} />
                 </div>
               </div>
               {/* Seller Information */}
@@ -1023,7 +1269,7 @@ const ProductDetails = ({ data }) => {
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 hover:bg-gray-100 rounded-full p-2 hover:rotate-90 transform transition-transform duration-200"
+                className="text-gray-400 hover:text-gray-600 transition-all duration-200 hover:bg-gray-100 rounded-full p-2 hover:rotate-90 transform"
               >
                 ✕
               </button>
@@ -1107,6 +1353,7 @@ const ProductDetails = ({ data }) => {
         onValidationResult={handlePincodeValidationResult}
         userAddresses={user?.addresses || []}
         productName={data?.name || "this product"}
+        productId={data?._id}
       />
     </div>
   );
