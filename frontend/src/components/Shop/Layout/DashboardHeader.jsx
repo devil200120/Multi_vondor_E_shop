@@ -7,10 +7,44 @@ import { Link } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
 import { backend_url } from "../../../server";
 import { getAvatarUrl } from "../../../utils/mediaUtils";
+import { HiSparkles } from "react-icons/hi";
 
 const DashboardHeader = () => {
   const { seller } = useSelector((state) => state.seller);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Subscription badge configuration
+  const getSubscriptionBadge = (plan) => {
+    const badges = {
+      bronze: {
+        label: "Bronze",
+        gradient: "from-amber-600 to-amber-700",
+        icon: "🥉",
+        glow: "shadow-amber-500/50",
+      },
+      silver: {
+        label: "Silver",
+        gradient: "from-gray-400 to-gray-600",
+        icon: "🥈",
+        glow: "shadow-gray-500/50",
+      },
+      gold: {
+        label: "Gold",
+        gradient: "from-yellow-400 to-yellow-600",
+        icon: "🥇",
+        glow: "shadow-yellow-500/50",
+      },
+      "revenue-share": {
+        label: "Premium",
+        gradient: "from-purple-500 to-pink-600",
+        icon: "💎",
+        glow: "shadow-purple-500/50",
+      },
+    };
+    return badges[plan] || badges.bronze;
+  };
+
+  const subscriptionBadge = getSubscriptionBadge(seller?.subscriptionPlan);
 
   return (
     <>
@@ -105,15 +139,26 @@ const DashboardHeader = () => {
               to={`/shop/${seller._id}`}
               className="flex items-center space-x-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 rounded-xl p-3 transition-all duration-200 group transform hover:scale-105 shadow-sm hover:shadow-md"
             >
-              <img
-                src={getAvatarUrl(seller.avatar, backend_url)}
-                alt=""
-                className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-200"
-              />
+              <div className="relative">
+                <img
+                  src={getAvatarUrl(seller.avatar, backend_url)}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-200"
+                />
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-[8px]`}>
+                  {subscriptionBadge.icon}
+                </div>
+              </div>
               <div className="hidden xl:block">
-                <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
-                  {seller.name}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
+                    {seller.name}
+                  </p>
+                  <span className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}>
+                    <HiSparkles className="w-2.5 h-2.5" />
+                    <span>{subscriptionBadge.label}</span>
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500 group-hover:text-blue-500 transition-colors duration-200">
                   Seller Profile
                 </p>
@@ -191,12 +236,21 @@ const DashboardHeader = () => {
                     alt=""
                     className="w-12 h-12 rounded-full object-cover border-3 border-white shadow-md"
                   />
+                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-xs shadow-lg`}>
+                    {subscriptionBadge.icon}
+                  </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-base font-bold text-gray-800">
-                    {seller.name}
-                  </p>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <p className="text-base font-bold text-gray-800">
+                      {seller.name}
+                    </p>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}>
+                      <HiSparkles className="w-2.5 h-2.5" />
+                      <span>{subscriptionBadge.label}</span>
+                    </span>
+                  </div>
                   <p className="text-sm text-blue-600 font-medium">
                     Seller Dashboard
                   </p>
