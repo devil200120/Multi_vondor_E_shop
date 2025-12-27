@@ -88,7 +88,7 @@ const ShopCreateWithSubscription = () => {
       try {
         setIsLoadingPlans(true);
         const { data } = await axios.get(`${server}/subscription/get-plans`);
-        
+
         if (data.success && data.plans) {
           // Transform backend data to match frontend structure
           const transformedPlans = Object.entries(data.plans)
@@ -105,9 +105,9 @@ const ShopCreateWithSubscription = () => {
               maxProducts: plan.maxProducts,
               features: formatPlanFeatures(plan, key),
               color: getPlanColor(key),
-              popular: key === 'silver',
+              popular: key === "silver",
             }));
-          
+
           setSubscriptionPlans(transformedPlans);
         }
       } catch (error) {
@@ -124,17 +124,18 @@ const ShopCreateWithSubscription = () => {
   // Helper function to format plan features
   const formatPlanFeatures = (plan, planKey) => {
     const features = [];
-    
+
     // Add max products info
     if (plan.maxProducts === 999) {
       features.push("Unlimited Products");
     } else {
       features.push(`${plan.maxProducts} Products`);
     }
-    
+
     // Add features from plan.features object
     if (plan.features) {
-      if (plan.features.businessProfile) features.push("Business profile & logo");
+      if (plan.features.businessProfile)
+        features.push("Business profile & logo");
       if (plan.features.pdfUpload) features.push("PDF upload");
       if (plan.features.imagesPerProduct) {
         features.push(`${plan.features.imagesPerProduct} images/product`);
@@ -144,15 +145,15 @@ const ShopCreateWithSubscription = () => {
       if (plan.features.htmlCssEditor) features.push("HTML/CSS editor");
       if (plan.features.adPreApproval) features.push("Ad pre-approval");
     }
-    
+
     // Special handling for revenue-share
-    if (planKey === 'revenue-share') {
+    if (planKey === "revenue-share") {
       features.push("10% Commission to MoC");
       features.push("90% to vendor");
       features.push("$25/month minimum");
       features.push("Pay as you earn");
     }
-    
+
     return features;
   };
 
@@ -162,7 +163,7 @@ const ShopCreateWithSubscription = () => {
       bronze: "from-orange-400 to-amber-600",
       silver: "from-gray-400 to-gray-600",
       gold: "from-yellow-400 to-yellow-600",
-      'revenue-share': "from-purple-400 to-purple-600",
+      "revenue-share": "from-purple-400 to-purple-600",
     };
     return colors[planKey] || "from-blue-400 to-blue-600";
   };
@@ -714,67 +715,69 @@ const ShopCreateWithSubscription = () => {
         </div>
       ) : subscriptionPlans.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No subscription plans available at the moment.</p>
+          <p className="text-gray-600">
+            No subscription plans available at the moment.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {subscriptionPlans.map((plan) => (
-          <div
-            key={plan.id}
-            onClick={() => setSelectedPlan(plan.id)}
-            className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-105 ${
-              selectedPlan === plan.id
-                ? "border-blue-500 shadow-2xl bg-blue-50"
-                : "border-gray-200 hover:border-blue-300 bg-white"
-            }`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">
-                POPULAR
-              </div>
-            )}
-
-            {selectedPlan === plan.id && (
-              <div className="absolute top-4 right-4">
-                <BsCheckCircle className="w-6 h-6 text-blue-600" />
-              </div>
-            )}
-
             <div
-              className={`w-12 h-12 rounded-xl bg-gradient-to-r ${plan.color} flex items-center justify-center mb-4`}
+              key={plan.id}
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-105 ${
+                selectedPlan === plan.id
+                  ? "border-blue-500 shadow-2xl bg-blue-50"
+                  : "border-gray-200 hover:border-blue-300 bg-white"
+              }`}
             >
-              <span className="text-2xl text-white">💎</span>
-            </div>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">
+                  POPULAR
+                </div>
+              )}
 
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              {plan.name}
-            </h3>
-            <div className="mb-4">
-              <span className="text-4xl font-bold text-gray-900">
-                ${plan.price[billingCycle]}
-              </span>
-              <span className="text-gray-500 text-sm">
-                /
-                {billingCycle === "quarterly"
-                  ? "3 months"
-                  : billingCycle === "semiannual"
-                  ? "6 months"
-                  : billingCycle === "annual"
-                  ? "12 months"
-                  : "month"}
-              </span>
-            </div>
+              {selectedPlan === plan.id && (
+                <div className="absolute top-4 right-4">
+                  <BsCheckCircle className="w-6 h-6 text-blue-600" />
+                </div>
+              )}
 
-            <ul className="space-y-3 mb-6">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-center text-gray-700">
-                  <FiCheck className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-r ${plan.color} flex items-center justify-center mb-4`}
+              >
+                <span className="text-2xl text-white">💎</span>
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                {plan.name}
+              </h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold text-gray-900">
+                  ${plan.price[billingCycle]}
+                </span>
+                <span className="text-gray-500 text-sm">
+                  /
+                  {billingCycle === "quarterly"
+                    ? "3 months"
+                    : billingCycle === "semiannual"
+                    ? "6 months"
+                    : billingCycle === "annual"
+                    ? "12 months"
+                    : "month"}
+                </span>
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center text-gray-700">
+                    <FiCheck className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -24,9 +24,12 @@ const AdminPlanManagement = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data } = await axios.get(`${server}/subscription/admin/manage-plans`, {
-        withCredentials: true,
-      });
+      const { data } = await axios.get(
+        `${server}/subscription/admin/manage-plans`,
+        {
+          withCredentials: true,
+        }
+      );
       setPlans(data.plans);
     } catch (error) {
       toast.error("Failed to load subscription plans");
@@ -76,11 +79,9 @@ const AdminPlanManagement = () => {
   const handleSave = async () => {
     try {
       if (isCreatingNew) {
-        await axios.post(
-          `${server}/subscription/admin/create-plan`,
-          formData,
-          { withCredentials: true }
-        );
+        await axios.post(`${server}/subscription/admin/create-plan`, formData, {
+          withCredentials: true,
+        });
         toast.success("Plan created successfully");
       } else {
         await axios.put(
@@ -347,7 +348,8 @@ const PlanDisplay = ({ planKey, planData, onEdit, onToggleActive }) => {
           <span className="text-sm text-gray-500 font-normal">/month</span>
         </p>
         <p className="text-sm text-gray-600 mt-1">
-          Up to {planData.maxProducts === 999 ? "Unlimited" : planData.maxProducts}{" "}
+          Up to{" "}
+          {planData.maxProducts === 999 ? "Unlimited" : planData.maxProducts}{" "}
           products
         </p>
       </div>
