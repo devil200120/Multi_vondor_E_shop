@@ -355,35 +355,39 @@ router.post(
         return next(new ErrorHandler("Reply text is required", 400));
       }
 
-      // Find the product containing this review
-      const product = await Product.findOne({
-        shopId: sellerId,
-        "reviews._id": reviewId
-      });
+      // Update the specific review's vendorReply field using findOneAndUpdate
+      const product = await Product.findOneAndUpdate(
+        {
+          shopId: sellerId,
+          "reviews._id": reviewId
+        },
+        {
+          $set: {
+            "reviews.$.vendorReply": {
+              text: replyText,
+              createdAt: new Date()
+            }
+          }
+        },
+        {
+          new: true,
+          runValidators: false // Skip validation to avoid category requirement issues
+        }
+      );
 
       if (!product) {
         return next(new ErrorHandler("Review not found or unauthorized", 404));
       }
 
-      // Find the review and add vendor reply
-      const review = product.reviews.id(reviewId);
-      if (!review) {
-        return next(new ErrorHandler("Review not found", 404));
-      }
-
-      review.vendorReply = {
-        text: replyText,
-        createdAt: new Date()
-      };
-
-      await product.save();
+      // Find the updated review to return
+      const updatedReview = product.reviews.id(reviewId);
 
       res.status(200).json({
         success: true,
         message: "Reply posted successfully",
         review: {
-          _id: review._id,
-          vendorReply: review.vendorReply
+          _id: updatedReview._id,
+          vendorReply: updatedReview.vendorReply
         }
       });
     } catch (error) {

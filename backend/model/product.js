@@ -115,11 +115,13 @@ const productSchema = new mongoose.Schema({
         default: false,
       },
       vendorReply: {
-        type: String,
-        default: null,
-      },
-      vendorReplyDate: {
-        type: Date,
+        text: {
+          type: String,
+          default: null,
+        },
+        createdAt: {
+          type: Date,
+        },
       },
       orderId: {
         type: mongoose.Schema.Types.ObjectId,

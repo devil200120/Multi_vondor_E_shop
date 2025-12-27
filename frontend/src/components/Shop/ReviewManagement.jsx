@@ -33,6 +33,7 @@ const ReviewManagement = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editingReply, setEditingReply] = useState(null);
 
   useEffect(() => {
     if (seller?._id) {
@@ -99,6 +100,7 @@ const ReviewManagement = () => {
       if (data.success) {
         toast.success("Reply posted successfully!");
         setReplyingTo(null);
+        setEditingReply(null);
         setReplyText("");
         fetchReviews();
       }
@@ -107,6 +109,17 @@ const ReviewManagement = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditReply = (review) => {
+    setEditingReply(review._id);
+    setReplyText(review.vendorReply.text);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setEditingReply(null);
+    setReplyText("");
   };
 
   const renderStars = (rating) => {
@@ -150,9 +163,8 @@ const ReviewManagement = () => {
   };
 
   return (
-    <div className="w-full bg-gray-50 min-h-screen p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="w-full bg-gray-50 min-h-screen pt-20 px-4 py-8 lg:px-8">
+      <div className="max-w-7xl mx-auto">{/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Review Management
@@ -378,7 +390,7 @@ const ReviewManagement = () => {
                     )}
 
                     {/* Vendor Reply */}
-                    {review.vendorReply ? (
+                    {review.vendorReply && editingReply !== review._id ? (
                       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
                         <div className="flex items-start space-x-3">
                           <HiOutlineReply className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
@@ -387,9 +399,17 @@ const ReviewManagement = () => {
                               <span className="font-medium text-blue-900">
                                 Your Reply
                               </span>
-                              <span className="text-xs text-blue-600">
-                                {formatDate(review.vendorReply.createdAt)}
-                              </span>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-xs text-blue-600">
+                                  {formatDate(review.vendorReply.createdAt)}
+                                </span>
+                                <button
+                                  onClick={() => handleEditReply(review)}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                  Edit
+                                </button>
+                              </div>
                             </div>
                             <p className="text-gray-700">
                               {review.vendorReply.text}
@@ -399,7 +419,7 @@ const ReviewManagement = () => {
                       </div>
                     ) : (
                       <>
-                        {replyingTo === review._id ? (
+                        {replyingTo === review._id || editingReply === review._id ? (
                           <div className="mt-4">
                             <textarea
                               value={replyText}
@@ -417,14 +437,12 @@ const ReviewManagement = () => {
                                 {submitting ? (
                                   <AiOutlineLoading3Quarters className="animate-spin" />
                                 ) : (
-                                  "Post Reply"
+                                  editingReply === review._id ? "Update Reply" : "Post Reply"
                                 )}
                               </button>
                               <button
-                                onClick={() => {
-                                  setReplyingTo(null);
-                                  setReplyText("");
-                                }}
+                                onClick={handleCancelReply}
+                                disabled={submitting}
                                 className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-colors duration-300"
                               >
                                 Cancel
@@ -432,13 +450,15 @@ const ReviewManagement = () => {
                             </div>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setReplyingTo(review._id)}
-                            className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-xl hover:bg-blue-200 transition-colors duration-300"
-                          >
-                            <HiOutlineReply className="w-5 h-5" />
-                            <span>Reply to Customer</span>
-                          </button>
+                          !review.vendorReply && (
+                            <button
+                              onClick={() => setReplyingTo(review._id)}
+                              className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-xl hover:bg-blue-200 transition-colors duration-300"
+                            >
+                              <HiOutlineReply className="w-5 h-5" />
+                              <span>Reply to Customer</span>
+                            </button>
+                          )
                         )}
                       </>
                     )}
