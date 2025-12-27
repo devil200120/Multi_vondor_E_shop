@@ -221,7 +221,6 @@ router.get(
 // Seller: Get all reviews for seller's products
 router.get(
   "/seller-reviews",
-  isAuthenticated,
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -289,7 +288,6 @@ router.get(
 // Seller: Get review statistics for seller's products
 router.get(
   "/seller-review-stats",
-  isAuthenticated,
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -346,7 +344,6 @@ router.get(
 // Seller: Reply to a review
 router.post(
   "/reply/:reviewId",
-  isAuthenticated,
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {

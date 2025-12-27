@@ -5,8 +5,10 @@ import { toast } from "react-toastify";
 import { HiExclamationCircle, HiExclamation } from "react-icons/hi";
 import { AiOutlineLoading3Quarters, AiOutlineEdit } from "react-icons/ai";
 import { FiPackage } from "react-icons/fi";
+import { useSelector } from "react-redux";
 
 const InventoryAlerts = () => {
+  const { seller } = useSelector((state) => state.seller);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -15,13 +17,15 @@ const InventoryAlerts = () => {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (seller?._id) {
+      fetchProducts();
+    }
+  }, [seller]);
 
   const fetchProducts = async () => {
     try {
       const { data } = await axios.get(
-        `${server}/product/get-all-products-shop`,
+        `${server}/product/get-all-products-shop/${seller._id}`,
         {
           withCredentials: true,
         }
