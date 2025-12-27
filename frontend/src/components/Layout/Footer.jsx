@@ -82,22 +82,23 @@ const Footer = () => {
 
   return (
     <footer className="relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent"></div>
+      {/* Mall of Cayman Footer Background - Blue Theme */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-500/10 via-transparent to-transparent"></div>
       </div>
 
-      {/* Newsletter Section - Compact */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 py-8">
-        <div className="absolute inset-0 bg-black/20"></div>
+      {/* Newsletter Section - Cayman Theme */}
+      <div className="relative bg-gradient-to-r from-primary-500 via-primary-600 to-accent-500 py-8">
+        <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="text-center lg:text-left">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                Stay Connected
+                🏝️ Stay Connected with Mall of Cayman
               </h2>
               <p className="text-blue-100 text-sm md:text-base max-w-xl">
-                Get exclusive deals and updates delivered to your inbox
+                Get exclusive deals, new store announcements, and updates
+                delivered to your inbox
               </p>
             </div>
 
@@ -115,10 +116,10 @@ const Footer = () => {
                 <button
                   type="submit"
                   disabled={isLoading || !email}
-                  className="px-6 py-3 bg-white text-purple-600 font-bold rounded-r-lg hover:bg-purple-50 transition-all duration-300 disabled:opacity-60"
+                  className="px-6 py-3 bg-white text-primary-600 font-bold rounded-r-lg hover:bg-primary-50 transition-all duration-300 disabled:opacity-60"
                 >
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
                   ) : isSubscribed ? (
                     <AiOutlineCheck className="w-5 h-5 text-green-600" />
                   ) : (
@@ -131,33 +132,35 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Main Footer Content - Compact Grid */}
-      <div className="relative bg-slate-900">
+      {/* Main Footer Content - Mall of Cayman Blue Theme */}
+      <div className="relative bg-primary-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
             {/* Company Info - 2 columns */}
             <div className="lg:col-span-2">
               <div className="flex items-center mb-4">
                 <Link to="/" className="group">
-                  <img
-                    src={BrandingLogo}
-                    alt="Brand Logo"
-                    className="h-20 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-lg"
-                    style={{ borderRadius: "12px" }}
-                  />
+                  <div className="bg-white p-3 rounded-lg shadow-moc">
+                    <img
+                      src={BrandingLogo}
+                      alt="Mall of Cayman"
+                      className="h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105"
+                      style={{ borderRadius: "8px" }}
+                    />
+                  </div>
                 </Link>
               </div>
 
-              <p className="text-gray-300 text-sm leading-relaxed mb-4">
+              <p className="text-blue-200 text-sm leading-relaxed mb-4">
                 {siteSettings?.companyInfo?.description ||
-                  "Your trusted online marketplace for quality products worldwide."}
+                  "Mall of Cayman - Your premier virtual mall marketplace serving businesses across the Cayman Islands. Discover, shop, and connect with local vendors."}
               </p>
 
               {/* Contact Info - Compact */}
               <div className="space-y-2 text-sm">
                 <div className="flex items-start space-x-2">
-                  <HiOutlineLocationMarker className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-300 text-xs leading-tight">
+                  <HiOutlineLocationMarker className="w-4 h-4 text-accent-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-blue-200 text-xs leading-tight">
                     {(siteSettings?.footerAddress?.streetAddress && (
                       <>
                         {siteSettings.footerAddress.streetAddress}
@@ -170,19 +173,20 @@ const Footer = () => {
                           ` ${siteSettings.footerAddress.postalCode}`}
                       </>
                     )) ||
-                      "5-25, 15th main road, 3rd stage, 4th block, Basaveswaranagar, near Guru sagar hotel, Bangalore 560079"}
+                      "George Town, Grand Cayman, Cayman Islands"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <HiOutlinePhone className="w-4 h-4 text-purple-400" />
-                  <span className="text-gray-300 text-xs">
-                    {siteSettings?.footerAddress?.phone || "+91 7349727270"}
+                  <HiOutlinePhone className="w-4 h-4 text-accent-400" />
+                  <span className="text-blue-200 text-xs">
+                    {siteSettings?.footerAddress?.phone || "+1 (345) 000-0000"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <AiOutlineMail className="w-4 h-4 text-teal-400" />
-                  <span className="text-gray-300 text-xs">
-                    {siteSettings?.footerAddress?.email || "support@wanttar.in"}
+                  <AiOutlineMail className="w-4 h-4 text-accent-400" />
+                  <span className="text-blue-200 text-xs">
+                    {siteSettings?.footerAddress?.email ||
+                      "info@mallofcayman.ky"}
                   </span>
                 </div>
               </div>
@@ -197,7 +201,7 @@ const Footer = () => {
                     <Link
                       to={link.link}
                       onClick={scrollToTop}
-                      className="text-gray-300 hover:text-purple-400 transition-colors duration-300 text-sm"
+                      className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                     >
                       {link.name}
                     </Link>
@@ -214,34 +218,34 @@ const Footer = () => {
                   <Link
                     to="/products"
                     onClick={scrollToTop}
-                    className="text-gray-300 hover:text-blue-400 transition-colors duration-300 text-sm"
+                    className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                   >
-                    Products
+                    Departments
                   </Link>
                 </li>
                 <li>
                   <Link
                     to="/events"
                     onClick={scrollToTop}
-                    className="text-gray-300 hover:text-blue-400 transition-colors duration-300 text-sm"
+                    className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                   >
-                    Events
+                    Deals & Events
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/login"
+                    to="/shop-create"
                     onClick={scrollToTop}
-                    className="text-gray-300 hover:text-blue-400 transition-colors duration-300 text-sm"
+                    className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                   >
-                    Login
+                    Become a Seller
                   </Link>
                 </li>
                 <li>
                   <Link
                     to="/faq"
                     onClick={scrollToTop}
-                    className="text-gray-300 hover:text-blue-400 transition-colors duration-300 text-sm"
+                    className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                   >
                     FAQ
                   </Link>
@@ -258,7 +262,7 @@ const Footer = () => {
                     <Link
                       to={link.link}
                       onClick={scrollToTop}
-                      className="text-gray-300 hover:text-teal-400 transition-colors duration-300 text-sm"
+                      className="text-blue-200 hover:text-accent-400 transition-colors duration-300 text-sm"
                     >
                       {link.name}
                     </Link>
@@ -309,7 +313,7 @@ const Footer = () => {
                     },
                     {
                       icon: AiFillYoutube,
-                      color: "bg-red-500 hover:bg-red-600",
+                      color: "bg-accent-500 hover:bg-accent-600",
                       link:
                         siteSettings?.socialMedia?.youtube ||
                         "https://youtube.com",
@@ -335,19 +339,21 @@ const Footer = () => {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <HiOutlineShieldCheck className="w-4 h-4 text-green-400" />
-                  <span className="text-gray-300 text-xs">SSL Secured</span>
+                  <span className="text-blue-200 text-xs">SSL Secured</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <HiOutlineTruck className="w-4 h-4 text-blue-400" />
-                  <span className="text-gray-300 text-xs">Fast Delivery</span>
+                  <HiOutlineTruck className="w-4 h-4 text-accent-400" />
+                  <span className="text-blue-200 text-xs">
+                    Island-Wide Delivery
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <HiOutlineSupport className="w-4 h-4 text-purple-400" />
-                  <span className="text-gray-300 text-xs">24/7 Support</span>
+                  <HiOutlineSupport className="w-4 h-4 text-primary-300" />
+                  <span className="text-blue-200 text-xs">24/7 Support</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <HiOutlineStar className="w-4 h-4 text-yellow-400" />
-                  <span className="text-gray-300 text-xs">Top Rated</span>
+                  <span className="text-blue-200 text-xs">Trusted Vendors</span>
                 </div>
               </div>
             </div>
@@ -355,61 +361,52 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Footer - Compact */}
-      <div className="relative bg-slate-950 border-t border-slate-800">
+      {/* Bottom Footer - Cayman Theme */}
+      <div className="relative bg-primary-950 border-t border-primary-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
-              <p className="text-gray-400 text-xs">
-                © {siteSettings?.companyInfo?.name || "Wanttar"} All rights
+              <p className="text-blue-300 text-xs">
+                © {new Date().getFullYear()}{" "}
+                {siteSettings?.companyInfo?.name || "Mall of Cayman"} All rights
                 reserved.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   to="/buyer-terms"
                   onClick={scrollToTop}
-                  className="text-gray-400 hover:text-blue-400 text-xs transition-colors"
+                  className="text-blue-300 hover:text-accent-400 text-xs transition-colors"
                 >
-                  Buyer Terms & Conditions
+                  User Terms & Conditions
                 </Link>
                 <Link
                   to="/seller-terms"
                   onClick={scrollToTop}
-                  className="text-gray-400 hover:text-green-400 text-xs transition-colors"
+                  className="text-blue-300 hover:text-accent-400 text-xs transition-colors"
                 >
-                  Seller Terms & Conditions
+                  Vendor Terms & Conditions
                 </Link>
                 <Link
                   to="/privacy"
                   onClick={scrollToTop}
-                  className="text-gray-400 hover:text-purple-400 text-xs transition-colors"
+                  className="text-blue-300 hover:text-accent-400 text-xs transition-colors"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   to="/refund"
                   onClick={scrollToTop}
-                  className="text-gray-400 hover:text-green-400 text-xs transition-colors"
+                  className="text-blue-300 hover:text-accent-400 text-xs transition-colors"
                 >
                   Return & Refund
-                </Link>
-                <Link
-                  to="/shipping"
-                  onClick={scrollToTop}
-                  className="text-gray-400 hover:text-orange-400 text-xs transition-colors"
-                >
-                  Shipping Info
                 </Link>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              <img
-                src="https://hamart-shop.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ffooter-payment.a37c49ac.png&w=640&q=75"
-                alt="Payment Methods"
-                className="h-6 opacity-80 hover:opacity-100 transition-opacity duration-300"
-              />
-              <div className="text-gray-400 text-xs">Secure payments</div>
+              <div className="text-blue-300 text-xs">
+                🏝️ Made in Cayman Islands
+              </div>
             </div>
           </div>
         </div>

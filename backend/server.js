@@ -104,6 +104,8 @@ const faq = require("./controller/faq");
 const phonePePayment = require("./routes/phonePePayment");
 const videoBanner = require("./routes/videoBanner");
 const videoCall = require("./routes/videoCall");
+const subscription = require("./controller/subscription");
+const commission = require("./controller/commission");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -131,6 +133,8 @@ app.use("/api/v2/site-settings", siteSettings);
 app.use("/api/v2/faq", faq);
 app.use("/api/v2/video-banner", videoBanner);
 app.use("/api/v2/video-call", videoCall);
+app.use("/api/v2/subscription", subscription);
+app.use("/api/v2/commission", commission);
 
 // error handler middleware
 app.use(ErrorHandler);

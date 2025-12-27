@@ -1,18 +1,32 @@
-// navigation Data
+// navigation Data - Mall of Cayman
 export const navItems = [
   {
     title: "Home",
     url: "/",
   },
- 
   {
-    title: "Products",
+    title: "About Us",
+    url: "/about",
+  },
+  {
+    title: "Departments",
     url: "/products",
   },
-  
+  {
+    title: "Seller Plans",
+    url: "/shop/subscriptions",
+  },
+  {
+    title: "Become a Seller",
+    url: "/shop-create",
+  },
   {
     title: "FAQ",
     url: "/faq",
+  },
+  {
+    title: "Contact Us",
+    url: "/inbox",
   },
 ];
 

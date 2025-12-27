@@ -41,6 +41,32 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Please enter your product stock!"],
   },
+  // Inventory management
+  inventoryAlerts: {
+    lowStockThreshold: {
+      type: Number,
+      default: 20, // 20% of baseline
+    },
+    criticalStockThreshold: {
+      type: Number,
+      default: 10, // 10% of baseline
+    },
+    baselineStock: {
+      type: Number,
+      default: 0, // Set when product is created or restocked
+    },
+    lastRestockDate: {
+      type: Date,
+    },
+    lowStockAlertSent: {
+      type: Boolean,
+      default: false,
+    },
+    criticalStockAlertSent: {
+      type: Boolean,
+      default: false,
+    },
+  },
   images: [
     {
       url: {
@@ -79,6 +105,25 @@ const productSchema = new mongoose.Schema({
       },
       productId: {
         type: String,
+      },
+      isVerifiedPurchase: {
+        type: Boolean,
+        default: false,
+      },
+      isApprovedByAdmin: {
+        type: Boolean,
+        default: false,
+      },
+      vendorReply: {
+        type: String,
+        default: null,
+      },
+      vendorReplyDate: {
+        type: Date,
+      },
+      orderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
       },
       createdAt: {
         type: Date,

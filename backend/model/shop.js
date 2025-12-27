@@ -167,6 +167,44 @@ const shopSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  // Subscription plan
+  subscriptionPlan: {
+    type: String,
+    enum: ['bronze', 'silver', 'gold', 'revenue-share'],
+    default: 'bronze',
+  },
+  currentSubscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subscription',
+    default: null,
+  },
+  // Revenue share tracking (for revenue-share plan)
+  revenueShare: {
+    monthlyMinimum: {
+      type: Number,
+      default: 25, // $25 minimum per month
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    lastPaymentDate: {
+      type: Date,
+    },
+    currentMonthRevenue: {
+      type: Number,
+      default: 0,
+    },
+  },
+  // PayPal Integration
+  paypalEmail: {
+    type: String,
+    required: false,
+  },
+  paypalMerchantId: {
+    type: String,
+    required: false,
+  },
 });
 
 // Hash password

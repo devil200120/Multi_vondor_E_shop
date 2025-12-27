@@ -4,27 +4,19 @@ import { navItems } from "../../static/data";
 
 const Navbar = ({ active }) => {
   return (
-    <div className="flex flex-col 800px:flex-row 800px:space-x-1 space-y-2 800px:space-y-0">
+    <div className="flex flex-col 800px:flex-row 800px:items-center 800px:gap-8 space-y-2 800px:space-y-0">
       {navItems.map((item, index) => (
-        <div
+        <Link
           key={index}
-          className="relative animate-slideIn 800px:animate-none"
-          style={{ animationDelay: `${index * 0.05}s` }}
+          to={item.url}
+          className={`${
+            active === index + 1
+              ? "text-primary-500 800px:border-b-2 800px:border-primary-500"
+              : "text-gray-700 hover:text-primary-500"
+          } block px-4 py-3 800px:px-0 800px:py-0 text-sm font-medium transition-colors duration-200 800px:pb-1`}
         >
-          <Link
-            to={item.url}
-            className={`${
-              active === index + 1
-                ? "text-primary-500 bg-primary-50 800px:bg-transparent 800px:text-primary-500"
-                : "text-text-primary 800px:text-text-secondary hover:text-primary-500 hover:bg-primary-50 800px:hover:bg-transparent"
-            } block px-4 py-3 800px:py-2 font-medium text-sm transition-all duration-200 rounded-lg 800px:rounded-none relative hover:scale-105 800px:hover:scale-100 transform`}
-          >
-            {item.title}
-            {active === index + 1 && (
-              <div className="hidden 800px:block absolute bottom-0 left-0 w-full h-0.5 bg-primary-500 rounded-t-sm"></div>
-            )}
-          </Link>
-        </div>
+          {item.title}
+        </Link>
       ))}
     </div>
   );

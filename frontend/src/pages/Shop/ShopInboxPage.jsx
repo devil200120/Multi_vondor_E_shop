@@ -8,7 +8,7 @@ const ShopInboxPage = () => {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader />
       <div className="flex items-start justify-between w-full">
-        <div className="w-[80px] 800px:w-[330px] hidden lg:block">
+        <div className="">
           <DashboardSideBar active={8} />
         </div>
         <div className="flex-1 mobile-content-padding">
@@ -24,3 +24,4 @@ const ShopInboxPage = () => {
 };
 
 export default ShopInboxPage;
+

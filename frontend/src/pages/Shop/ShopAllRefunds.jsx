@@ -8,7 +8,7 @@ const ShopAllRefunds = () => {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader />
       <div className="flex justify-between w-full">
-        <div className="w-[80px] 800px:w-[330px] hidden lg:block">
+        <div className="">
           <DashboardSideBar active={9} />
         </div>
         <div className="w-full justify-center flex mobile-content-padding">
@@ -24,3 +24,4 @@ const ShopAllRefunds = () => {
 };
 
 export default ShopAllRefunds;
+

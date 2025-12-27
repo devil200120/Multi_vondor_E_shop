@@ -2,10 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Unacademy-style fonts */
+/* Mall of Cayman - Custom Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+/* ==========================================
+   Mall of Cayman - Cayman Islands Theme
+   Colors: Blue (#003DA5), White (#FFFFFF), Red (#C8102E)
+   ========================================== */
+
+:root {
+  /* Cayman Islands Primary Colors */
+  --moc-blue: #003da5;
+  --moc-blue-light: #0052cc;
+  --moc-blue-dark: #002d7a;
+  --moc-red: #c8102e;
+  --moc-red-light: #e11d48;
+  --moc-red-dark: #9a0c23;
+  --moc-white: #ffffff;
+
+  /* Backgrounds - Cayman Blue Tints */
+  --moc-bg-primary: #f0f5ff;
+  --moc-bg-secondary: #e8f0fe;
+  --moc-border-light: #dbeafe;
+
+  /* Gradients */
+  --moc-gradient-blue: linear-gradient(135deg, #003da5 0%, #0052cc 100%);
+  --moc-gradient-red: linear-gradient(135deg, #c8102e 0%, #e11d48 100%);
+  --moc-gradient-mixed: linear-gradient(135deg, #003da5 0%, #c8102e 100%);
+}
 
 * {
   scroll-behavior: smooth;
@@ -13,10 +40,10 @@
 }
 
 body {
-  font-family: "Inter", "Roboto", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-    sans-serif;
-  background: #fafafa;
+  font-family: "Inter", "Montserrat", "Roboto", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 100%);
   color: #1a1a1a;
   scroll-behavior: smooth;
   line-height: 1.6;
@@ -25,7 +52,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Input and form styles */
+/* Input and form styles - Cayman Theme */
 input,
 select,
 textarea {
@@ -37,26 +64,26 @@ input:focus,
 select:focus,
 textarea:focus {
   ring: 2px;
-  ring-color: #008f66;
-  border-color: #008f66;
+  ring-color: var(--moc-blue);
+  border-color: var(--moc-blue);
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Cayman Theme */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--moc-blue);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--moc-blue-dark);
 }
 
 /* Hide scrollbar utility class */
@@ -93,30 +120,38 @@ textarea:focus {
   background: #94a3b8;
 }
 
-/* Button base styles */
-.btn-unacademy {
+/* Button base styles - Mall of Cayman */
+.btn-moc {
   @apply inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
 
 .btn-primary {
-  @apply btn-unacademy bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-unacademy hover:shadow-unacademy-md;
+  @apply btn-moc bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-moc hover:shadow-moc-md;
+}
+
+.btn-accent {
+  @apply btn-moc bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500 shadow-moc-red hover:shadow-moc-red-md;
 }
 
 .btn-secondary {
-  @apply btn-unacademy bg-secondary-100 text-text-primary hover:bg-secondary-200 focus:ring-secondary-300 border border-secondary-200;
+  @apply btn-moc bg-secondary-100 text-text-primary hover:bg-secondary-200 focus:ring-secondary-300 border border-secondary-200;
 }
 
 .btn-outline {
-  @apply btn-unacademy bg-transparent text-primary-500 border border-primary-500 hover:bg-primary-50 focus:ring-primary-500;
+  @apply btn-moc bg-transparent text-primary-500 border-2 border-primary-500 hover:bg-primary-50 focus:ring-primary-500;
 }
 
-/* Card styles */
-.card-unacademy {
-  @apply bg-white rounded-xl shadow-unacademy hover:shadow-unacademy-md transition-all duration-200 ease-in-out border border-secondary-200;
+.btn-outline-accent {
+  @apply btn-moc bg-transparent text-accent-500 border-2 border-accent-500 hover:bg-accent-50 focus:ring-accent-500;
 }
 
-/* Input styles */
-.input-unacademy {
+/* Card styles - Mall of Cayman */
+.card-moc {
+  @apply bg-white rounded-xl shadow-moc hover:shadow-moc-md transition-all duration-200 ease-in-out border border-secondary-200;
+}
+
+/* Input styles - Mall of Cayman */
+.input-moc {
   @apply w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 ease-in-out placeholder-text-muted;
 }
 
@@ -141,9 +176,9 @@ textarea:focus {
   @apply badge bg-red-100 text-red-800;
 }
 
-/* Heart icon animation */
+/* Heart icon animation - Cayman Red Theme */
 .batch_heart {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  background: linear-gradient(135deg, var(--moc-red), var(--moc-red-light));
   width: 18px;
   height: 18px;
   display: flex;
@@ -157,13 +192,13 @@ textarea:focus {
   color: white;
   font-size: 10px;
   font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(200, 16, 46, 0.3);
   transition: all 0.2s ease-in-out;
 }
 
 .batch_heart:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(200, 16, 46, 0.4);
 }
 
 /* Remove spinner buttons */
@@ -427,23 +462,27 @@ input[type="number"] {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Custom scrollbar for chatbot */
+/* Custom scrollbar for chatbot - Cayman Theme */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 61, 165, 0.1);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+  background: linear-gradient(
+    to bottom,
+    var(--moc-blue),
+    var(--moc-blue-light)
+  );
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #2563eb, #7c3aed);
+  background: linear-gradient(to bottom, var(--moc-blue-dark), var(--moc-blue));
 }
 
 /* Hover effects */
@@ -455,15 +494,15 @@ input[type="number"] {
   transform: translateY(-2px);
 }
 
-/* Text selection */
+/* Text selection - Cayman Blue Theme */
 ::selection {
-  background-color: rgba(0, 143, 102, 0.2);
+  background-color: rgba(0, 61, 165, 0.2);
   color: #1a1a1a;
 }
 
-/* Focus visible for accessibility */
+/* Focus visible for accessibility - Cayman Blue */
 .focus-visible {
-  outline: 2px solid #008f66;
+  outline: 2px solid var(--moc-blue);
   outline-offset: 2px;
 }
 

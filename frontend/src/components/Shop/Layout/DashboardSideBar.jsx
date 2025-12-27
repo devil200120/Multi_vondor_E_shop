@@ -6,17 +6,24 @@ import {
   AiOutlineClose,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { FiPackage, FiShoppingBag } from "react-icons/fi";
-import { MdOutlineLocalOffer } from "react-icons/md";
+import { FiPackage, FiShoppingBag, FiLock } from "react-icons/fi";
+import {
+  MdOutlineLocalOffer,
+  MdVideoLibrary,
+  MdRateReview,
+} from "react-icons/md";
 import { RxDashboard } from "react-icons/rx";
 import { VscNewFile } from "react-icons/vsc";
 import { CiMoneyBill, CiSettings } from "react-icons/ci";
-import { HiOutlineCalculator } from "react-icons/hi";
+import {
+  HiOutlineCalculator,
+  HiOutlineReceiptRefund,
+  HiExclamationCircle,
+} from "react-icons/hi";
+import { BsCreditCard2Back } from "react-icons/bs";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
 import { FaVideo } from "react-icons/fa";
-import { MdVideoLibrary } from "react-icons/md";
-import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -27,6 +34,9 @@ const DashboardSideBar = ({ active }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [conversationsCount, setConversationsCount] = useState(0);
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -84,6 +94,36 @@ const DashboardSideBar = ({ active }) => {
     getConversationsCount();
   }, [seller]);
 
+  // Fetch current subscription plan
+  useEffect(() => {
+    const getCurrentSubscription = async () => {
+      try {
+        const { data } = await axios.get(
+          `${server}/subscription/my-subscription`,
+          { withCredentials: true }
+        );
+        if (data.subscription) {
+          setCurrentPlan(data.subscription.plan);
+          setSubscriptionFeatures(data.subscription.features || {});
+          setHasActiveSubscription(
+            data.subscription.status === "active" ||
+              data.subscription.status === "pending"
+          );
+        } else {
+          setHasActiveSubscription(false);
+          setSubscriptionFeatures(null);
+        }
+      } catch (error) {
+        console.log("No active subscription");
+        setCurrentPlan(null);
+        setHasActiveSubscription(false);
+        setSubscriptionFeatures(null);
+      }
+    };
+
+    getCurrentSubscription();
+  }, []);
+
   useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [location]);
@@ -106,6 +146,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard",
       icon: RxDashboard,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
       id: 2,
@@ -113,6 +155,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-orders",
       icon: FiShoppingBag,
       badge: ordersCount > 0 ? ordersCount.toString() : null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
       id: 3,
@@ -120,6 +164,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-products",
       icon: FiPackage,
       badge: productsCount > 0 ? productsCount.toString() : null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
       id: 4,
@@ -127,27 +173,17 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-create-product",
       icon: AiOutlineFolderAdd,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription (but product limit applies)
     },
-    // {
-    //   id: 5,
-    //   title: "All Events",
-    //   link: "/dashboard-events",
-    //   icon: MdOutlineLocalOffer,
-    //   badge: eventsCount > 0 ? eventsCount.toString() : null,
-    // },
-    // {
-    //   id: 6,
-    //   title: "Create Event",
-    //   link: "/dashboard-create-event",
-    //   icon: VscNewFile,
-    //   badge: null,
-    // },
     {
       id: 7,
       title: "All Coupons",
       link: "/dashboard-coupouns",
       icon: AiOutlineGift,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
       id: 8,
@@ -155,6 +191,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-video-calls",
       icon: FaVideo,
       badge: null,
+      requiresSubscription: true,
+      featureKey: "contactSeller", // Requires contactSeller feature (Silver+)
     },
     {
       id: 9,
@@ -162,6 +200,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-video-banners",
       icon: MdVideoLibrary,
       badge: null,
+      requiresSubscription: true,
+      featureKey: "videoOption", // Requires videoOption feature (Silver+)
     },
     {
       id: 10,
@@ -169,6 +209,17 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-create-video-banner",
       icon: AiOutlineFolderAdd,
       badge: null,
+      requiresSubscription: true,
+      featureKey: "videoOption", // Requires videoOption feature (Silver+)
+    },
+    {
+      id: 15,
+      title: "Subscription Plans",
+      link: "/shop/subscriptions",
+      icon: BsCreditCard2Back,
+      badge: currentPlan ? currentPlan.toUpperCase() : "FREE",
+      requiresSubscription: false, // Always accessible
+      featureKey: null,
     },
     {
       id: 11,
@@ -176,6 +227,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-messages",
       icon: BiMessageSquareDetail,
       badge: conversationsCount > 0 ? conversationsCount.toString() : null,
+      requiresSubscription: true,
+      featureKey: "contactSeller", // Requires contactSeller feature (Silver+)
     },
     {
       id: 12,
@@ -183,6 +236,8 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-refunds",
       icon: HiOutlineReceiptRefund,
       badge: refundRequestsCount > 0 ? refundRequestsCount.toString() : null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
       id: 13,
@@ -190,37 +245,63 @@ const DashboardSideBar = ({ active }) => {
       link: "/dashboard-withdraw-money",
       icon: CiMoneyBill,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
-      id: 12,
+      id: 14,
       title: "Product Shipping",
       link: "/dashboard-product-shipping",
       icon: FiPackage,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
-      id: 13,
+      id: 16,
       title: "Shop Settings",
       link: "/settings",
       icon: CiSettings,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
     {
-      id: 14,
+      id: 17,
       title: "GST Settings",
       link: "/dashboard-gst-settings",
       icon: HiOutlineCalculator,
       badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
+    },
+    {
+      id: 18,
+      title: "Review Management",
+      link: "/dashboard-reviews",
+      icon: MdRateReview,
+      badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
+    },
+    {
+      id: 19,
+      title: "Inventory Alerts",
+      link: "/dashboard-inventory-alerts",
+      icon: HiExclamationCircle,
+      badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
     },
   ];
 
   const SidebarContent = ({ mobile = false }) => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       {/* Header Section */}
       <div
         className={`${
           mobile ? "p-5 pb-4" : "p-6 pb-4"
-        } border-b border-gray-100/80`}
+        } border-b border-gray-100/80 flex-shrink-0`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -228,11 +309,13 @@ const DashboardSideBar = ({ active }) => {
               <span className="text-white font-bold text-sm">S</span>
             </div>
             {(!isCollapsed || mobile) && (
-              <div>
-                <h2 className="text-base font-bold text-gray-800">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-bold text-gray-800 truncate">
                   Seller Panel
                 </h2>
-                <p className="text-xs text-gray-500">Manage your store</p>
+                <p className="text-xs text-gray-500 truncate">
+                  Manage your store
+                </p>
               </div>
             )}
           </div>
@@ -263,8 +346,8 @@ const DashboardSideBar = ({ active }) => {
       {/* Navigation Items */}
       <div
         className={`flex-1 ${
-          mobile ? "p-5 pt-4" : "p-6 pt-4"
-        } space-y-1 overflow-y-auto scrollbar-hide`}
+          mobile ? "p-5 pt-4" : "p-4 pt-4"
+        } space-y-1 overflow-y-auto overflow-x-hidden scrollbar-hide`}
         style={{
           /* Hide scrollbar for webkit browsers */
           WebkitScrollbar: { display: "none" },
@@ -276,12 +359,40 @@ const DashboardSideBar = ({ active }) => {
         {menuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = active === item.id;
+          // Check if item is locked based on subscription and feature requirements
+          const isLocked =
+            item.requiresSubscription &&
+            (!hasActiveSubscription ||
+              (item.featureKey &&
+                subscriptionFeatures &&
+                !subscriptionFeatures[item.featureKey]));
+
+          // Handle locked item clicks
+          const handleClick = (e) => {
+            if (isLocked) {
+              e.preventDefault();
+              // Get the feature name for better error message
+              const featureName = item.featureKey
+                ? item.featureKey.replace(/([A-Z])/g, " $1").trim()
+                : "active subscription";
+              toast.warning(
+                `This feature requires ${featureName}. Please upgrade your plan!`,
+                {
+                  position: "top-right",
+                  autoClose: 3000,
+                }
+              );
+              navigate("/shop/subscriptions");
+            } else if (mobile) {
+              setIsMobileSidebarOpen(false);
+            }
+          };
 
           return (
             <Link
               key={item.id}
-              to={item.link}
-              onClick={() => mobile && setIsMobileSidebarOpen(false)}
+              to={isLocked ? "#" : item.link}
+              onClick={handleClick}
               className={`relative flex items-center rounded-xl transition-all duration-200 group ${
                 isCollapsed && !mobile
                   ? "p-3 justify-center"
@@ -289,14 +400,18 @@ const DashboardSideBar = ({ active }) => {
                   ? "p-4 space-x-4"
                   : "p-3 space-x-3"
               } ${
-                isActive
+                isLocked
+                  ? "opacity-50 cursor-not-allowed bg-gray-100/50"
+                  : isActive
                   ? "bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 shadow-sm"
                   : "hover:bg-gray-50 hover:shadow-sm border border-transparent hover:border-gray-200/50"
               }`}
             >
               <div
                 className={`relative flex items-center justify-center rounded-lg transition-all duration-200 ${
-                  isActive
+                  isLocked
+                    ? "bg-gray-200 text-gray-400"
+                    : isActive
                     ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-110"
                     : mobile
                     ? "bg-gray-100 group-hover:bg-blue-100 text-gray-600 group-hover:text-blue-600"
@@ -305,16 +420,23 @@ const DashboardSideBar = ({ active }) => {
                   mobile ? "w-12 h-12" : isCollapsed ? "w-8 h-8" : "w-8 h-8"
                 }`}
               >
-                <IconComponent
-                  size={mobile ? 20 : isCollapsed ? 18 : 18}
-                  className="transition-all duration-200"
-                />
+                {isLocked ? (
+                  <FiLock
+                    size={mobile ? 20 : isCollapsed ? 18 : 18}
+                    className="transition-all duration-200"
+                  />
+                ) : (
+                  <IconComponent
+                    size={mobile ? 20 : isCollapsed ? 18 : 18}
+                    className="transition-all duration-200"
+                  />
+                )}
               </div>
 
               {(!isCollapsed || mobile) && (
-                <div className="flex-1 flex items-center justify-between min-w-0">
+                <div className="flex-1 flex items-center justify-between min-w-0 overflow-hidden">
                   <span
-                    className={`font-semibold transition-colors duration-200 truncate ${
+                    className={`font-semibold transition-colors duration-200 truncate flex-shrink mr-2 ${
                       mobile ? "text-base" : "text-sm"
                     } ${
                       isActive
@@ -354,32 +476,66 @@ const DashboardSideBar = ({ active }) => {
       {/* Footer Section */}
       <div
         className={`${
-          mobile ? "p-5 pt-4" : "p-6 pt-4"
-        } border-t border-gray-100/80`}
+          mobile ? "p-5 pt-4" : "p-4 pt-4"
+        } border-t border-gray-100/80 flex-shrink-0`}
       >
-        <div
-          className={`bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 rounded-xl transition-all duration-200 ${
-            isCollapsed && !mobile ? "p-3" : mobile ? "p-4" : "p-4"
-          }`}
-        >
-          {(!isCollapsed || mobile) && (
-            <>
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-gray-600">
-                  Store Status: Active
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 leading-relaxed">
-                Your store is live and accepting orders. Keep providing
-                excellent service!
-              </div>
-            </>
-          )}
-          {isCollapsed && !mobile && (
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mx-auto"></div>
-          )}
-        </div>
+        {!hasActiveSubscription ? (
+          // Free user - Show subscription warning
+          <div
+            className={`bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border border-orange-200/50 rounded-xl transition-all duration-200 ${
+              isCollapsed && !mobile ? "p-3" : mobile ? "p-4" : "p-4"
+            }`}
+          >
+            {(!isCollapsed || mobile) && (
+              <>
+                <div className="flex items-center space-x-2 mb-2">
+                  <FiLock className="w-4 h-4 text-orange-500" />
+                  <span className="text-xs font-bold text-orange-700">
+                    FREE PLAN - Limited Access
+                  </span>
+                </div>
+                <div className="text-xs text-orange-600 leading-relaxed mb-3">
+                  Subscribe to unlock all features and start selling!
+                </div>
+                <Link
+                  to="/shop/subscriptions"
+                  className="block w-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 text-center"
+                  onClick={() => mobile && setIsMobileSidebarOpen(false)}
+                >
+                  View Plans →
+                </Link>
+              </>
+            )}
+            {isCollapsed && !mobile && (
+              <FiLock className="w-4 h-4 text-orange-500 mx-auto" />
+            )}
+          </div>
+        ) : (
+          // Subscribed user - Show active status
+          <div
+            className={`bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border border-blue-200/50 rounded-xl transition-all duration-200 ${
+              isCollapsed && !mobile ? "p-3" : mobile ? "p-4" : "p-4"
+            }`}
+          >
+            {(!isCollapsed || mobile) && (
+              <>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-gray-600">
+                    Store Status: Active
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 leading-relaxed">
+                  Your store is live and accepting orders. Keep providing
+                  excellent service!
+                </div>
+              </>
+            )}
+            {isCollapsed && !mobile && (
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mx-auto"></div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -388,8 +544,8 @@ const DashboardSideBar = ({ active }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`hidden lg:flex fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white/95 backdrop-blur-md border-r border-gray-200/80 shadow-xl transition-all duration-300 z-20 ${
-          isCollapsed ? "w-20" : "w-56"
+        className={`hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white/95 backdrop-blur-md border-r border-gray-200/80 shadow-xl transition-all duration-300 z-20 overflow-hidden ${
+          isCollapsed ? "w-20" : "w-64"
         }`}
       >
         <SidebarContent />
@@ -1009,7 +1165,7 @@ const DashboardSideBar = ({ active }) => {
                   <Link
                     to="/settings"
                     onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`flex items-center p-4 transition-all duration-200 ${
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
                       active === 13
                         ? "bg-blue-50 border-r-4 border-blue-500"
                         : "hover:bg-gray-50"
@@ -1037,6 +1193,144 @@ const DashboardSideBar = ({ active }) => {
                       </p>
                     </div>
                     {active === 13 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* GST Settings */}
+                  <Link
+                    to="/dashboard-gst-settings"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 17
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 17
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <HiOutlineCalculator size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 17 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        GST Settings
+                      </h4>
+                      <p className="text-sm text-gray-500">Tax configuration</p>
+                    </div>
+                    {active === 17 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Review Management */}
+                  <Link
+                    to="/dashboard-reviews"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 border-b border-gray-50 transition-all duration-200 ${
+                      active === 18
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 18
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <MdRateReview size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 18 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Review Management
+                      </h4>
+                      <p className="text-sm text-gray-500">Manage reviews</p>
+                    </div>
+                    {active === 18 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Inventory Alerts */}
+                  <Link
+                    to="/dashboard-inventory-alerts"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 19
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 19
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <HiExclamationCircle size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 19 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Inventory Alerts
+                      </h4>
+                      <p className="text-sm text-gray-500">Stock monitoring</p>
+                    </div>
+                    {active === 19 && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
+                  </Link>
+
+                  {/* Subscription Plans */}
+                  <Link
+                    to="/shop/subscriptions"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`flex items-center p-4 transition-all duration-200 ${
+                      active === 15
+                        ? "bg-blue-50 border-r-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active === 15
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      <BsCreditCard2Back size={18} />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h4
+                        className={`font-semibold text-base ${
+                          active === 15 ? "text-blue-900" : "text-gray-900"
+                        }`}
+                      >
+                        Subscription Plans
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {currentPlan ? currentPlan.toUpperCase() : "FREE"}
+                      </p>
+                    </div>
+                    {active === 15 && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     )}
                   </Link>

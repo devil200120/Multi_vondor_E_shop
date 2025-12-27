@@ -8,7 +8,7 @@ const DashboardVideoBannersPage = () => {
     <div>
       <DashboardHeader />
       <div className="flex items-start justify-between w-full">
-        <div className="w-[80px] 800px:w-[330px]">
+        <div className="">
           <DashboardSideBar active={9} />
         </div>
         <AllVideoBanners />

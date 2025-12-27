@@ -10,42 +10,52 @@ module.exports = {
     },
     extend: {
       colors: {
-        // Unacademy Color Palette
+        // Mall of Cayman Color Palette - Cayman Islands Theme (Blue, White, Red)
         primary: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#008F66', // Main Unacademy Green
-          600: '#047857',
-          700: '#065f46',
-          800: '#064e3b',
-          900: '#022c22',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#003DA5', // Cayman Blue (Main Brand Color)
+          600: '#002d7a',
+          700: '#002466',
+          800: '#001a4d',
+          900: '#001033',
         },
         secondary: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
+          50: '#fefefe',
+          100: '#ffffff', // White
+          200: '#f8f9fa',
+          300: '#e9ecef',
+          400: '#ced4da',
+          500: '#adb5bd',
+          600: '#6c757d',
+          700: '#495057',
+          800: '#343a40',
+          900: '#212529',
         },
         accent: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#C8102E', // Cayman Red (Accent Color)
+          600: '#b30d26',
+          700: '#9a0b21',
+          800: '#7f091b',
+          900: '#650716',
+        },
+        // Additional Cayman themed colors
+        cayman: {
+          blue: '#003DA5',
+          darkBlue: '#002d7a',
+          red: '#C8102E',
+          darkRed: '#9a0b21',
+          white: '#FFFFFF',
+          lightBlue: '#e6f0ff',
+          lightRed: '#ffe6ea',
         },
         dark: {
           50: '#f8fafc',
@@ -57,13 +67,13 @@ module.exports = {
           600: '#475569',
           700: '#334155',
           800: '#1e293b',
-          900: '#1a1a1a',
+          900: '#0f172a',
         },
         text: {
-          primary: '#1a1a1a',
-          secondary: '#3f3f46',
-          muted: '#6b7280',
-          light: '#9ca3af',
+          primary: '#0f172a',
+          secondary: '#334155',
+          muted: '#64748b',
+          light: '#94a3b8',
         }
       },
       screens: {
@@ -89,6 +99,15 @@ module.exports = {
         'unacademy-md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         'unacademy-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         'unacademy-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        // Mall of Cayman Shadows - Blue themed
+        'moc': '0 1px 3px 0 rgba(0, 61, 165, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'moc-md': '0 4px 6px -1px rgba(0, 61, 165, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'moc-lg': '0 10px 15px -3px rgba(0, 61, 165, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'moc-xl': '0 20px 25px -5px rgba(0, 61, 165, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        // Mall of Cayman Shadows - Red themed
+        'moc-red': '0 1px 3px 0 rgba(200, 16, 46, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'moc-red-md': '0 4px 6px -1px rgba(200, 16, 46, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'moc-red-lg': '0 10px 15px -3px rgba(200, 16, 46, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',

@@ -8,7 +8,7 @@ const DashboardEditVideoBannerPage = () => {
     <div>
       <DashboardHeader />
       <div className="flex items-start justify-between w-full">
-        <div className="w-[80px] 800px:w-[330px]">
+        <div className="">
           <DashboardSideBar active={12} />
         </div>
         <EditVideoBanner />
@@ -18,3 +18,4 @@ const DashboardEditVideoBannerPage = () => {
 };
 
 export default DashboardEditVideoBannerPage;
+

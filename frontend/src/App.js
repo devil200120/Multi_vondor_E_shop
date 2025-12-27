@@ -87,6 +87,14 @@ import CreateVideoBannerPage from "./pages/CreateVideoBannerPage";
 import PhonePeSuccessPage from "./pages/PhonePeSuccessPage";
 import PhonePeFailedPage from "./pages/PhonePeFailedPage";
 import PhonePeTestPayment from "./pages/PhonePeTestPayment";
+import SubscriptionPlansPage from "./pages/SubscriptionPlansPage";
+import CommissionDashboardPage from "./pages/CommissionDashboardPage";
+import InventoryAlertsPage from "./pages/InventoryAlertsPage";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
+import AdminSubscriptionsPage from "./pages/AdminSubscriptionsPage";
+import AdminPlanManagementPage from "./pages/AdminPlanManagementPage";
+import AdminReviewManagementPage from "./pages/AdminReviewManagementPage";
+import ReviewManagementPage from "./pages/ReviewManagementPage";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -270,6 +278,8 @@ const App = () => {
         <Route path="/shop-login" element={<ShopLoginPage />} />
         <Route path="/shop-forgot-password" element={<ShopForgotPasswordPage />} />
         <Route path="/shop-reset-password/:token" element={<ShopResetPasswordPage />} />
+        {/* Public subscription plans page - anyone can view */}
+        <Route path="/shop/subscriptions" element={<SubscriptionPlansPage />} />
         <Route
           path="/shop/:id"
           element={
@@ -496,6 +506,59 @@ const App = () => {
           }
         />
 
+        <Route
+          path="/dashboard-subscription"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <SubscriptionPlansPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-commissions"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <CommissionDashboardPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-inventory-alerts"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <InventoryAlertsPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-reviews"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ReviewManagementPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/subscription-success"
+          element={
+            <SellerProtectedRoute>
+              <SubscriptionSuccessPage />
+            </SellerProtectedRoute>
+          }
+        />
+
         {/* Admin Routes */}
         <Route
           path="/admin/dashboard"
@@ -622,6 +685,30 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminSiteSettingsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-subscriptions"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSubscriptionsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-plan-management"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPlanManagementPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-review-management"
+          element={
+            <ProtectedAdminRoute>
+              <AdminReviewManagementPage />
             </ProtectedAdminRoute>
           }
         />

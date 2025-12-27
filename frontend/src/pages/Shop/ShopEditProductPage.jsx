@@ -8,7 +8,7 @@ const ShopEditProductPage = () => {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader />
       <div className="flex items-center justify-between w-full">
-        <div className="w-[80px] 800px:w-[330px] hidden lg:block">
+        <div className="">
           <DashboardSideBar active={4} />
         </div>
         <div className="w-full justify-center flex mobile-content-padding">
@@ -24,3 +24,4 @@ const ShopEditProductPage = () => {
 };
 
 export default ShopEditProductPage;
+

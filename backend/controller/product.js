@@ -1868,4 +1868,90 @@ router.put(
   })
 );
 
+// Update product stock
+router.put(
+  "/update-product-stock/:id",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const productId = req.params.id;
+      const { stock } = req.body;
+
+      if (!stock || stock < 0) {
+        return next(new ErrorHandler("Invalid stock quantity!", 400));
+      }
+
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return next(new ErrorHandler("Product not found with this id!", 404));
+      }
+
+      // Check if the product belongs to the seller's shop
+      if (product.shopId.toString() !== req.seller._id.toString()) {
+        return next(
+          new ErrorHandler(
+            "You are not authorized to update this product!",
+            403
+          )
+        );
+      }
+
+      const oldStock = product.stock;
+      product.stock = parseInt(stock);
+
+      // Update inventory alert flags
+      if (product.inventoryAlerts) {
+        const { baselineStock, lowStockThreshold, criticalStockThreshold } =
+          product.inventoryAlerts;
+
+        if (baselineStock) {
+          const percentage = (product.stock / baselineStock) * 100;
+          product.inventoryAlerts.isCriticalStock =
+            percentage <= criticalStockThreshold;
+          product.inventoryAlerts.isLowStock =
+            percentage <= lowStockThreshold &&
+            percentage > criticalStockThreshold;
+
+          // Send notification if crossing thresholds
+          if (
+            product.inventoryAlerts.isCriticalStock &&
+            oldStock > (baselineStock * criticalStockThreshold) / 100
+          ) {
+            await NotificationService.createNotification({
+              userId: product.shopId,
+              type: "stock_alert",
+              title: "Critical Stock Alert",
+              message: `Product "${product.name}" is now at critical stock level (${product.stock} remaining)`,
+              link: `/dashboard-inventory-alerts`,
+            });
+          } else if (
+            product.inventoryAlerts.isLowStock &&
+            oldStock > (baselineStock * lowStockThreshold) / 100
+          ) {
+            await NotificationService.createNotification({
+              userId: product.shopId,
+              type: "stock_alert",
+              title: "Low Stock Alert",
+              message: `Product "${product.name}" stock is running low (${product.stock} remaining)`,
+              link: `/dashboard-inventory-alerts`,
+            });
+          }
+        }
+      }
+
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Product stock updated successfully!",
+        product,
+      });
+    } catch (error) {
+      console.error("Update stock error:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 module.exports = router;

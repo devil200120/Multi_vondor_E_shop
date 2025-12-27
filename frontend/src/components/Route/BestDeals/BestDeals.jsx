@@ -96,16 +96,16 @@ const BestDeals = () => {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-8 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-50 via-white to-red-50 py-8 relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200 to-red-200 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200 to-primary-200 rounded-full opacity-20 animate-pulse"></div>
           <div
-            className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 animate-pulse"
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-red-200 to-pink-200 rounded-full opacity-20 animate-pulse"
             style={{ animationDelay: "1s" }}
           ></div>
           <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full opacity-10 animate-spin"
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-100 to-primary-100 rounded-full opacity-10 animate-spin"
             style={{ animationDuration: "20s" }}
           ></div>
         </div>
@@ -113,14 +113,14 @@ const BestDeals = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center py-12">
             <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-100 border-t-orange-600 mx-auto shadow-lg"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-100 border-t-primary-600 mx-auto shadow-lg"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <HiOutlineFire className="w-6 h-6 text-orange-600 animate-pulse" />
+                <HiOutlineFire className="w-6 h-6 text-red-600 animate-pulse" />
               </div>
             </div>
             <div className="mt-6">
               <div className="inline-flex items-center mb-3">
-                <div className="flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full shadow-lg animate-bounce">
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-primary-500 to-red-500 text-white px-4 py-2 rounded-full shadow-lg animate-bounce">
                   <HiSparkles className="w-4 h-4 animate-pulse" />
                   <span className="text-xs font-bold tracking-wide">
                     LOADING AMAZING DEALS
@@ -139,20 +139,20 @@ const BestDeals = () => {
   }
 
   return (
-    <section className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-6 sm:py-8 relative overflow-hidden">
+    <section className="bg-gradient-to-br from-blue-50 via-white to-red-50 py-6 sm:py-8 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200 to-red-200 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200 to-primary-200 rounded-full opacity-20 animate-pulse"></div>
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 animate-pulse"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-red-200 to-red-100 rounded-full opacity-20 animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
         <div
-          className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full opacity-30 animate-bounce"
+          className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-blue-200 to-primary-200 rounded-full opacity-30 animate-bounce"
           style={{ animationDuration: "3s" }}
         ></div>
         <div
-          className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-red-200 to-pink-200 rounded-full opacity-30 animate-bounce"
+          className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-gradient-to-br from-red-200 to-red-100 rounded-full opacity-30 animate-bounce"
           style={{ animationDuration: "4s", animationDelay: "2s" }}
         ></div>
       </div>
@@ -163,8 +163,8 @@ const BestDeals = () => {
           {/* Animated Badge with Glow Effect */}
           <div className="inline-flex items-center mb-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-full blur-lg opacity-75 animate-pulse"></div>
-              <div className="relative flex items-center space-x-2 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-red-500 rounded-full blur-lg opacity-75 animate-pulse"></div>
+              <div className="relative flex items-center space-x-2 bg-gradient-to-r from-primary-500 via-primary-600 to-red-500 text-white px-4 py-2 rounded-full shadow-xl">
                 <HiOutlineFire className="w-4 h-4 animate-bounce" />
                 <span className="text-xs font-bold tracking-wider">
                   🔥 TODAY'S MEGA DEALS 🔥
@@ -179,13 +179,13 @@ const BestDeals = () => {
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 mb-2 leading-tight">
               <span className="inline-block animate-pulse">💥</span>
               <span className="mx-2">Best Deals of the</span>
-              <span className="bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
+              <span className="bg-gradient-to-r from-primary-600 via-red-600 to-red-500 bg-clip-text text-transparent animate-pulse">
                 Day
               </span>
               <span className="inline-block animate-pulse">💥</span>
             </h2>
             <div className="flex justify-center mt-2">
-              <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse"></div>
+              <div className="h-1 w-24 bg-gradient-to-r from-primary-500 to-red-500 rounded-full animate-pulse"></div>
             </div>
           </div>
 
@@ -226,8 +226,8 @@ const BestDeals = () => {
           <>
             {/* Enhanced Timer Banner with Glow Effect */}
             <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl blur-lg opacity-75 animate-pulse"></div>
-              <div className="relative bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-xl p-3 shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500 via-red-500 to-red-600 rounded-xl blur-lg opacity-75 animate-pulse"></div>
+              <div className="relative bg-gradient-to-r from-primary-500 via-red-500 to-red-600 rounded-xl p-3 shadow-xl">
                 <div className="text-center text-white">
                   <div className="flex items-center justify-center mb-2">
                     <HiClock className="w-4 h-4 mr-1.5 animate-pulse" />
@@ -294,52 +294,17 @@ const BestDeals = () => {
             <div className="mb-8">
               {/* Mobile View - Horizontal Scroll */}
               <div className="block md:hidden">
-                <div className="flex space-x-3 overflow-x-auto pb-4 px-2 scrollbar-hide">
+                <div className="flex gap-4 overflow-x-auto pb-4 px-2 scrollbar-hide">
                   {data.map((product, index) => (
                     <div
                       key={index}
-                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[180px] min-w-[180px] max-w-[180px]"
+                      className="flex-shrink-0 w-[220px]"
                       style={{
-                        animationDelay: `${index * 150}ms`,
-                        animation: "fadeInUp 0.6s ease-out forwards",
+                        animationDelay: `${index * 100}ms`,
+                        animation: "fadeInUp 0.5s ease-out forwards",
                       }}
                     >
-                      <div className="relative w-full h-full">
-                        {/* Enhanced Trending Badge */}
-                        {index === 0 && (
-                          <div className="absolute top-2 -right-1 z-20">
-                            <div className="relative">
-                              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-sm animate-pulse"></div>
-                              <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-full shadow-lg animate-bounce flex items-center space-x-1">
-                                <span>⬆️</span>
-                                <span>🏆 #1</span>
-                                <span>⬆️</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {/* Hot Deal Badge for other products */}
-                        {index > 0 && index < 3 && (
-                          <div className="absolute top-2 -right-1 z-20">
-                            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
-                              🔥 HOT
-                            </div>
-                          </div>
-                        )}
-                        {/* Limited Stock Badge */}
-                        {index >= 3 && (
-                          <div className="absolute top-2 -right-1 z-20">
-                            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
-                              ⚡ LIMITED
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Glow Effect on Hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
-
-                        <ProductCard data={product} isCompact={true} />
-                      </div>
+                      <ProductCard data={product} />
                     </div>
                   ))}
                 </div>
@@ -367,52 +332,17 @@ const BestDeals = () => {
               </div>
 
               {/* Desktop/Tablet View - Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-stretch auto-rows-fr">
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.map((product, index) => (
                   <div
                     key={index}
-                    className="group transform transition-all duration-500 hover:scale-110 hover:z-10 h-full"
+                    className="h-full w-full"
                     style={{
-                      animationDelay: `${index * 150}ms`,
-                      animation: "fadeInUp 0.6s ease-out forwards",
+                      animationDelay: `${index * 100}ms`,
+                      animation: "fadeInUp 0.5s ease-out forwards",
                     }}
                   >
-                    <div className="relative w-full h-full">
-                      {/* Enhanced Trending Badge */}
-                      {index === 0 && (
-                        <div className="absolute top-2 -right-1 z-20">
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-md animate-pulse"></div>
-                            <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-3 py-2 rounded-full shadow-xl animate-bounce flex items-center space-x-1">
-                              <span>⬆️</span>
-                              <span>🏆 #1 BESTSELLER</span>
-                              <span>⬆️</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {/* Hot Deal Badge for other products */}
-                      {index > 0 && index < 3 && (
-                        <div className="absolute top-2 -right-1 z-20">
-                          <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
-                            🔥 HOT
-                          </div>
-                        </div>
-                      )}
-                      {/* Limited Stock Badge */}
-                      {index >= 3 && (
-                        <div className="absolute top-2 -right-1 z-20">
-                          <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                            ⚡ LIMITED
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Glow Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-red-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
-
-                      <ProductCard data={product} />
-                    </div>
+                    <ProductCard data={product} />
                   </div>
                 ))}
               </div>
@@ -421,8 +351,8 @@ const BestDeals = () => {
             {/* Enhanced CTA Section */}
             <div className="text-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-purple-200 rounded-2xl blur-xl opacity-50"></div>
-                <div className="relative bg-white rounded-2xl p-6 shadow-2xl border-2 border-gradient-to-r from-blue-200 to-purple-200">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-red-200 rounded-2xl blur-xl opacity-50"></div>
+                <div className="relative bg-white rounded-2xl p-6 shadow-2xl border-2 border-blue-100">
                   <div className="mb-3">
                     <span className="text-3xl">🎁</span>
                   </div>
@@ -438,8 +368,8 @@ const BestDeals = () => {
                     </span>
                   </p>
                   <Link to="/best-selling">
-                    <button className="group relative inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-black text-base rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 transform overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                    <button className="group relative inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 via-primary-700 to-red-600 text-white font-black text-base rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 transform overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-700 via-red-600 to-red-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                       <span className="relative flex items-center">
                         <HiSparkles className="w-4 h-4 mr-2 animate-spin" />
                         View All Best Sellers

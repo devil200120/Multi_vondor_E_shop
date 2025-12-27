@@ -319,6 +319,31 @@ router.get(
   })
 );
 
+// get all shops (public - for featured stores)
+router.get(
+  "/get-all-shops",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      // Get all approved and non-banned shops, sorted by ratings
+      const shops = await Shop.find({
+        approvalStatus: 'approved',
+        isBanned: { $ne: true }
+      })
+        .select('name avatar ratings description address createdAt')
+        .sort({ ratings: -1, createdAt: -1 })
+        .limit(50);
+
+      res.status(200).json({
+        success: true,
+        shops,
+        count: shops.length,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 // update shop profile picture
 router.put(
   "/update-shop-avatar",

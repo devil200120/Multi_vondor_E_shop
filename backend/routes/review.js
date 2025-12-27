@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require("../model/product");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, isSeller } = require("../middleware/auth");
 
 // Get all reviews with pagination and filtering
 router.get(
@@ -213,6 +213,184 @@ router.get(
       });
     } catch (error) {
       console.error("Error fetching review stats:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Seller: Get all reviews for seller's products
+router.get(
+  "/seller-reviews",
+  isAuthenticated,
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const sellerId = req.seller._id;
+      const status = req.query.status; // all, approved, pending
+      const rating = req.query.rating ? parseInt(req.query.rating) : null;
+
+      // Get all products belonging to this seller
+      const products = await Product.find(
+        { shopId: sellerId },
+        { _id: 1, name: 1, images: 1, reviews: 1, category: 1 }
+      ).populate('category', 'name');
+
+      // Extract all reviews with product information
+      let allReviews = [];
+      products.forEach(product => {
+        if (product.reviews && product.reviews.length > 0) {
+          product.reviews.forEach(review => {
+            allReviews.push({
+              _id: review._id,
+              user: review.user,
+              rating: review.rating,
+              comment: review.comment,
+              createdAt: review.createdAt,
+              isVerifiedPurchase: review.isVerifiedPurchase || false,
+              isApprovedByAdmin: review.isApprovedByAdmin !== false, // Default to true for old reviews
+              vendorReply: review.vendorReply,
+              product: {
+                _id: product._id,
+                name: product.name,
+                images: product.images,
+                category: product.category?.name || 'Unknown'
+              }
+            });
+          });
+        }
+      });
+
+      // Filter by status
+      if (status === 'approved') {
+        allReviews = allReviews.filter(review => review.isApprovedByAdmin);
+      } else if (status === 'pending') {
+        allReviews = allReviews.filter(review => !review.isApprovedByAdmin);
+      }
+
+      // Filter by rating if specified
+      if (rating) {
+        allReviews = allReviews.filter(review => review.rating === rating);
+      }
+
+      // Sort by newest first
+      allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      res.status(200).json({
+        success: true,
+        reviews: allReviews
+      });
+    } catch (error) {
+      console.error("Error fetching seller reviews:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Seller: Get review statistics for seller's products
+router.get(
+  "/seller-review-stats",
+  isAuthenticated,
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const sellerId = req.seller._id;
+
+      // Get all products belonging to this seller
+      const products = await Product.find(
+        { shopId: sellerId },
+        { reviews: 1 }
+      );
+
+      let totalReviews = 0;
+      let totalRating = 0;
+      let pendingReviews = 0;
+      let approvedReviews = 0;
+      const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+      products.forEach(product => {
+        if (product.reviews && product.reviews.length > 0) {
+          product.reviews.forEach(review => {
+            totalReviews++;
+            totalRating += review.rating;
+            ratingCounts[review.rating]++;
+
+            // Count approved vs pending
+            if (review.isApprovedByAdmin !== false) {
+              approvedReviews++;
+            } else {
+              pendingReviews++;
+            }
+          });
+        }
+      });
+
+      const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+
+      res.status(200).json({
+        success: true,
+        stats: {
+          totalReviews,
+          averageRating: Math.round(averageRating * 10) / 10,
+          pendingReviews,
+          approvedReviews,
+          ratingDistribution: ratingCounts
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching seller review stats:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Seller: Reply to a review
+router.post(
+  "/reply/:reviewId",
+  isAuthenticated,
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { reviewId } = req.params;
+      const { replyText } = req.body;
+      const sellerId = req.seller._id;
+
+      if (!replyText || replyText.trim().length === 0) {
+        return next(new ErrorHandler("Reply text is required", 400));
+      }
+
+      // Find the product containing this review
+      const product = await Product.findOne({
+        shopId: sellerId,
+        "reviews._id": reviewId
+      });
+
+      if (!product) {
+        return next(new ErrorHandler("Review not found or unauthorized", 404));
+      }
+
+      // Find the review and add vendor reply
+      const review = product.reviews.id(reviewId);
+      if (!review) {
+        return next(new ErrorHandler("Review not found", 404));
+      }
+
+      review.vendorReply = {
+        text: replyText,
+        createdAt: new Date()
+      };
+
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Reply posted successfully",
+        review: {
+          _id: review._id,
+          vendorReply: review.vendorReply
+        }
+      });
+    } catch (error) {
+      console.error("Error posting reply:", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })

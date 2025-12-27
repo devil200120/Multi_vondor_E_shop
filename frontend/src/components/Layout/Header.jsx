@@ -6,10 +6,12 @@ import {
   AiOutlineHeart,
   AiOutlineSearch,
   AiOutlineShoppingCart,
+  AiOutlineUser,
 } from "react-icons/ai";
 import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
 import { BiMenuAltLeft } from "react-icons/bi";
 import { CgProfile } from "react-icons/cg";
+import { HiOutlineUserCircle } from "react-icons/hi";
 import DropDown from "./DropDown";
 import Navbar from "./Navbar";
 import { useSelector, useDispatch } from "react-redux";
@@ -85,187 +87,157 @@ const Header = ({ activeHeading }) => {
 
   return (
     <>
-      {/* Top Header - Desktop */}
-      <div className={`${styles.section} border-b border-secondary-200`}>
-        <div className="hidden 800px:h-16 800px:my-4 800px:flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center mr-4">
-            <Link
-              to="/"
-              className="group hover:scale-105 transition-all duration-300 ease-in-out"
-            >
-              <img
-                src={BrandingLogo}
-                alt="Brand Logo"
-                className="h-44 w-auto object-contain transition-all duration-300"
-                style={{
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  maxWidth: "280px",
-                }}
-              />
-            </Link>
-          </div>
+      {/* Thin Blue Top Bar */}
+      <div className="bg-primary-500 h-2"></div>
 
-          {/* Search Box */}
-          <div className={`${styles.search_container} mx-6 flex-1`}>
-            <div className="relative">
-              <AiOutlineSearch size={20} className={`${styles.search_icon}`} />
-              <input
-                type="text"
-                placeholder="Search for products, courses..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className={`${styles.search_input}`}
-              />
+      {/* Main Header with Logo and Navigation */}
+      <div className="bg-white border-b-4 border-accent-500">
+        <div className={`${styles.section}`}>
+          <div className="hidden 800px:flex items-center h-16">
+            {/* Logo - Fixed width */}
+            <div className="flex-shrink-0 w-[160px]">
+              <Link to="/">
+                <img
+                  src={BrandingLogo}
+                  alt="Mall of Cayman"
+                  className="h-12 w-auto object-contain"
+                />
+              </Link>
             </div>
 
-            {searchData && searchData.length !== 0 && (
-              <div className={`${styles.search_results} animate-slideInDown`}>
-                {searchData.map((product, index) => (
-                  <Link
-                    key={index}
-                    to={`/product/${product._id}`}
-                    className="block"
-                    onClick={() => setSearchData(null)}
-                  >
-                    <div className="flex items-center p-4 hover:bg-secondary-50 transition-colors duration-200 border-b border-secondary-100 last:border-b-0">
-                      <img
-                        src={getProductImageUrl(product.images, 0, backend_url)}
-                        alt={product.name}
-                        className="w-12 h-12 object-cover rounded-md mr-4"
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-text-primary truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-text-muted mt-1">
-                          ₹{product.discountPrice}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+            {/* Navigation Links - Centered with even spacing */}
+            <nav className="flex-1 flex items-center justify-center">
+              <Navbar active={activeHeading} />
+            </nav>
 
-          {/* Become Seller Button */}
-          <div className="ml-4">
-            <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
-              <button className={`${styles.button_secondary} text-sm`}>
-                {isSeller ? "Dashboard" : "Become Seller"}
-                <IoIosArrowForward className="ml-1" size={16} />
-              </button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Navigation Header */}
-      <div
-        className={`${
-          active
-            ? "shadow-unacademy-lg fixed top-0 left-0 z-50 bg-white"
-            : "bg-white border-b border-secondary-200"
-        } transition-all duration-300 hidden 800px:flex items-center justify-between w-full h-16`}
-      >
-        <div className={`${styles.section} ${styles.spaceBetween}`}>
-          {/* Categories Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <div
-              onClick={() => setDropDown(!dropDown)}
-              className="relative h-12 w-64 hidden 1000px:block cursor-pointer"
-            >
-              <button className="h-full w-full flex items-center justify-between pl-4 pr-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 shadow-unacademy hover:shadow-unacademy-md">
-                <div className="flex items-center">
-                  <BiMenuAltLeft size={20} className="mr-2" />
-                  <span className="text-sm">All Categories</span>
-                </div>
-                <IoIosArrowDown
-                  size={16}
-                  className={`transition-transform duration-200 ${
-                    dropDown ? "rotate-180" : ""
-                  }`}
-                />
+            {/* Right Side - Icons and Auth */}
+            <div className="flex-shrink-0 flex items-center gap-5">
+              {/* Search Icon */}
+              <button className="text-primary-500 hover:text-primary-600 transition-colors">
+                <AiOutlineSearch size={22} />
               </button>
 
-              {dropDown && (
-                <DropDown
-                  categoriesData={rootCategories}
-                  setDropDown={setDropDown}
-                />
-              )}
-            </div>
-          </div>
+              {/* Wishlist */}
+              <button
+                className="relative text-primary-500 hover:text-accent-500 transition-colors"
+                onClick={() => setOpenWishlist(true)}
+              >
+                <AiOutlineHeart size={22} />
+                {wishlist && wishlist.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {wishlist.length}
+                  </span>
+                )}
+              </button>
 
-          {/* Navigation Links */}
-          <div className="flex items-center">
-            <Navbar active={activeHeading} />
-          </div>
+              {/* Cart */}
+              <button
+                className="relative text-primary-500 hover:text-primary-600 transition-colors"
+                onClick={() => setOpenCart(true)}
+              >
+                <AiOutlineShoppingCart size={22} />
+                {cart && cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
 
-          {/* Right Side Icons */}
-          <div className="flex items-center space-x-4">
-            {/* Google Translate */}
-            <GoogleTranslate />
-
-            {/* Wishlist */}
-            <div
-              className="relative cursor-pointer p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200"
-              onClick={() => setOpenWishlist(true)}
-            >
-              <AiOutlineHeart
-                size={24}
-                className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
-              />
-              {wishlist && wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                  {wishlist.length}
-                </span>
-              )}
-            </div>
-
-            {/* Cart */}
-            <div
-              className="relative cursor-pointer p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200"
-              onClick={() => setOpenCart(true)}
-            >
-              <AiOutlineShoppingCart
-                size={24}
-                className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
-              />
-              {cart && cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cart.length}
-                </span>
-              )}
-            </div>
-
-            {/* Profile */}
-            <div className="cursor-pointer">
+              {/* Sign In / Register or Profile */}
               {isAuthenticated || isSeller ? (
                 <Link
                   to={isSeller ? "/dashboard" : "/profile"}
-                  className="block"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
                 >
                   <img
                     src={getAvatarUrl(
                       isSeller ? seller?.avatar : user?.avatar,
                       backend_url
                     )}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-secondary-200 hover:border-primary-500 transition-colors duration-200"
+                    className="w-7 h-7 rounded-full object-cover border border-white"
                     alt="Profile"
                   />
+                  <span className="text-sm font-medium">
+                    {isSeller ? "Dashboard" : "Profile"}
+                  </span>
                 </Link>
               ) : (
-                <Link
-                  to="/login"
-                  className="p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200 block"
-                >
-                  <CgProfile
-                    size={24}
-                    className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
-                  />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to="/login"
+                    className="text-primary-500 text-sm font-medium hover:text-primary-600 transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/sign-up"
+                    className="px-5 py-2 bg-accent-500 text-white text-sm font-medium rounded-md hover:bg-accent-600 transition-colors"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar Section */}
+      <div
+        className={`${
+          active
+            ? "shadow-md fixed top-0 left-0 z-50 bg-white"
+            : "bg-gray-50 border-b border-gray-200"
+        } transition-all duration-300 hidden 800px:block w-full`}
+      >
+        <div className={`${styles.section}`}>
+          <div className="flex items-center justify-center py-3">
+            {/* Search Box - Centered */}
+            <div className="w-full max-w-2xl relative">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search products, stores..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="w-full pl-4 pr-12 py-2.5 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                />
+                <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-primary-500 text-white p-2 rounded-full hover:bg-primary-600 transition-colors">
+                  <AiOutlineSearch size={18} />
+                </button>
+              </div>
+
+              {searchData && searchData.length !== 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                  {searchData.map((product, index) => (
+                    <Link
+                      key={index}
+                      to={`/product/${product._id}`}
+                      className="block"
+                      onClick={() => setSearchData(null)}
+                    >
+                      <div className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                        <img
+                          src={getProductImageUrl(
+                            product.images,
+                            0,
+                            backend_url
+                          )}
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded mr-3"
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium text-gray-800 truncate">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-primary-500 font-semibold">
+                            ${product.discountPrice}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -275,15 +247,15 @@ const Header = ({ activeHeading }) => {
       {/* Mobile Header */}
       <div
         className={`${
-          active ? "shadow-unacademy fixed top-0 left-0 z-50" : ""
-        } w-full h-16 bg-white border-b border-secondary-200 800px:hidden`}
+          active ? "shadow-moc fixed top-0 left-0 z-50" : ""
+        } w-full h-16 bg-white border-b border-primary-100 800px:hidden`}
       >
         <div className="w-full flex items-center justify-between px-4 h-full">
           {/* Menu Button */}
           <div>
             <BiMenuAltLeft
               size={28}
-              className="text-text-secondary cursor-pointer hover:text-primary-500 transition-all duration-200 hover:scale-110"
+              className="text-primary-500 cursor-pointer hover:text-primary-600 transition-all duration-200 hover:scale-110"
               onClick={() => setOpen(true)}
             />
           </div>
@@ -296,11 +268,11 @@ const Header = ({ activeHeading }) => {
             >
               <img
                 src={BrandingLogo}
-                alt="Brand Logo"
-                className="h-32 w-auto object-contain transition-all duration-300"
+                alt="Mall of Cayman"
+                className="h-12 w-auto object-contain transition-all duration-300"
                 style={{
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  maxWidth: "200px",
+                  filter: "drop-shadow(0 2px 4px rgba(0,61,165,0.1))",
+                  maxWidth: "150px",
                 }}
               />
             </Link>
@@ -317,18 +289,18 @@ const Header = ({ activeHeading }) => {
                       isSeller ? seller?.avatar : user?.avatar,
                       backend_url
                     )}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-secondary-200 hover:border-primary-500 transition-colors duration-200"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-primary-500"
                     alt="Profile"
                   />
                 </Link>
               ) : (
                 <Link
                   to="/login"
-                  className="p-2 hover:bg-secondary-50 rounded-lg transition-colors duration-200 block"
+                  className="p-2 hover:bg-primary-50 rounded-lg transition-colors duration-200 block"
                 >
                   <CgProfile
                     size={24}
-                    className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
+                    className="text-primary-500 hover:text-primary-600 transition-colors duration-200"
                   />
                 </Link>
               )}
@@ -339,12 +311,9 @@ const Header = ({ activeHeading }) => {
               className="relative cursor-pointer p-2"
               onClick={() => setOpenCart(true)}
             >
-              <AiOutlineShoppingCart
-                size={24}
-                className="text-text-secondary"
-              />
+              <AiOutlineShoppingCart size={24} className="text-primary-500" />
               {cart && cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-accent-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
                   {cart.length}
                 </span>
               )}
@@ -360,40 +329,39 @@ const Header = ({ activeHeading }) => {
           onClick={() => setOpen(false)}
         >
           <div
-            className="fixed w-4/5 max-w-sm bg-white h-screen top-0 left-0 z-50 overflow-y-auto animate-slideInLeft shadow-unacademy-xl"
+            className="fixed w-4/5 max-w-sm bg-white h-screen top-0 left-0 z-50 overflow-y-auto animate-slideInLeft shadow-moc-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-secondary-200 animate-slideIn">
+            {/* Sidebar Header - Mall of Cayman Branding */}
+            <div className="flex items-center justify-between p-4 border-b border-primary-100 bg-primary-500 animate-slideIn">
+              <div className="text-white font-bold text-lg">Mall of Cayman</div>
+              <RxCross1
+                size={24}
+                className="text-white cursor-pointer hover:text-accent-300 hover:scale-110 transition-all duration-200"
+                onClick={() => setOpen(false)}
+              />
+            </div>
+
+            {/* Wishlist Quick Access */}
+            <div className="p-4 border-b border-secondary-100 bg-primary-50">
               <div
-                className="relative cursor-pointer hover:scale-110 transition-transform duration-200"
+                className="flex items-center justify-between cursor-pointer hover:bg-white p-3 rounded-lg transition-all duration-200"
                 onClick={() => {
                   setOpenWishlist(true);
                   setOpen(false);
                 }}
               >
-                <AiOutlineHeart
-                  size={24}
-                  className="text-text-secondary hover:text-primary-500 transition-colors duration-200"
-                />
+                <div className="flex items-center space-x-3">
+                  <AiOutlineHeart size={24} className="text-accent-500" />
+                  <span className="font-medium text-text-primary">
+                    My Wishlist
+                  </span>
+                </div>
                 {wishlist && wishlist.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center animate-scaleIn">
+                  <span className="bg-accent-500 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center">
                     {wishlist.length}
                   </span>
                 )}
-              </div>
-
-              <RxCross1
-                size={24}
-                className="text-text-secondary cursor-pointer hover:text-red-500 hover:scale-110 transition-all duration-200"
-                onClick={() => setOpen(false)}
-              />
-            </div>
-
-            {/* Google Translate in Sidebar */}
-            <div className="p-4 border-b border-secondary-100 animate-slideIn">
-              <div className="flex items-center justify-center">
-                <GoogleTranslate />
               </div>
             </div>
 
@@ -405,19 +373,19 @@ const Header = ({ activeHeading }) => {
               <div className="relative">
                 <AiOutlineSearch
                   size={20}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-400"
                 />
                 <input
                   type="search"
-                  placeholder="Search for products..."
-                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                  placeholder="Search products, stores..."
+                  className="w-full pl-10 pr-4 py-3 border-2 border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
               </div>
 
               {searchData && searchData.length > 0 && (
-                <div className="absolute bg-white border border-secondary-200 rounded-lg shadow-unacademy-lg z-10 w-full left-0 mt-2 max-h-64 overflow-y-auto animate-slideInDown">
+                <div className="absolute bg-white border border-secondary-200 rounded-lg shadow-moc-lg z-10 w-full left-0 mt-2 max-h-64 overflow-y-auto animate-slideInDown">
                   {searchData.map((product, index) => (
                     <Link
                       key={index}
@@ -427,7 +395,7 @@ const Header = ({ activeHeading }) => {
                         setOpen(false);
                       }}
                     >
-                      <div className="flex items-center p-3 hover:bg-secondary-50 border-b border-secondary-100 last:border-b-0">
+                      <div className="flex items-center p-3 hover:bg-primary-50 border-b border-secondary-100 last:border-b-0">
                         <img
                           src={getProductImageUrl(
                             product.images,
@@ -461,8 +429,8 @@ const Header = ({ activeHeading }) => {
               style={{ animationDelay: "0.3s" }}
             >
               <Link to={`${isSeller ? "/dashboard" : "/shop-create"}`}>
-                <button className="w-full bg-primary-500 text-white font-medium py-3 rounded-lg hover:bg-primary-600 transition-colors duration-200 flex items-center justify-center hover:scale-105 transform">
-                  {isSeller ? "Dashboard" : "Become Seller"}
+                <button className="w-full bg-accent-500 text-white font-medium py-3 rounded-lg hover:bg-accent-600 transition-colors duration-200 flex items-center justify-center hover:scale-105 transform">
+                  {isSeller ? "Seller Dashboard" : "Become a Seller"}
                   <IoIosArrowForward className="ml-1" size={16} />
                 </button>
               </Link>
@@ -507,12 +475,12 @@ const Header = ({ activeHeading }) => {
               ) : (
                 <div className="space-y-3">
                   <div className="text-center mb-4">
-                    <CgProfile
+                    <HiOutlineUserCircle
                       size={48}
-                      className="text-gray-400 mx-auto mb-2"
+                      className="text-primary-300 mx-auto mb-2"
                     />
                     <p className="text-text-muted text-sm">
-                      Join us to get the best deals!
+                      Welcome to Mall of Cayman!
                     </p>
                   </div>
                   <Link
@@ -520,14 +488,14 @@ const Header = ({ activeHeading }) => {
                     onClick={() => setOpen(false)}
                     className="w-full bg-primary-500 text-white font-medium py-3 rounded-lg hover:bg-primary-600 transition-colors duration-200 text-center block"
                   >
-                    Login
+                    Sign In
                   </Link>
                   <Link
                     to="/sign-up"
                     onClick={() => setOpen(false)}
-                    className="w-full border-2 border-primary-500 text-primary-500 font-medium py-3 rounded-lg hover:bg-primary-50 transition-colors duration-200 text-center block"
+                    className="w-full border-2 border-accent-500 text-accent-500 font-medium py-3 rounded-lg hover:bg-accent-50 transition-colors duration-200 text-center block"
                   >
-                    Sign Up
+                    Register
                   </Link>
                 </div>
               )}

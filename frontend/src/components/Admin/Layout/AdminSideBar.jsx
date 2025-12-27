@@ -141,6 +141,20 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       url: "/admin/analytics",
       color: "bg-teal-500",
     },
+    {
+      id: 17,
+      name: "Subscription Management",
+      icon: HiOutlineCurrencyDollar,
+      url: "/admin-subscriptions",
+      color: "bg-purple-500",
+    },
+    {
+      id: 18,
+      name: "Plan Management",
+      icon: HiOutlineCog,
+      url: "/admin-plan-management",
+      color: "bg-indigo-500",
+    },
   ];
 
   return (
@@ -254,6 +268,10 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
                         {item.name === "FAQ Management" &&
                           "Manage frequently asked questions"}
                         {item.name === "Analytics" && "Reports & insights"}
+                        {item.name === "Subscription Management" &&
+                          "Seller subscriptions"}
+                        {item.name === "Plan Management" &&
+                          "Manage subscription plans"}
                       </span>
                     )}
                   </div>

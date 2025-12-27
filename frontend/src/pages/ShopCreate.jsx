@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import ShopCreate from "../components/Shop/ShopCreate";
+import ShopCreateWithSubscription from "../components/Shop/ShopCreateWithSubscription";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -13,8 +13,8 @@ const ShopCreatePage = () => {
     }
   });
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
-      <ShopCreate />
+    <div>
+      <ShopCreateWithSubscription />
     </div>
   );
 };

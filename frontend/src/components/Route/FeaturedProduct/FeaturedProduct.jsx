@@ -139,27 +139,13 @@ const FeaturedProduct = () => {
                   {data.map((product, index) => (
                     <div
                       key={index}
-                      className="group transform transition-all duration-500 hover:scale-105 flex-shrink-0 w-[180px] min-w-[180px] max-w-[180px]"
+                      className="flex-shrink-0 w-[180px]"
                       style={{
                         animationDelay: `${index * 150}ms`,
                         animation: "fadeInUp 0.6s ease-out forwards",
                       }}
                     >
-                      <div className="relative w-full h-full">
-                        {/* Featured Badge */}
-                        {index < 3 && (
-                          <div className="absolute top-2 -right-1 z-20">
-                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
-                              ✨ FEATURED
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Glow Effect on Hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-200 to-pink-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
-
-                        <ProductCard data={product} isCompact={true} />
-                      </div>
+                      <ProductCard data={product} isCompact={true} />
                     </div>
                   ))}
                 </div>
@@ -187,28 +173,10 @@ const FeaturedProduct = () => {
               </div>
 
               {/* Desktop/Tablet View - Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.map((product, index) => (
-                  <div
-                    key={index}
-                    className="group transform transition-all duration-300 hover:scale-105 h-full"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="relative h-full">
-                      {/* Featured Badge */}
-                      {index < 3 && (
-                        <div className="absolute top-2 -right-1 z-20">
-                          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                            ✨ FEATURED
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Glow Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-200 to-pink-200 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl -z-10"></div>
-
-                      <ProductCard data={product} />
-                    </div>
+                  <div key={index} className="h-full w-full">
+                    <ProductCard data={product} />
                   </div>
                 ))}
               </div>
