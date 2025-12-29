@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendMail = require("../utils/sendMail");
 const Shop = require("../model/shop");
-const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isSeller, isAdmin, requirePermission, requireAnyPermission } = require("../middleware/auth");
 const { upload } = require("../multer");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -60,7 +60,21 @@ router.post("/create-shop", upload.single("file"), async (req, res, next) => {
       latitude: req.body.latitude,
       longitude: req.body.longitude,
       gstNumber: req.body.gstNumber,
+      paypalEmail: req.body.paypalEmail, // REQUIRED
+      // Bank account details (optional)
+      bankAccountDetails: {
+        accountHolderName: req.body.accountHolderName || '',
+        accountNumber: req.body.accountNumber || '',
+        bankName: req.body.bankName || '',
+        ifscCode: req.body.ifscCode || '',
+        accountType: req.body.accountType || '',
+      },
     };
+    
+    // Validate PayPal email is provided
+    if (!seller.paypalEmail) {
+      return next(new ErrorHandler("PayPal email is required to receive payments", 400));
+    }
     
     // Only add avatar if it exists
     if (avatarData) {
@@ -271,9 +285,28 @@ router.get(
         return next(new ErrorHandler("User doesn't exists", 400));
       }
 
+      // Fetch subscription information
+      const Subscription = require("../model/subscription");
+      const subscription = await Subscription.findOne({ shop: seller._id });
+      
+      // Add subscription details to seller object
+      const sellerWithSubscription = seller.toObject();
+      if (subscription) {
+        sellerWithSubscription.subscription = subscription;
+        sellerWithSubscription.subscriptionPlan = subscription.plan;
+        sellerWithSubscription.subscriptionStatus = subscription.status;
+        sellerWithSubscription.maxProducts = subscription.maxProducts;
+        sellerWithSubscription.subscriptionFeatures = subscription.features;
+      } else {
+        // Default to bronze if no subscription found
+        sellerWithSubscription.subscriptionPlan = "bronze";
+        sellerWithSubscription.subscriptionStatus = "none";
+        sellerWithSubscription.maxProducts = 10;
+      }
+
       res.status(200).json({
         success: true,
-        seller,
+        seller: sellerWithSubscription,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -456,11 +489,11 @@ router.put(
   })
 );
 
-// all sellers --- for admin
+// all sellers --- for admin and SubAdmin with canViewAnalytics
 router.get(
   "/admin-all-sellers",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canViewAnalytics']),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const sellers = await Shop.find().sort({
@@ -562,15 +595,22 @@ router.put(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { withdrawMethod } = req.body;
+      const { withdrawMethod, paypalEmail } = req.body;
 
-      const seller = await Shop.findByIdAndUpdate(req.seller._id, {
-        withdrawMethod,
-      });
+      const updateData = {};
+      if (withdrawMethod) updateData.withdrawMethod = withdrawMethod;
+      if (paypalEmail !== undefined) updateData.paypalEmail = paypalEmail;
+
+      const seller = await Shop.findByIdAndUpdate(
+        req.seller._id,
+        updateData,
+        { new: true, runValidators: true }
+      );
 
       res.status(201).json({
         success: true,
         seller,
+        message: "Payment methods updated successfully"
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -950,7 +990,7 @@ router.put(
 router.get(
   "/admin-pending-sellers",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const pendingSellers = await Shop.find({ approvalStatus: 'pending' }).sort({
@@ -972,7 +1012,7 @@ router.get(
 router.put(
   "/admin-approve-seller/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -1021,11 +1061,11 @@ router.put(
   })
 );
 
-// Reject seller (Admin only)
+// Reject seller (SubAdmin can reject)
 router.put(
   "/admin-reject-seller/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;

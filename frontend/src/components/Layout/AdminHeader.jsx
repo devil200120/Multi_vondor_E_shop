@@ -119,7 +119,11 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
           >
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-xs text-gray-500">
+                {user?.role === "Admin" && "Administrator"}
+                {user?.role === "SubAdmin" && "Sub Administrator"}
+                {user?.role === "Manager" && "Manager"}
+              </p>
             </div>
             <div className="relative">
               <img
@@ -153,7 +157,9 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
                     </p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                     <p className="text-xs text-blue-600 font-medium">
-                      Administrator
+                      {user?.role === "Admin" && "Administrator"}
+                      {user?.role === "SubAdmin" && "Sub Administrator"}
+                      {user?.role === "Manager" && "Manager"}
                     </p>
                   </div>
                 </div>

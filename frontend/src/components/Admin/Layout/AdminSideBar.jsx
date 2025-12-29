@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   HiOutlineViewGrid,
   HiOutlineShoppingBag,
@@ -19,6 +19,7 @@ import {
   HiOutlineCog,
   HiOutlineQuestionMarkCircle,
   HiOutlineFilm,
+  HiOutlineUserAdd,
 } from "react-icons/hi";
 import { logoutUser } from "../../../redux/actions/user";
 import { toast } from "react-toastify";
@@ -26,6 +27,7 @@ import { toast } from "react-toastify";
 const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -34,27 +36,15 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
     if (onItemClick) onItemClick();
   };
 
-  const menuItems = [
+  // Define all menu items with permission requirements
+  const allMenuItems = [
     {
       id: 1,
       name: "Dashboard",
       icon: HiOutlineViewGrid,
       url: "/admin/dashboard",
       color: "bg-blue-500",
-    },
-    {
-      id: 2,
-      name: "All Orders",
-      icon: HiOutlineShoppingBag,
-      url: "/admin-orders",
-      color: "bg-green-500",
-    },
-    {
-      id: 3,
-      name: "All Sellers",
-      icon: HiOutlineUserGroup,
-      url: "/admin-sellers",
-      color: "bg-orange-500",
+      roles: ["Admin", "SubAdmin", "Manager"], // All can see dashboard
     },
     {
       id: 11,
@@ -62,56 +52,23 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineClock,
       url: "/admin-pending-sellers",
       color: "bg-yellow-500",
+      roles: ["Admin", "SubAdmin"], // Only Admin and SubAdmin can approve vendors
     },
     {
-      id: 4,
-      name: "All Users",
-      icon: HiOutlineUsers,
-      url: "/admin-users",
-      color: "bg-purple-500",
-    },
-    {
-      id: 5,
-      name: "All Products",
+      id: 20,
+      name: "Pending Products",
       icon: HiOutlineCube,
-      url: "/admin-products",
-      color: "bg-indigo-500",
-    },
-
-    {
-      id: 7,
-      name: "Withdraw Request",
-      icon: HiOutlineCurrencyDollar,
-      url: "/admin-withdraw",
-      color: "bg-red-500",
+      url: "/admin-pending-products",
+      color: "bg-orange-500",
+      roles: ["Admin", "SubAdmin"], // Only Admin and SubAdmin can approve products
     },
     {
-      id: 8,
-      name: "Home Banner",
-      icon: HiOutlinePhotograph,
-      url: "/admin-banner",
-      color: "bg-pink-500",
-    },
-    {
-      id: 16,
-      name: "Video Banners",
+      id: 21,
+      name: "Pending Video Banners",
       icon: HiOutlineFilm,
-      url: "/admin-video-banners",
+      url: "/admin-video-banners?status=pending",
       color: "bg-red-500",
-    },
-    {
-      id: 9,
-      name: "Categories",
-      icon: HiOutlineCollection,
-      url: "/admin-categories",
-      color: "bg-cyan-500",
-    },
-    {
-      id: 12,
-      name: "Legal Pages",
-      icon: HiOutlineDocumentText,
-      url: "/admin-legal-pages",
-      color: "bg-emerald-500",
+      roles: ["Admin", "SubAdmin"], // SubAdmin can approve ads/video banners
     },
     {
       id: 13,
@@ -119,13 +76,71 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineStar,
       url: "/admin-reviews",
       color: "bg-indigo-500",
+      roles: ["Admin", "SubAdmin"], // SubAdmin can moderate reviews
     },
     {
-      id: 14,
-      name: "Site Settings",
-      icon: HiOutlineCog,
-      url: "/admin-site-settings",
-      color: "bg-gray-500",
+      id: 3,
+      name: "All Sellers",
+      icon: HiOutlineUserGroup,
+      url: "/admin-sellers",
+      color: "bg-orange-500",
+      roles: ["Admin", "Manager"], // Manager can manage vendors
+    },
+    {
+      id: 2,
+      name: "All Orders",
+      icon: HiOutlineShoppingBag,
+      url: "/admin-orders",
+      color: "bg-green-500",
+      roles: ["Admin", "Manager"], // Manager can manage orders
+    },
+    {
+      id: 5,
+      name: "All Products",
+      icon: HiOutlineCube,
+      url: "/admin-products",
+      color: "bg-indigo-500",
+      roles: ["Admin", "Manager"], // Manager can manage products
+    },
+    {
+      id: 9,
+      name: "Categories",
+      icon: HiOutlineCollection,
+      url: "/admin-categories",
+      color: "bg-cyan-500",
+      roles: ["Admin", "Manager"], // Manager can manage categories
+    },
+    {
+      id: 4,
+      name: "All Users",
+      icon: HiOutlineUsers,
+      url: "/admin-users",
+      color: "bg-purple-500",
+      roles: ["Admin", "Manager"], // Manager can manage users
+    },
+    {
+      id: 8,
+      name: "Home Banner",
+      icon: HiOutlinePhotograph,
+      url: "/admin-banner",
+      color: "bg-pink-500",
+      roles: ["Admin", "Manager"], // Manager can manage content
+    },
+    {
+      id: 16,
+      name: "All Video Banners",
+      icon: HiOutlineFilm,
+      url: "/admin-video-banners",
+      color: "bg-red-500",
+      roles: ["Admin", "Manager"], // Manager can manage content
+    },
+    {
+      id: 12,
+      name: "Legal Pages",
+      icon: HiOutlineDocumentText,
+      url: "/admin-legal-pages",
+      color: "bg-emerald-500",
+      roles: ["Admin", "Manager"], // Manager can manage content
     },
     {
       id: 15,
@@ -133,6 +148,15 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineQuestionMarkCircle,
       url: "/admin-faq",
       color: "bg-blue-500",
+      roles: ["Admin", "Manager"], // Manager can manage content
+    },
+    {
+      id: 7,
+      name: "Withdraw Request",
+      icon: HiOutlineCurrencyDollar,
+      url: "/admin-withdraw-request",
+      color: "bg-red-500",
+      roles: ["Admin", "Manager"], // Manager can manage orders/payments
     },
     {
       id: 10,
@@ -140,6 +164,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineChartBar,
       url: "/admin/analytics",
       color: "bg-teal-500",
+      roles: ["Admin", "SubAdmin", "Manager"], // All can view analytics
     },
     {
       id: 17,
@@ -147,6 +172,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineCurrencyDollar,
       url: "/admin-subscriptions",
       color: "bg-purple-500",
+      roles: ["Admin"], // Only Admin can access setup
     },
     {
       id: 18,
@@ -154,8 +180,30 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       icon: HiOutlineCog,
       url: "/admin-plan-management",
       color: "bg-indigo-500",
+      roles: ["Admin"], // Only Admin can access setup
+    },
+    {
+      id: 14,
+      name: "Site Settings",
+      icon: HiOutlineCog,
+      url: "/admin-site-settings",
+      color: "bg-gray-500",
+      roles: ["Admin"], // Only Admin can access setup
+    },
+    {
+      id: 19,
+      name: "Admin Staff",
+      icon: HiOutlineUserAdd,
+      url: "/admin-staff",
+      color: "bg-blue-600",
+      roles: ["Admin"], // Only Admin can manage staff
     },
   ];
+
+  // Filter menu items based on user role
+  const menuItems = allMenuItems.filter((item) =>
+    item.roles.includes(user?.role)
+  );
 
   return (
     <div

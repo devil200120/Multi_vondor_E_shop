@@ -50,7 +50,30 @@ const userSchema = new mongoose.Schema({
   ],
   role: {
     type: String,
+    enum: ['User', 'Supplier', 'Admin', 'SubAdmin', 'Manager'],
     default: "User",
+  },
+  // Permissions for SubAdmin and Manager roles
+  // Leave undefined to use role-based defaults from rolePermissions.js
+  permissions: {
+    // Approval permissions (for SubAdmin)
+    canApproveVendors: { type: Boolean },
+    canApproveProducts: { type: Boolean },
+    canApproveAds: { type: Boolean },
+    canModerateReviews: { type: Boolean },
+    
+    // Operational permissions (for Manager)
+    canManageOrders: { type: Boolean },
+    canManageProducts: { type: Boolean },
+    canManageCoupons: { type: Boolean },
+    canManageCategories: { type: Boolean },
+    canManageUsers: { type: Boolean },
+    canManageVendors: { type: Boolean },
+    canViewAnalytics: { type: Boolean },
+    canManageContent: { type: Boolean },
+    
+    // Setup/Settings permissions (denied for Manager)
+    canAccessSetup: { type: Boolean },
   },
   avatar: {
     type: {

@@ -1,5 +1,5 @@
 const express = require("express");
-const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isSeller, isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const router = express.Router();
 const Product = require("../model/product");
@@ -158,11 +158,13 @@ router.post(
         productData.isSellerProduct = true;
         productData.isAdminTagged = false; // Seller-created products are not admin-tagged
         productData.sellerShop = shopId; // Associate with the seller's shop
+        productData.approvalStatus = 'pending'; // Require admin approval
 
         console.log('Creating product with Cloudinary URLs:');
         console.log('Images:', uploadedImages);
         console.log('Videos:', uploadedVideos);
         console.log('Setting isSellerProduct: true for seller product');
+        console.log('Setting approvalStatus: pending - requires admin approval');
 
         const product = await Product.create(productData);
 
@@ -550,7 +552,14 @@ router.get(
   "/get-all-products",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const products = await Product.find()
+      // Only show approved products to customers (or admin products)
+      const products = await Product.find({
+        $or: [
+          { approvalStatus: 'approved' },
+          { isSellerProduct: false }, // Admin products don't need approval
+          { approvalStatus: { $exists: false } } // Legacy products without approval status
+        ]
+      })
         .populate('category', 'name _id parent')
         .populate('sellerShop', 'name email phoneNumber address avatar averageRating _id')
         .sort({ createdAt: -1 });
@@ -676,7 +685,7 @@ router.put(
 router.post(
   "/admin-create-product",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageProducts'),
   uploadFields,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -1949,6 +1958,136 @@ router.put(
       });
     } catch (error) {
       console.error("Update stock error:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Get pending products for admin approval
+router.get(
+  "/admin/pending-products",
+  isAuthenticated,
+  requirePermission('canApproveProducts'),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const products = await Product.find({ 
+        approvalStatus: 'pending',
+        isSellerProduct: true 
+      })
+        .populate('sellerShop', 'name email')
+        .populate('category', 'title')
+        .sort({ createdAt: -1 });
+
+      res.status(200).json({
+        success: true,
+        products,
+        count: products.length,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Approve product
+router.put(
+  "/admin/approve-product/:id",
+  isAuthenticated,
+  requirePermission('canApproveProducts'),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params.id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      if (product.approvalStatus === 'approved') {
+        return next(new ErrorHandler("Product is already approved", 400));
+      }
+
+      product.approvalStatus = 'approved';
+      product.approvedBy = req.user._id;
+      product.approvedAt = new Date();
+      product.rejectedBy = null;
+      product.rejectedAt = null;
+      product.rejectionReason = null;
+
+      await product.save({ validateBeforeSave: false });
+
+      // Notify seller about approval
+      const Shop = require("../model/shop");
+      const shop = await Shop.findById(product.sellerShop);
+      if (shop) {
+        await NotificationService.createProductNotification(
+          'Product Approved',
+          `Your product "${product.name}" has been approved and is now live!`,
+          'product_approved',
+          shop._id,
+          product._id
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Product approved successfully",
+        product,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Reject product
+router.put(
+  "/admin/reject-product/:id",
+  isAuthenticated,
+  requirePermission('canApproveProducts'),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { rejectionReason } = req.body;
+      
+      if (!rejectionReason) {
+        return next(new ErrorHandler("Rejection reason is required", 400));
+      }
+
+      const product = await Product.findById(req.params.id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      if (product.approvalStatus === 'rejected') {
+        return next(new ErrorHandler("Product is already rejected", 400));
+      }
+
+      product.approvalStatus = 'rejected';
+      product.rejectedBy = req.user._id;
+      product.rejectedAt = new Date();
+      product.rejectionReason = rejectionReason;
+      product.approvedBy = null;
+      product.approvedAt = null;
+
+      await product.save({ validateBeforeSave: false });
+
+      // Notify seller about rejection
+      const Shop = require("../model/shop");
+      const shop = await Shop.findById(product.sellerShop);
+      if (shop) {
+        await NotificationService.createProductNotification(
+          'Product Rejected',
+          `Your product "${product.name}" was not approved. Reason: ${rejectionReason}`,
+          'product_rejected',
+          shop._id,
+          product._id
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Product rejected successfully",
+        product,
+      });
+    } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })

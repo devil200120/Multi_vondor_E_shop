@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require("../model/product");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
-const { isAuthenticated, isAdmin, isSeller } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, isSeller, requirePermission } = require("../middleware/auth");
 
 // Get all reviews with pagination and filtering
 router.get(
@@ -401,7 +401,7 @@ router.post(
 router.delete(
   "/admin/delete-review/:productId/:reviewId",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canModerateReviews'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { productId, reviewId } = req.params;
@@ -431,7 +431,7 @@ router.delete(
         product.ratings = 0;
       }
 
-      await product.save();
+      await product.save({ validateBeforeSave: false });
 
       res.status(200).json({
         success: true,
@@ -455,7 +455,7 @@ router.delete(
 router.delete(
   "/admin/delete-reviews",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canModerateReviews'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { reviewsToDelete } = req.body; // Array of { productId, reviewId }
@@ -496,7 +496,7 @@ router.delete(
             product.ratings = 0;
           }
 
-          await product.save();
+          await product.save({ validateBeforeSave: false });
 
           deletionResults.push({
             productId,

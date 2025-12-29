@@ -14,7 +14,8 @@ const WithdrawMoney = () => {
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
   const [paymentMethod, setPaymentMethod] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState(50);
+  const [withdrawAmount, setWithdrawAmount] = useState(1);
+  const [paypalEmail, setPaypalEmail] = useState("");
   const [bankInfo, setBankInfo] = useState({
     bankName: "",
     bankCountry: "India",
@@ -28,7 +29,10 @@ const WithdrawMoney = () => {
 
   useEffect(() => {
     dispatch(getAllOrdersOfShop(seller._id));
-  }, [dispatch]);
+    if (seller?.paypalEmail) {
+      setPaypalEmail(seller.paypalEmail);
+    }
+  }, [dispatch, seller]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,6 +55,7 @@ const WithdrawMoney = () => {
         `${server}/shop/update-payment-methods`,
         {
           withdrawMethod,
+          paypalEmail: paypalEmail || null,
         },
         { withCredentials: true }
       )
@@ -89,7 +94,7 @@ const WithdrawMoney = () => {
   };
 
   const withdrawHandler = async () => {
-    if (withdrawAmount < 50 || withdrawAmount > availableBalance) {
+    if (withdrawAmount < 1 || withdrawAmount > availableBalance) {
       toast.error("You can't withdraw this amount!");
     } else {
       const amount = withdrawAmount;
@@ -111,11 +116,11 @@ const WithdrawMoney = () => {
     <div className="w-full h-[90vh] p-8">
       <div className="w-full bg-white h-full rounded flex items-center justify-center flex-col">
         <h5 className="text-[20px] pb-4">
-          Available Balance: ₹{availableBalance}
+          Available Balance: ${availableBalance}
         </h5>
         <div
           className={`${styles.button} text-white !h-[42px] !rounded`}
-          onClick={() => (availableBalance < 50 ? error() : setOpen(true))}
+          onClick={() => (availableBalance < 1 ? error() : setOpen(true))}
         >
           Withdraw
         </div>
@@ -140,6 +145,34 @@ const WithdrawMoney = () => {
                   Add new Withdraw Method:
                 </h3>
                 <form onSubmit={handleSubmit}>
+                  {/* PayPal Email Section */}
+                  <div className="pt-4 border-b pb-4 mb-4">
+                    <h4 className="text-[18px] font-[600] text-blue-600 mb-2">
+                      PayPal Withdrawal (Recommended)
+                    </h4>
+                    <label>
+                      PayPal Email{" "}
+                      <span className="text-gray-500">
+                        (Optional - For instant payouts)
+                      </span>
+                    </label>
+                    <input
+                      type="email"
+                      value={paypalEmail}
+                      onChange={(e) => setPaypalEmail(e.target.value)}
+                      placeholder="Enter your PayPal email (e.g., seller@paypal.com)"
+                      className={`${styles.input} mt-2`}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Add your PayPal email to receive instant withdrawals
+                      directly to your PayPal account.
+                    </p>
+                  </div>
+
+                  {/* Bank Details Section */}
+                  <h4 className="text-[18px] font-[600] mb-2">
+                    Bank Account Details
+                  </h4>
                   <div>
                     <label>
                       Bank Name <span className="text-red-500">*</span>

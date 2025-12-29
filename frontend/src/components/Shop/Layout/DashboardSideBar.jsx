@@ -11,6 +11,7 @@ import {
   MdOutlineLocalOffer,
   MdVideoLibrary,
   MdRateReview,
+  MdOutlineCampaign,
 } from "react-icons/md";
 import { RxDashboard } from "react-icons/rx";
 import { VscNewFile } from "react-icons/vsc";
@@ -20,10 +21,10 @@ import {
   HiOutlineReceiptRefund,
   HiExclamationCircle,
 } from "react-icons/hi";
-import { BsCreditCard2Back } from "react-icons/bs";
+import { BsCreditCard2Back, BsMegaphone } from "react-icons/bs";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BiMessageSquareDetail } from "react-icons/bi";
-import { FaVideo } from "react-icons/fa";
+import { FaVideo, FaTags } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -186,6 +187,33 @@ const DashboardSideBar = ({ active }) => {
       featureKey: null, // Always accessible with subscription
     },
     {
+      id: 20,
+      title: "Advertisements",
+      link: "/dashboard-advertisements",
+      icon: BsMegaphone,
+      badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
+    },
+    {
+      id: 21,
+      title: "Create Advertisement",
+      link: "/dashboard-create-advertisement",
+      icon: MdOutlineCampaign,
+      badge: null,
+      requiresSubscription: true,
+      featureKey: null, // Always accessible with subscription
+    },
+    {
+      id: 22,
+      title: "Ad Pricing",
+      link: "/dashboard-advertisement-pricing",
+      icon: FaTags,
+      badge: null,
+      requiresSubscription: false, // Always accessible to see pricing
+      featureKey: null,
+    },
+    {
       id: 8,
       title: "Video Calls",
       link: "/dashboard-video-calls",
@@ -239,15 +267,16 @@ const DashboardSideBar = ({ active }) => {
       requiresSubscription: true,
       featureKey: null, // Always accessible with subscription
     },
-    {
-      id: 13,
-      title: "Withdraw Money",
-      link: "/dashboard-withdraw-money",
-      icon: CiMoneyBill,
-      badge: null,
-      requiresSubscription: true,
-      featureKey: null, // Always accessible with subscription
-    },
+    // REMOVED: Withdraw Money - Payments now go directly to seller
+    // {
+    //   id: 13,
+    //   title: "Withdraw Money",
+    //   link: "/dashboard-withdraw-money",
+    //   icon: CiMoneyBill,
+    //   badge: null,
+    //   requiresSubscription: true,
+    //   featureKey: null,
+    // },
     {
       id: 14,
       title: "Product Shipping",

@@ -62,6 +62,10 @@ import {
   DashboardVideoBannersPage,
   DashboardCreateVideoBannerPage,
   DashboardEditVideoBannerPage,
+  ShopAllAdvertisements,
+  ShopCreateAdvertisement,
+  ShopAdvertisementPricing,
+  ShopAdvertisementPayment,
 } from "./routes/ShopRoutes";
 
 import {
@@ -95,6 +99,8 @@ import AdminSubscriptionsPage from "./pages/AdminSubscriptionsPage";
 import AdminPlanManagementPage from "./pages/AdminPlanManagementPage";
 import AdminReviewManagementPage from "./pages/AdminReviewManagementPage";
 import ReviewManagementPage from "./pages/ReviewManagementPage";
+import AdminDashboardStaff from "./pages/AdminDashboardStaff";
+import AdminDashboardPendingProducts from "./pages/AdminDashboardPendingProducts";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -495,6 +501,51 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+
+        <Route
+          path="/dashboard-advertisements"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopAllAdvertisements />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-create-advertisement"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopCreateAdvertisement />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-advertisement-pricing"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopAdvertisementPricing />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-advertisement-payment/:advertisementId"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopAdvertisementPayment />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
         <Route
           path="/dashboard-gst-settings"
           element={
@@ -585,6 +636,14 @@ const App = () => {
           }
         />
         <Route
+          path="/admin-staff"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardStaff />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin-sellers"
           element={
             <ProtectedAdminRoute>
@@ -597,6 +656,14 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminDashboardPendingSellers />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-pending-products"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardPendingProducts />
             </ProtectedAdminRoute>
           }
         />

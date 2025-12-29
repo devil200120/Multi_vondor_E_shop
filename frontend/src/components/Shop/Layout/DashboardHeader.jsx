@@ -54,17 +54,11 @@ const DashboardHeader = () => {
             to="/dashboard"
             className="flex items-center space-x-2 md:space-x-3 group"
           >
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-200 shadow-lg">
-              <span className="text-white font-bold text-sm md:text-lg">S</span>
-            </div>
-            <div className="transition-all duration-200">
-              <span className="hidden sm:block text-lg md:text-xl font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
-                Seller Dashboard
-              </span>
-              <span className="sm:hidden text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
-                Dashboard
-              </span>
-            </div>
+            <img
+              src="/branding-logo-cayman.jpeg"
+              alt="Logo"
+              className="w-auto h-10 md:h-12 object-contain group-hover:scale-105 transition-transform duration-200"
+            />
           </Link>
         </div>
 
@@ -145,7 +139,9 @@ const DashboardHeader = () => {
                   alt=""
                   className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-200"
                 />
-                <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-[8px]`}>
+                <div
+                  className={`absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-[8px]`}
+                >
                   {subscriptionBadge.icon}
                 </div>
               </div>
@@ -154,7 +150,9 @@ const DashboardHeader = () => {
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
                     {seller.name}
                   </p>
-                  <span className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}>
+                  <span
+                    className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}
+                  >
                     <HiSparkles className="w-2.5 h-2.5" />
                     <span>{subscriptionBadge.label}</span>
                   </span>
@@ -236,7 +234,9 @@ const DashboardHeader = () => {
                     alt=""
                     className="w-12 h-12 rounded-full object-cover border-3 border-white shadow-md"
                   />
-                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-xs shadow-lg`}>
+                  <div
+                    className={`absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full border-2 border-white flex items-center justify-center text-xs shadow-lg`}
+                  >
                     {subscriptionBadge.icon}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
@@ -246,7 +246,9 @@ const DashboardHeader = () => {
                     <p className="text-base font-bold text-gray-800">
                       {seller.name}
                     </p>
-                    <span className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}>
+                    <span
+                      className={`px-2 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r ${subscriptionBadge.gradient} rounded-full shadow-lg ${subscriptionBadge.glow} flex items-center space-x-1`}
+                    >
                       <HiSparkles className="w-2.5 h-2.5" />
                       <span>{subscriptionBadge.label}</span>
                     </span>

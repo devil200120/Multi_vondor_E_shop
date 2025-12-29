@@ -515,7 +515,7 @@ router.get(
 router.get(
   "/admin-all-users",
   isAuthenticated,
-  isAdmin("Admin"),
+  isAdmin(),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const users = await User.find().sort({
@@ -1310,6 +1310,158 @@ router.post(
       });
     } catch (error) {
       console.error('[FORCE CREATE SHOP] Error:', error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Get all admin users (Admin, SubAdmin, Manager) - Only Admin can access
+router.get(
+  "/admin-staff",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const adminUsers = await User.find({
+        role: { $in: ["Admin", "SubAdmin", "Manager"] }
+      }).select("-password").sort({ createdAt: -1 });
+
+      res.status(200).json({
+        success: true,
+        adminUsers,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Create SubAdmin or Manager - Only Admin can create
+router.post(
+  "/create-admin-user",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { name, email, password, role, customPermissions } = req.body;
+
+      // Validate role
+      if (!["SubAdmin", "Manager"].includes(role)) {
+        return next(new ErrorHandler("Invalid role. Only SubAdmin and Manager can be created", 400));
+      }
+
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return next(new ErrorHandler("User with this email already exists", 400));
+      }
+
+      // Create user with role and optional custom permissions
+      const user = await User.create({
+        name,
+        email,
+        password,
+        role,
+        permissions: customPermissions || {}
+      });
+
+      res.status(201).json({
+        success: true,
+        message: `${role} created successfully`,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          permissions: user.permissions
+        }
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Update admin user role or permissions - Only Admin can update
+router.put(
+  "/update-admin-user/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { role, permissions } = req.body;
+      const userId = req.params.id;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
+      // Prevent modifying the main Admin account
+      if (user.role === "Admin" && req.user._id.toString() !== userId) {
+        return next(new ErrorHandler("Cannot modify other Admin accounts", 403));
+      }
+
+      // Update role if provided
+      if (role && ["SubAdmin", "Manager"].includes(role)) {
+        user.role = role;
+      }
+
+      // Update custom permissions if provided
+      if (permissions && typeof permissions === 'object') {
+        user.permissions = { ...user.permissions, ...permissions };
+      }
+
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Admin user updated successfully",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          permissions: user.permissions
+        }
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Delete admin user (SubAdmin/Manager) - Only Admin can delete
+router.delete(
+  "/delete-admin-user/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+      }
+
+      // Prevent deleting Admin accounts
+      if (user.role === "Admin") {
+        return next(new ErrorHandler("Cannot delete Admin accounts", 403));
+      }
+
+      // Prevent self-deletion
+      if (req.user._id.toString() === userId) {
+        return next(new ErrorHandler("Cannot delete your own account", 403));
+      }
+
+      await User.findByIdAndDelete(userId);
+
+      res.status(200).json({
+        success: true,
+        message: `${user.role} deleted successfully`
+      });
+    } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })

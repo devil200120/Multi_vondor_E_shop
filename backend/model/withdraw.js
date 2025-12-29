@@ -21,8 +21,16 @@ const withdrawSchema = new mongoose.Schema({
   },
   payoutMethod: {
     type: String,
-    enum: ["bank", "upi", "manual"],
+    enum: ["bank", "upi", "paypal", "manual"],
     default: "manual"
+  },
+  paypalPayoutBatchId: {
+    type: String,
+    default: null,
+  },
+  paypalPayoutItemId: {
+    type: String,
+    default: null,
   },
   payoutStatus: {
     type: String,

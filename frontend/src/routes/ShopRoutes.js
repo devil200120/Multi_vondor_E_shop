@@ -21,6 +21,10 @@ import ShopVideoCallsPage from "../pages/Shop/ShopVideoCallsPage";
 import DashboardVideoBannersPage from "../pages/Shop/DashboardVideoBannersPage";
 import DashboardCreateVideoBannerPage from "../pages/Shop/DashboardCreateVideoBannerPage";
 import DashboardEditVideoBannerPage from "../pages/Shop/DashboardEditVideoBannerPage";
+import ShopAllAdvertisements from "../pages/Shop/ShopAllAdvertisements";
+import ShopCreateAdvertisement from "../pages/Shop/ShopCreateAdvertisement";
+import ShopAdvertisementPricing from "../pages/Shop/ShopAdvertisementPricing";
+import ShopAdvertisementPayment from "../pages/Shop/ShopAdvertisementPayment";
 
 export {
   ShopDashboardPage,
@@ -46,4 +50,8 @@ export {
   DashboardVideoBannersPage,
   DashboardCreateVideoBannerPage,
   DashboardEditVideoBannerPage,
+  ShopAllAdvertisements,
+  ShopCreateAdvertisement,
+  ShopAdvertisementPricing,
+  ShopAdvertisementPayment,
 };

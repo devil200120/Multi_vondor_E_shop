@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
-import BrandingLogo from "../../WANTTA (2).png";
 import {
   AiOutlineHeart,
   AiOutlineSearch,
@@ -93,14 +92,17 @@ const Header = ({ activeHeading }) => {
       {/* Main Header with Logo and Navigation */}
       <div className="bg-white border-b-4 border-accent-500">
         <div className={`${styles.section}`}>
-          <div className="hidden 800px:flex items-center h-16">
+          <div className="hidden 800px:flex items-center justify-between py-3 gap-4">
             {/* Logo - Fixed width */}
-            <div className="flex-shrink-0 w-[160px]">
+            <div
+              className="flex-shrink-0"
+              style={{ minWidth: "140px", maxWidth: "140px" }}
+            >
               <Link to="/">
                 <img
-                  src={BrandingLogo}
+                  src="/branding-logo-cayman.jpeg"
                   alt="Mall of Cayman"
-                  className="h-12 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
                 />
               </Link>
             </div>
@@ -111,7 +113,7 @@ const Header = ({ activeHeading }) => {
             </nav>
 
             {/* Right Side - Icons and Auth */}
-            <div className="flex-shrink-0 flex items-center gap-5">
+            <div className="flex-shrink-0 flex items-center gap-4">
               {/* Search Icon */}
               <button className="text-primary-500 hover:text-primary-600 transition-colors">
                 <AiOutlineSearch size={22} />
@@ -267,12 +269,12 @@ const Header = ({ activeHeading }) => {
               className="group hover:scale-105 transition-all duration-300 ease-in-out"
             >
               <img
-                src={BrandingLogo}
+                src="/branding-logo-cayman.jpeg"
                 alt="Mall of Cayman"
-                className="h-12 w-auto object-contain transition-all duration-300"
+                className="h-24 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,61,165,0.1))",
-                  maxWidth: "150px",
+                  maxWidth: "280px",
                 }}
               />
             </Link>

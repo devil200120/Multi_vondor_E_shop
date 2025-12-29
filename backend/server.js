@@ -106,6 +106,8 @@ const videoBanner = require("./routes/videoBanner");
 const videoCall = require("./routes/videoCall");
 const subscription = require("./controller/subscription");
 const commission = require("./controller/commission");
+const advertisement = require("./routes/advertisement");
+const department = require("./routes/department");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -135,9 +137,32 @@ app.use("/api/v2/video-banner", videoBanner);
 app.use("/api/v2/video-call", videoCall);
 app.use("/api/v2/subscription", subscription);
 app.use("/api/v2/commission", commission);
+app.use("/api/v2/advertisement", advertisement);
+app.use("/api/v2/department", department);
 
 // error handler middleware
 app.use(ErrorHandler);
+
+// Setup cron jobs for advertisement management
+const cron = require('node-cron');
+const advertisementController = require('./controller/advertisement');
+
+// Run every day at midnight to check for expiring ads and send warnings
+cron.schedule('0 0 * * *', () => {
+  console.log('Running daily advertisement expiry check...');
+  advertisementController.checkExpiringAdvertisements();
+  advertisementController.markExpiredAdvertisements();
+});
+
+// Run every day at 1 AM to process auto-renewals
+cron.schedule('0 1 * * *', () => {
+  console.log('Running daily advertisement auto-renewal process...');
+  advertisementController.autoRenewAdvertisements();
+});
+
+console.log('✅ Advertisement management cron jobs scheduled');
+
+// .use(ErrorHandler);
 
 // create server
 const server = app.listen(process.env.PORT, () => {

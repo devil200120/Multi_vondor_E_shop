@@ -144,9 +144,10 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const shop = await Shop.findById(req.seller._id).populate('currentSubscription');
+      const Subscription = require('../model/subscription');
+      const subscription = await Subscription.findOne({ shop: req.seller._id });
       
-      if (!shop.currentSubscription) {
+      if (!subscription) {
         return res.status(200).json({
           success: true,
           subscription: null,
@@ -156,8 +157,7 @@ router.get(
 
       res.status(200).json({
         success: true,
-        subscription: shop.currentSubscription,
-        plan: SUBSCRIPTION_PLANS[shop.subscriptionPlan],
+        subscription: subscription,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

@@ -3,6 +3,7 @@ const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
 const Shop = require("../model/shop");
+const { isAdminRole, hasPermission } = require("../utils/rolePermissions");
 
 // Check if user is authenticated or not
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
@@ -107,20 +108,63 @@ exports.isSellerApproved = catchAsyncErrors(async (req, res, next) => {
 
 exports.isAdmin = (...roles) => {
   return (req, res, next) => {
-    // Double-check that user actually has admin role in database
-    if (!req.user || req.user.role !== "Admin") {
+    // Check if user has any admin-level role
+    if (!req.user || !isAdminRole(req.user.role)) {
       return next(
-        new ErrorHandler("Access denied. Admin role required.", 403)
+        new ErrorHandler("Access denied. Admin privileges required.", 403)
       );
     }
     
-    if (!roles.includes(req.user.role)) {
+    // If specific roles are provided, check against them
+    if (roles.length > 0 && !roles.includes(req.user.role)) {
       return next(
-        new ErrorHandler(`${req.user.role} can not access this resources!`)
+        new ErrorHandler(`Access denied. ${req.user.role} cannot access this resource.`, 403)
       );
     }
     next();
   };
+};
+
+/**
+ * Middleware to check if user has specific permission
+ * Usage: requirePermission('canApproveVendors')
+ */
+exports.requirePermission = (permission) => {
+  return catchAsyncErrors(async (req, res, next) => {
+    if (!req.user) {
+      return next(new ErrorHandler("Authentication required", 401));
+    }
+
+    if (!hasPermission(req.user, permission)) {
+      return next(
+        new ErrorHandler(`Access denied. You don't have permission to ${permission}.`, 403)
+      );
+    }
+
+    next();
+  });
+};
+
+/**
+ * Middleware to check if user has any of the specified permissions
+ * Usage: requireAnyPermission(['canApproveVendors', 'canManageVendors'])
+ */
+exports.requireAnyPermission = (permissions) => {
+  return catchAsyncErrors(async (req, res, next) => {
+    if (!req.user) {
+      return next(new ErrorHandler("Authentication required", 401));
+    }
+
+    const hasAnyPerm = permissions.some(perm => hasPermission(req.user, perm));
+    
+    if (!hasAnyPerm) {
+      return next(
+        new ErrorHandler(`Access denied. Insufficient permissions.`, 403)
+      );
+    }
+
+    next();
+  });
 };
 
 // Why this auth?

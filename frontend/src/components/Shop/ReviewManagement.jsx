@@ -164,7 +164,8 @@ const ReviewManagement = () => {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen pt-20 px-4 py-8 lg:px-8">
-      <div className="max-w-7xl mx-auto">{/* Header */}
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Review Management
@@ -419,7 +420,8 @@ const ReviewManagement = () => {
                       </div>
                     ) : (
                       <>
-                        {replyingTo === review._id || editingReply === review._id ? (
+                        {replyingTo === review._id ||
+                        editingReply === review._id ? (
                           <div className="mt-4">
                             <textarea
                               value={replyText}
@@ -436,8 +438,10 @@ const ReviewManagement = () => {
                               >
                                 {submitting ? (
                                   <AiOutlineLoading3Quarters className="animate-spin" />
+                                ) : editingReply === review._id ? (
+                                  "Update Reply"
                                 ) : (
-                                  editingReply === review._id ? "Update Reply" : "Post Reply"
+                                  "Post Reply"
                                 )}
                               </button>
                               <button

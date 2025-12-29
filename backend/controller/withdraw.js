@@ -303,4 +303,171 @@ router.put(
   })
 );
 
+// ==================== PAYPAL PAYOUT INTEGRATION ====================
+
+// Approve withdrawal with PayPal payout
+router.put(
+  "/approve-withdrawal-with-paypal-payout/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { sellerId } = req.body;
+      const withdrawalId = req.params.id;
+
+      // Get withdrawal request
+      const withdraw = await Withdraw.findById(withdrawalId);
+      if (!withdraw) {
+        return next(new ErrorHandler("Withdrawal request not found", 404));
+      }
+
+      // Check if already processed
+      if (withdraw.status !== "Processing") {
+        return next(new ErrorHandler(`Withdrawal already ${withdraw.status}`, 400));
+      }
+
+      // Get seller details
+      const seller = await Shop.findById(sellerId);
+      if (!seller) {
+        return next(new ErrorHandler("Seller not found", 404));
+      }
+
+      // Validate seller has PayPal email
+      if (!seller.paypalEmail) {
+        return next(new ErrorHandler("Seller has not set up PayPal email address", 400));
+      }
+
+      console.log(`💰 Processing PayPal payout for seller: ${seller.name}, email: ${seller.paypalEmail}, amount: $${withdraw.amount}`);
+
+      // Import PayPal payout function
+      const { createPayPalPayout } = require('../utils/paypalPayout');
+
+      // Initiate PayPal payout
+      const payoutResult = await createPayPalPayout({
+        recipientEmail: seller.paypalEmail,
+        amount: withdraw.amount,
+        note: `Withdrawal payment for ${seller.name}`,
+        withdrawalId: withdraw._id.toString(),
+      });
+
+      if (payoutResult.success) {
+        console.log('✅ PayPal payout successful:', payoutResult);
+
+        // Update withdrawal with payout details
+        const updatedWithdraw = await Withdraw.findByIdAndUpdate(
+          withdrawalId,
+          {
+            status: "payout_initiated",
+            payoutTransactionId: payoutResult.batchId,
+            paypalPayoutBatchId: payoutResult.batchId,
+            paypalPayoutItemId: payoutResult.payoutItemId,
+            payoutMethod: "paypal",
+            payoutStatus: "completed",
+            updatedAt: Date.now(),
+          },
+          { new: true }
+        );
+
+        // Add transaction to seller's history
+        const transaction = {
+          _id: updatedWithdraw._id,
+          amount: updatedWithdraw.amount,
+          updatedAt: updatedWithdraw.updatedAt,
+          status: "succeed",
+          payoutTransactionId: payoutResult.batchId,
+          payoutMethod: "paypal"
+        };
+
+        seller.transections = [...seller.transections, transaction];
+        await seller.save();
+
+        // Send confirmation email
+        try {
+          await sendMail({
+            email: seller.email,
+            subject: "PayPal Withdrawal Completed",
+            message: `Hello ${seller.name},\n\nGreat news! Your withdrawal request of $${withdraw.amount} has been successfully processed via PayPal.\n\nPayment Details:\n- Amount: $${withdraw.amount}\n- PayPal Email: ${seller.paypalEmail}\n- Batch ID: ${payoutResult.batchId}\n- Status: ${payoutResult.status}\n\nThe money should appear in your PayPal account within a few minutes.\n\nThank you for being a valued seller!\n\nBest regards,\nWanttar Team`,
+          });
+        } catch (emailError) {
+          console.error('Failed to send payout success email:', emailError);
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "PayPal payout completed successfully",
+          withdraw: updatedWithdraw,
+          payoutBatchId: payoutResult.batchId,
+          payoutItemId: payoutResult.payoutItemId,
+        });
+
+      } else {
+        // Payout failed
+        console.error('❌ PayPal payout failed:', payoutResult);
+
+        // Update withdrawal status to failed
+        await Withdraw.findByIdAndUpdate(
+          withdrawalId,
+          {
+            status: "payout_failed",
+            payoutStatus: "failed",
+            payoutError: payoutResult.error || "PayPal payout failed",
+            payoutMethod: "paypal",
+            updatedAt: Date.now(),
+          }
+        );
+
+        return next(new ErrorHandler(payoutResult.error || "PayPal payout failed", 500));
+      }
+
+    } catch (error) {
+      console.error('PayPal payout processing error:', error);
+
+      // Update withdrawal status to failed
+      try {
+        await Withdraw.findByIdAndUpdate(
+          req.params.id,
+          {
+            status: "payout_failed",
+            payoutStatus: "failed",
+            payoutError: error.message,
+            payoutMethod: "paypal",
+            updatedAt: Date.now(),
+          }
+        );
+      } catch (updateError) {
+        console.error('Failed to update withdrawal status:', updateError);
+      }
+
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Get PayPal payout status
+router.get(
+  "/paypal-payout-status/:batchId",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { batchId } = req.params;
+      const { getPayoutBatchStatus } = require('../utils/paypalPayout');
+
+      const statusResult = await getPayoutBatchStatus(batchId);
+
+      if (statusResult.success) {
+        res.status(200).json({
+          success: true,
+          batchStatus: statusResult.batchStatus,
+          items: statusResult.items,
+        });
+      } else {
+        return next(new ErrorHandler("Failed to get payout status", 500));
+      }
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 module.exports = router;

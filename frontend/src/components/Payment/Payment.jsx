@@ -24,6 +24,8 @@ const Payment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCodProcessing, setIsCodProcessing] = useState(false);
   const [isPhonePeProcessing, setIsPhonePeProcessing] = useState(false);
+  const [sellerPayPalEmail, setSellerPayPalEmail] = useState(null);
+  const [sellerShopName, setSellerShopName] = useState("Shop");
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const stripe = useStripe();
@@ -72,21 +74,67 @@ const Payment = () => {
   useEffect(() => {
     const orderData = JSON.parse(localStorage.getItem("latestOrder"));
     setOrderData(orderData);
+
+    // Fetch seller's PayPal email if shopId exists
+    if (orderData?.shopId) {
+      fetchSellerPayPalEmail(orderData.shopId);
+    }
   }, []);
 
-  // Pay-pal
+  const fetchSellerPayPalEmail = async (shopId) => {
+    try {
+      const response = await axios.get(
+        `${server}/shop/get-shop-info/${shopId}`
+      );
+      if (response.data.success && response.data.shop) {
+        const shop = response.data.shop;
+        setSellerPayPalEmail(shop.paypalEmail);
+        setSellerShopName(shop.name);
+
+        if (!shop.paypalEmail) {
+          console.warn(
+            "⚠️ Seller has not configured PayPal email. Payment will go to platform."
+          );
+          toast.warning(
+            "Seller hasn't set up PayPal. Payment will be processed manually."
+          );
+        } else {
+          console.log(`✅ Seller PayPal email found: ${shop.paypalEmail}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching seller PayPal email:", error);
+      toast.warning(
+        "Could not fetch seller payment info. Using default payment method."
+      );
+    }
+  };
+
+  // PayPal - Direct payment to seller
   const createOrder = (data, actions) => {
+    const purchaseUnit = {
+      description: `Order from ${sellerShopName}`,
+      amount: {
+        currency_code: "USD",
+        value: orderData?.totalPrice,
+      },
+    };
+
+    // If seller has PayPal email, send money DIRECTLY to seller
+    if (sellerPayPalEmail) {
+      purchaseUnit.payee = {
+        email_address: sellerPayPalEmail,
+      };
+      console.log(
+        `💰 Payment will go DIRECTLY to seller: ${sellerPayPalEmail}`
+      );
+    } else {
+      console.log(`⚠️ No seller PayPal email - payment will go to platform`);
+    }
+
     return actions.order
       .create({
-        purchase_units: [
-          {
-            description: "Sunflower",
-            amount: {
-              currency_code: "INR",
-              value: orderData?.totalPrice,
-            },
-          },
-        ],
+        purchase_units: [purchaseUnit],
         // not needed if a shipping address is actually needed
         application_context: {
           shipping_preference: "NO_SHIPPING",
@@ -548,7 +596,8 @@ const PaymentInfo = ({
                   <PayPalScriptProvider
                     options={{
                       "client-id":
-                        "AXRhO4eNGo3L8MUFazEFnW9hNwBP2rTwUWNqMMRcFtjpbCrDVt6vS8HoWa7hyLlfO0fxG3OU_9zit7KN",
+                        "AW3P72fNSIFlkCnT3gaKSxCKKaTL09YBLL3d45J5Uc7JaXCNrYJoUiza6OqL87Kj7Sg7UbufGwCrQ7yA",
+                      currency: "USD",
                     }}
                   >
                     <PayPalButtons

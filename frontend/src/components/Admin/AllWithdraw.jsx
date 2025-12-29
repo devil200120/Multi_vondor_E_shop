@@ -200,6 +200,52 @@ const AllWithdraw = () => {
     }
   };
 
+  // PayPal Payout Handler
+  const handlePayPalPayout = async () => {
+    if (!withdrawData) {
+      toast.error("No withdrawal data selected");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log(
+        `💰 Initiating PayPal payout for withdrawal:`,
+        withdrawData.id
+      );
+
+      await axios
+        .put(
+          `${server}/withdraw/approve-withdrawal-with-paypal-payout/${withdrawData.id}`,
+          {
+            sellerId: withdrawData.shopId,
+          },
+          { withCredentials: true }
+        )
+        .then((res) => {
+          toast.success(`✅ PayPal payout completed successfully!`);
+          toast.info(`Batch ID: ${res.data.payoutBatchId}`);
+
+          // Refresh the data
+          axios
+            .get(`${server}/withdraw/get-all-withdraw-request`, {
+              withCredentials: true,
+            })
+            .then((refreshRes) => {
+              setData(refreshRes.data.withdraws);
+            });
+
+          setOpen(false);
+        });
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "PayPal payout failed";
+      toast.error(`❌ ${errorMsg}`);
+      console.error("PayPal payout error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const row = [];
 
   if (data && Array.isArray(data)) {
@@ -333,25 +379,25 @@ const AllWithdraw = () => {
         )}
       </div>
       {open && (
-        <div className="w-full fixed h-screen top-0 left-0 bg-[#00000031] z-[9999] flex items-center justify-center">
-          <div className="w-[60%] min-h-[50vh] bg-white rounded shadow p-6">
+        <div className="w-full fixed h-screen top-0 left-0 bg-[#00000031] z-[9999] flex items-center justify-center overflow-y-auto py-8">
+          <div className="w-[50%] max-h-[85vh] overflow-y-auto bg-white rounded shadow p-5">
             <div className="flex justify-end w-full">
               <RxCross1
-                size={25}
+                size={22}
                 onClick={() => setOpen(false)}
                 className="cursor-pointer hover:text-red-500"
               />
             </div>
 
-            <h1 className="text-[28px] text-center font-Poppins font-bold mb-2">
+            <h1 className="text-[24px] text-center font-Poppins font-bold mb-3">
               💰 Process Withdrawal
             </h1>
 
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <h3 className="font-semibold text-lg mb-2">
+            <div className="bg-gray-50 p-3 rounded-lg mb-4">
+              <h3 className="font-semibold text-base mb-2">
                 📋 Withdrawal Details:
               </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <strong>Shop:</strong> {withdrawData?.name}
                 </div>
@@ -376,19 +422,19 @@ const AllWithdraw = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* PhonePe Automated Payout Section */}
-              <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
-                <h3 className="text-lg font-semibold text-purple-800 mb-3">
+              <div className="border-2 border-purple-200 rounded-lg p-3 bg-purple-50">
+                <h3 className="text-base font-semibold text-purple-800 mb-2">
                   🚀 PhonePe Automated Payout (Recommended)
                 </h3>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">
                     Select Payout Method:
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
+                  <div className="flex gap-3">
+                    <label className="flex items-center text-sm">
                       <input
                         type="radio"
                         name="payoutMethod"
@@ -399,7 +445,7 @@ const AllWithdraw = () => {
                       />
                       🏦 Bank Transfer (NEFT/IMPS)
                     </label>
-                    <label className="flex items-center">
+                    <label className="flex items-center text-sm">
                       <input
                         type="radio"
                         name="payoutMethod"
@@ -413,9 +459,9 @@ const AllWithdraw = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-3 rounded border mb-4">
-                  <h4 className="font-medium mb-2">✅ Benefits:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                <div className="bg-white p-2 rounded border mb-3">
+                  <h4 className="font-medium mb-1 text-sm">✅ Benefits:</h4>
+                  <ul className="text-xs text-gray-600 space-y-0.5">
                     <li>• Instant automated processing</li>
                     <li>• Real-time status tracking</li>
                     <li>
@@ -433,15 +479,15 @@ const AllWithdraw = () => {
                   disabled={loading}
                   className={`w-full ${
                     styles.button
-                  } bg-purple-600 hover:bg-purple-700 text-white !h-[45px] text-[16px] font-medium rounded-lg transition-colors ${
+                  } bg-purple-600 hover:bg-purple-700 text-white !h-[40px] text-[14px] font-medium rounded-lg transition-colors ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   onClick={handlePhonePePayout}
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Processing PhonePe Payout...
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
                     </div>
                   ) : (
                     `🚀 Process ${
@@ -451,19 +497,61 @@ const AllWithdraw = () => {
                 </button>
               </div>
 
+              {/* PayPal Automated Payout Section */}
+              <div className="border-2 border-blue-200 rounded-lg p-3 bg-blue-50">
+                <h3 className="text-base font-semibold text-blue-800 mb-2">
+                  💳 PayPal Automated Payout (International)
+                </h3>
+
+                <div className="bg-white p-2 rounded border mb-3">
+                  <h4 className="font-medium mb-1 text-sm">✅ Benefits:</h4>
+                  <ul className="text-xs text-gray-600 space-y-0.5">
+                    <li>• Instant global money transfer</li>
+                    <li>• Supports USD and multiple currencies</li>
+                    <li>• Secure PayPal network</li>
+                    <li>• Automatic email notifications</li>
+                    <li>• Best for international sellers</li>
+                  </ul>
+                </div>
+
+                <p className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded mb-3">
+                  ⚠️ Seller must have PayPal email configured
+                </p>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  className={`w-full ${
+                    styles.button
+                  } bg-blue-600 hover:bg-blue-700 text-white !h-[40px] text-[14px] font-medium rounded-lg transition-colors ${
+                    loading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={handlePayPalPayout}
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    `💳 Process PayPal Payout`
+                  )}
+                </button>
+              </div>
+
               {/* Manual Status Update Section */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">
+              <div className="border-2 border-gray-200 rounded-lg p-3 bg-gray-50">
+                <h3 className="text-base font-semibold text-gray-700 mb-2">
                   ⚠️ Manual Status Update
                 </h3>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">
                     Change Status:
                   </label>
                   <select
                     onChange={(e) => setWithdrawStatus(e.target.value)}
-                    className="w-[200px] h-[35px] border rounded px-2"
+                    className="w-[180px] h-[32px] border rounded px-2 text-sm"
                   >
                     <option value={withdrawStatus}>
                       {withdrawData?.status}
@@ -472,7 +560,7 @@ const AllWithdraw = () => {
                   </select>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs text-gray-600 mb-3">
                   ⚠️ Note: This only updates the status in the system. No actual
                   money transfer will occur.
                 </p>
@@ -482,7 +570,7 @@ const AllWithdraw = () => {
                   disabled={loading}
                   className={`${
                     styles.button
-                  } bg-gray-600 hover:bg-gray-700 text-white !h-[42px] text-[16px] ${
+                  } bg-gray-600 hover:bg-gray-700 text-white !h-[38px] text-[14px] ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   onClick={handleSubmit}

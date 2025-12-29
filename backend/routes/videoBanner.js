@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { isAuthenticated, isAdmin, isSeller } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, isSeller, requireAnyPermission } = require("../middleware/auth");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const VideoBanner = require("../model/videoBanner");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -106,11 +106,11 @@ router.post(
   catchAsyncErrors(createVideoBanner)
 );
 
-// Get all video banners (Admin only)
+// Get all video banners (Admin and SubAdmin with canApproveAds)
 router.get(
   "/admin-all-video-banners",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canApproveAds']),
   catchAsyncErrors(getAllVideoBanners)
 );
 
@@ -154,27 +154,27 @@ router.delete(
   catchAsyncErrors(deleteVideoBanner)
 );
 
-// Approve video banner (Admin only)
+// Approve video banner (Admin and SubAdmin with canApproveAds)
 router.put(
   "/approve-video-banner/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canApproveAds']),
   catchAsyncErrors(approveVideoBanner)
 );
 
-// Reject video banner (Admin only)
+// Reject video banner (Admin and SubAdmin with canApproveAds)
 router.put(
   "/reject-video-banner/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canApproveAds']),
   catchAsyncErrors(rejectVideoBanner)
 );
 
-// Update banner approval status (Admin only)
+// Update banner approval status (Admin and SubAdmin with canApproveAds)
 router.put(
   "/update-banner-approval/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canApproveAds']),
   catchAsyncErrors(updateBannerApproval)
 );
 

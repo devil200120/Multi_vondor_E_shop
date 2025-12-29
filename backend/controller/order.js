@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isSeller, isAdmin, requirePermission, requireAnyPermission } = require("../middleware/auth");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
@@ -100,17 +100,20 @@ router.post(
         });
         orders.push(order);
 
-        // Process payment to supplier wallet for online payments (PhonePe, Stripe, PayPal, etc.)
+        // Process payment to supplier wallet for online payments (PhonePe, Stripe, etc.)
         // For COD, payment will be processed when order is delivered
+        // For PayPal with direct payment to seller, skip wallet addition
         const isOnlinePayment = paymentInfo && paymentInfo.type && !isCODOrder;
+        const isPayPalDirectPayment = paymentInfo && paymentInfo.type && 
+          (paymentInfo.type.toLowerCase().includes('paypal') || paymentInfo.type === 'PayPal');
         
-        if (isOnlinePayment && shopId !== 'admin') {
+        if (isOnlinePayment && shopId !== 'admin' && !isPayPalDirectPayment) {
           try {
             // Calculate seller earnings (minus platform service charge)
             const serviceCharge = shopTotalPrice * 0.1; // 10% platform fee
             const sellerEarnings = shopTotalPrice - serviceCharge;
             
-            // Add money to seller's wallet immediately for online payments
+            // Add money to seller's wallet immediately for online payments (NOT PayPal)
             const shop = await Shop.findById(shopId);
             if (shop) {
               shop.availableBalance = (shop.availableBalance || 0) + sellerEarnings;
@@ -122,6 +125,8 @@ router.post(
             console.error('Failed to process seller payment for online order:', sellerPaymentError);
             // Don't fail the order creation, just log the error
           }
+        } else if (isPayPalDirectPayment) {
+          console.log(`💰 PayPal Direct Payment: Money sent directly to seller's PayPal account (Order: ${getOrderNumber(order)})`);
         }
 
         // Create notification for new order
@@ -211,7 +216,7 @@ router.get(
 router.get(
   "/admin-get-order/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -474,11 +479,11 @@ router.put(
   })
 );
 
-// all orders --- for admin
+// all orders --- for admin and SubAdmin with canViewAnalytics
 router.get(
   "/admin-all-orders",
   isAuthenticated,
-  isAdmin("Admin"),
+  requireAnyPermission(['canViewAnalytics']),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const orders = await Order.find().sort({

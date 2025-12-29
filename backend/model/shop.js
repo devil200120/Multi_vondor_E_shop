@@ -73,6 +73,41 @@ const shopSchema = new mongoose.Schema({
   withdrawMethod: {
     type: Object,
   },
+  paypalEmail: {
+    type: String,
+    required: [true, 'PayPal email is required to receive payments'],
+    validate: {
+      validator: function(email) {
+        if (!email) return false;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      },
+      message: 'Please enter a valid PayPal email address'
+    }
+  },
+  // Bank Account Details (for alternative payment methods)
+  bankAccountDetails: {
+    accountHolderName: {
+      type: String,
+      required: false,
+    },
+    accountNumber: {
+      type: String,
+      required: false,
+    },
+    bankName: {
+      type: String,
+      required: false,
+    },
+    ifscCode: {
+      type: String,
+      required: false,
+    },
+    accountType: {
+      type: String,
+      enum: ['savings', 'current', ''],
+      default: '',
+    },
+  },
   availableBalance: {
     type: Number,
     default: 0,

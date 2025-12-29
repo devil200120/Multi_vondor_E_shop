@@ -9,17 +9,19 @@ import FeaturedProduct from "../components/Route/FeaturedProduct/FeaturedProduct
 import Footer from "../components/Layout/Footer";
 import MallMap from "../components/MallMap/MallMap";
 import FeaturedStores from "../components/FeaturedStores/FeaturedStores";
-import AdBanners from "../components/AdBanners/AdBanners";
+import AdvertisementBanners from "../components/AdBanners/AdvertisementBanners";
+import FeaturedAdvertisedStores from "../components/Route/FeaturedAdvertisedStores/FeaturedAdvertisedStores";
+import FeaturedAdvertisedProducts from "../components/Route/FeaturedAdvertisedProducts/FeaturedAdvertisedProducts";
 
 const HomePage = () => {
   return (
     <div className="bg-gradient-to-b from-blue-100 to-blue-50 min-h-screen">
       <Header activeHeading={1} />
 
-      {/* Header Banner Area - Full Width Centered */}
+      {/* Leaderboard Ad Banner - 728x120 - Full Width Centered */}
       <div className="w-full bg-blue-50/80 border-b-2 border-red-500 py-4">
         <div className="max-w-[728px] mx-auto px-4">
-          <AdBanners position="header" />
+          <AdvertisementBanners adType="leaderboard" />
         </div>
       </div>
 
@@ -43,6 +45,12 @@ const HomePage = () => {
 
             {/* Mall Map */}
             <MallMap />
+
+            {/* Featured Advertised Stores (Paid) */}
+            <FeaturedAdvertisedStores />
+
+            {/* Featured Advertised Products (Paid) */}
+            <FeaturedAdvertisedProducts />
 
             {/* Featured Stores */}
             <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-sm p-5 border-l-4 border-l-red-500 border border-blue-200">
@@ -100,13 +108,17 @@ const HomePage = () => {
           {/* Right Sidebar - Ads */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-4">
-              {/* Sidebar Header Ad */}
-              <AdBanners position="sidebar-header" />
+              {/* Top Sidebar Ad - 200x120 */}
+              <AdvertisementBanners adType="top_sidebar" />
 
-              {/* Sidebar Ads */}
-              <AdBanners position="sidebar-top" />
-              <AdBanners position="sidebar-middle" />
-              <AdBanners position="sidebar-bottom" />
+              {/* Right Sidebar Top - 300x200 */}
+              <AdvertisementBanners adType="right_sidebar_top" />
+
+              {/* Right Sidebar Middle - 300x200 */}
+              <AdvertisementBanners adType="right_sidebar_middle" />
+
+              {/* Right Sidebar Bottom - 300x200 */}
+              <AdvertisementBanners adType="right_sidebar_bottom" />
 
               {/* Quick Links */}
               <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-sm p-4 border border-blue-200 border-t-4 border-t-red-500">

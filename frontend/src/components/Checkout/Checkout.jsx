@@ -145,6 +145,25 @@ const Checkout = () => {
   }, [cart]);
 
   const paymentSubmit = () => {
+    // ===== SINGLE SELLER VALIDATION =====
+    // Check if cart has items from multiple sellers
+    const uniqueShopIds = [...new Set(activeCart.map((item) => item.shopId))];
+
+    if (uniqueShopIds.length > 1) {
+      toast.error(
+        "⚠️ You can only checkout items from ONE seller at a time. Please remove items from other sellers to continue."
+      );
+      return;
+    }
+
+    if (uniqueShopIds.length === 0) {
+      toast.error("Your cart is empty!");
+      return;
+    }
+
+    // Get the single seller's shop ID
+    const singleShopId = uniqueShopIds[0];
+
     // Basic form validation
     if (
       address1 === "" ||
@@ -220,6 +239,7 @@ const Checkout = () => {
       tax: 0,
       shippingAddress,
       user,
+      shopId: singleShopId, // Add the single seller's shop ID
     };
 
     localStorage.setItem("latestOrder", JSON.stringify(orderData));

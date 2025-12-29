@@ -43,7 +43,12 @@ const Login = () => {
       toast.success("Login Successful!");
 
       // Check user role and redirect accordingly
-      if (data.user && data.user.role === "Admin") {
+      if (
+        data.user &&
+        (data.user.role === "Admin" ||
+          data.user.role === "SubAdmin" ||
+          data.user.role === "Manager")
+      ) {
         navigate("/admin/dashboard");
       } else {
         navigate("/");

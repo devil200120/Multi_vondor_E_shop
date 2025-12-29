@@ -119,6 +119,29 @@ const AllProducts = () => {
       ),
     },
     {
+      field: "approvalStatus",
+      headerName: "Status",
+      minWidth: 100,
+      flex: 0.5,
+      renderCell: (params) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-bold ${
+            params.value === "approved"
+              ? "bg-green-100 text-green-800"
+              : params.value === "rejected"
+              ? "bg-red-100 text-red-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {params.value === "approved"
+            ? "Approved"
+            : params.value === "rejected"
+            ? "Rejected"
+            : "Pending"}
+        </span>
+      ),
+    },
+    {
       field: "sold",
       headerName: "Sold",
       type: "number",
@@ -186,6 +209,7 @@ const AllProducts = () => {
       name: item.name,
       price: "₹" + item.discountPrice,
       Stock: item.stock,
+      approvalStatus: item.approvalStatus || "pending",
       sold: item.sold_out,
     });
   });

@@ -67,7 +67,9 @@ const CreateProduct = () => {
       toast.error(error);
     }
     if (success) {
-      toast.success("Product created successfully!");
+      toast.success(
+        "Product submitted for approval! It will be visible after admin approval."
+      );
       // Reset form fields
       setImages([]);
       setVideos([]);

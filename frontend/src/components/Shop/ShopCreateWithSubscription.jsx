@@ -53,6 +53,13 @@ const ShopCreateWithSubscription = () => {
     password: "",
     latitude: "",
     longitude: "",
+    paypalEmail: "", // REQUIRED for receiving payments
+    // Bank account details
+    accountHolderName: "",
+    accountNumber: "",
+    bankName: "",
+    ifscCode: "",
+    accountType: "",
   });
 
   const [avatar, setAvatar] = useState(null);
@@ -513,7 +520,7 @@ const ShopCreateWithSubscription = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Shop Name <span className="text-red-500">*</span>
         </label>
         <input
@@ -521,14 +528,14 @@ const ShopCreateWithSubscription = () => {
           name="name"
           value={formData.name}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
           placeholder="Enter your shop name"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Email Address <span className="text-red-500">*</span>
         </label>
         <input
@@ -536,14 +543,14 @@ const ShopCreateWithSubscription = () => {
           name="email"
           value={formData.email}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
           placeholder="shop@example.com"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Password <span className="text-red-500">*</span>
         </label>
         <div className="relative">
@@ -552,14 +559,14 @@ const ShopCreateWithSubscription = () => {
             name="password"
             value={formData.password}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
             placeholder="Enter your password"
             required
           />
           <button
             type="button"
             onClick={() => setVisible(!visible)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
           >
             {visible ? (
               <AiOutlineEye className="w-5 h-5" />
@@ -568,6 +575,9 @@ const ShopCreateWithSubscription = () => {
             )}
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-1.5">
+          Must be at least 8 characters
+        </p>
       </div>
     </div>
   );
@@ -578,33 +588,159 @@ const ShopCreateWithSubscription = () => {
         Address & Location
       </h2>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Phone Number <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="number"
-          name="phoneNumber"
-          value={formData.phoneNumber}
-          onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-          placeholder="+1 234 567 8900"
-          required
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Phone Number <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
+            placeholder="+1 234 567 8900"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            GST Number <span className="text-gray-400">(Optional)</span>
+          </label>
+          <input
+            type="text"
+            name="gstNumber"
+            value={formData.gstNumber}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
+            placeholder="Enter GST number"
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          GST Number (Optional)
+      {/* PayPal Email - REQUIRED - Enhanced Design */}
+      <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-4 shadow-sm">
+        <div className="flex items-start gap-2 mb-3">
+          <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+            <span className="text-xl">💰</span>
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-amber-900 text-lg">
+              PayPal Email Required
+            </p>
+            <p className="text-sm text-amber-700 mt-1.5 leading-relaxed">
+              Customer payments will be sent <strong>directly</strong> to your
+              PayPal account. Without this, you won't receive any money from
+              sales!
+            </p>
+          </div>
+        </div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          PayPal Email <span className="text-red-500">*</span>
         </label>
         <input
-          type="text"
-          name="gstNumber"
-          value={formData.gstNumber}
+          type="email"
+          name="paypalEmail"
+          value={formData.paypalEmail}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-          placeholder="Enter GST number"
+          className="w-full px-3 py-2.5 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 bg-white hover:border-amber-400"
+          placeholder="your@paypal.com"
+          required
         />
+        <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-100 rounded-lg p-3">
+          <BsCheckCircle className="flex-shrink-0" />
+          <span>Money arrives instantly when customers buy your products</span>
+        </div>
+      </div>
+
+      {/* Bank Account Details - Optional */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <BsCreditCard className="text-blue-600 text-xl" />
+          <h3 className="font-bold text-gray-800 text-lg">
+            Bank Account Details
+          </h3>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+            Optional
+          </span>
+        </div>
+        <p className="text-sm text-blue-700 mb-4">
+          Provide bank details for backup payment methods or future withdrawals
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Account Holder Name
+            </label>
+            <input
+              type="text"
+              name="accountHolderName"
+              value={formData.accountHolderName}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-blue-300"
+              placeholder="John Doe"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Account Number
+            </label>
+            <input
+              type="text"
+              name="accountNumber"
+              value={formData.accountNumber}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-blue-300"
+              placeholder="1234567890"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Bank Name
+            </label>
+            <input
+              type="text"
+              name="bankName"
+              value={formData.bankName}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-blue-300"
+              placeholder="State Bank of India"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              IFSC Code
+            </label>
+            <input
+              type="text"
+              name="ifscCode"
+              value={formData.ifscCode}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-blue-300"
+              placeholder="SBIN0001234"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Account Type
+            </label>
+            <select
+              name="accountType"
+              value={formData.accountType}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white hover:border-blue-300"
+            >
+              <option value="">Select type</option>
+              <option value="savings">Savings</option>
+              <option value="current">Current</option>
+            </select>
+          </div>
+        </div>
+        <p className="text-xs text-blue-700 mt-3">
+          📝 Bank details are optional but recommended for backup payment
+          methods
+        </p>
       </div>
 
       <div>
@@ -618,7 +754,7 @@ const ShopCreateWithSubscription = () => {
             name="address"
             value={formData.address}
             onChange={handleInputChange}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
             placeholder="Start typing your address..."
             required
           />
@@ -626,7 +762,7 @@ const ShopCreateWithSubscription = () => {
             type="button"
             onClick={getCurrentLocation}
             disabled={isLoadingLocation}
-            className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-3 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {isLoadingLocation ? (
               <span className="animate-spin">⌛</span>
@@ -646,7 +782,7 @@ const ShopCreateWithSubscription = () => {
           name="zipCode"
           value={formData.zipCode}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-gray-300 bg-gray-50 focus:bg-white"
           placeholder="Enter zip code"
           required
         />
@@ -1064,65 +1200,128 @@ const ShopCreateWithSubscription = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3, 4, paymentChoice === "now" ? 5 : 5].map(
-              (step, index) => (
-                <React.Fragment key={step}>
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
-                        currentStep >= step
-                          ? "bg-blue-600 text-white shadow-lg"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
-                    >
-                      {currentStep > step ? (
-                        <FiCheck className="w-6 h-6" />
-                      ) : (
-                        step
-                      )}
-                    </div>
-                    <span className="text-xs mt-2 text-gray-600 hidden md:block">
-                      {step === 1 && "Basic Info"}
-                      {step === 2 && "Address"}
-                      {step === 3 && "Plan"}
-                      {step === 4 && "Payment"}
-                      {step === 5 &&
-                        (paymentChoice === "now" ? "Pay" : "Confirm")}
-                    </span>
-                  </div>
-                  {index < (paymentChoice === "now" ? 4 : 4) && (
-                    <div
-                      className={`flex-1 h-1 mx-2 ${
-                        currentStep > step ? "bg-blue-600" : "bg-gray-200"
-                      }`}
-                    />
+        {/* Header Section */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+            Start Your Seller Journey
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Join thousands of successful sellers on our platform
+          </p>
+        </div>
+
+        {/* Progress Steps - Modern Design */}
+        <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center justify-between relative">
+            {/* Progress Line Background */}
+            <div
+              className="absolute left-0 top-6 w-full h-1 bg-gray-200 -z-10"
+              style={{
+                left: "calc(24px)",
+                right: "calc(24px)",
+                width: "calc(100% - 48px)",
+              }}
+            ></div>
+
+            {/* Active Progress Line */}
+            <div
+              className="absolute left-0 top-6 h-1 bg-gradient-to-r from-blue-500 to-purple-500 -z-10 transition-all duration-500"
+              style={{
+                left: "calc(24px)",
+                width: `calc(${
+                  ((currentStep - 1) / (paymentChoice === "now" ? 4 : 4)) * 100
+                }% - 48px)`,
+              }}
+            ></div>
+
+            {[
+              { num: 1, label: "Basic Info", icon: "👤" },
+              { num: 2, label: "Address", icon: "📍" },
+              { num: 3, label: "Plan", icon: "💎" },
+              { num: 4, label: "Payment", icon: "💳" },
+              {
+                num: 5,
+                label: paymentChoice === "now" ? "Pay" : "Confirm",
+                icon: "✓",
+              },
+            ].map((step, index) => (
+              <div
+                key={step.num}
+                className="flex flex-col items-center relative z-10"
+              >
+                <div
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-bold transition-all duration-300 transform ${
+                    currentStep >= step.num
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg scale-110"
+                      : "bg-white border-2 border-gray-300 text-gray-400"
+                  }`}
+                >
+                  {currentStep > step.num ? (
+                    <FiCheck className="w-6 h-6" />
+                  ) : (
+                    <span className="text-lg">{step.icon}</span>
                   )}
-                </React.Fragment>
-              )
-            )}
+                </div>
+                <span
+                  className={`text-xs sm:text-sm mt-2 font-medium hidden sm:block transition-colors ${
+                    currentStep >= step.num ? "text-blue-600" : "text-gray-500"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          {/* Step Content */}
-          {renderStep()}
+        {/* Form Card - Enhanced Design */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          {/* Step Header with Gradient */}
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-4 text-white">
+            <h2 className="text-xl sm:text-2xl font-bold">
+              {currentStep === 1 && "Tell us about your business"}
+              {currentStep === 2 && "Where are you located?"}
+              {currentStep === 3 && "Choose your perfect plan"}
+              {currentStep === 4 && "Select payment method"}
+              {currentStep === 5 &&
+                paymentChoice === "now" &&
+                "Complete your payment"}
+              {currentStep === 5 &&
+                paymentChoice === "later" &&
+                "Confirm & Start"}
+            </h2>
+            <p className="mt-1 text-blue-50 text-xs sm:text-sm">
+              {currentStep === 1 && "Let's start with some basic information"}
+              {currentStep === 2 && "Help customers find your store easily"}
+              {currentStep === 3 && "Select a plan that grows with you"}
+              {currentStep === 4 && "How would you like to pay?"}
+              {currentStep === 5 &&
+                paymentChoice === "now" &&
+                "Secure payment powered by PayPal"}
+              {currentStep === 5 &&
+                paymentChoice === "later" &&
+                "You're all set! Let's get started"}
+            </p>
+          </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-            {currentStep > 1 && (
+          {/* Form Content */}
+          <div className="p-5 sm:p-6">{renderStep()}</div>
+
+          {/* Navigation Buttons - Enhanced */}
+          <div className="flex justify-between items-center px-5 sm:px-6 py-4 bg-gray-50 border-t border-gray-200">
+            {currentStep > 1 ? (
               <button
                 onClick={prevStep}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm"
               >
-                <FiArrowLeft />
-                Previous
+                <FiArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Back</span>
               </button>
+            ) : (
+              <div></div>
             )}
 
             {currentStep <
@@ -1133,25 +1332,34 @@ const ShopCreateWithSubscription = () => {
                 : 4) && (
               <button
                 onClick={nextStep}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ml-auto"
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
-                Next
-                <FiArrowRight />
+                <span>Continue</span>
+                <FiArrowRight className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Help Text */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Already have an account?{" "}
+        {/* Help Text - Enhanced */}
+        <div className="mt-6 text-center bg-white rounded-xl shadow-sm p-4">
+          <p className="text-gray-600 text-sm">
+            Already have a seller account?{" "}
             <Link
               to="/shop-login"
-              className="text-blue-600 hover:underline font-semibold"
+              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
             >
-              Sign In
+              Sign in here →
             </Link>
+          </p>
+          <p className="text-gray-500 text-xs mt-2">
+            Need help? Contact our support team at{" "}
+            <a
+              href="mailto:support@wanttar.com"
+              className="text-blue-600 hover:underline"
+            >
+              support@wanttar.com
+            </a>
           </p>
         </div>
       </div>
