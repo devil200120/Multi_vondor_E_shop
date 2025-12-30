@@ -91,10 +91,7 @@ const HomePage = () => {
                   </p>
                   <div className="flex flex-wrap gap-3 mt-3 text-xs">
                     <span className="bg-white/20 px-3 py-1 rounded-full">
-                      💎 4 Subscription Plans
-                    </span>
-                    <span className="bg-white/20 px-3 py-1 rounded-full">
-                      💰 90% Commission for Sellers
+                      💎 3 Subscription Plans
                     </span>
                     <span className="bg-white/20 px-3 py-1 rounded-full">
                       📦 Inventory Alerts

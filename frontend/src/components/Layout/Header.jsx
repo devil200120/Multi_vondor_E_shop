@@ -92,17 +92,17 @@ const Header = ({ activeHeading }) => {
       {/* Main Header with Logo and Navigation */}
       <div className="bg-white border-b-4 border-accent-500">
         <div className={`${styles.section}`}>
-          <div className="hidden 800px:flex items-center justify-between py-3 gap-4">
+          <div className="hidden 800px:flex items-center justify-between py-2 gap-2">
             {/* Logo - Fixed width */}
             <div
               className="flex-shrink-0"
-              style={{ minWidth: "200px", maxWidth: "220px" }}
+              style={{ minWidth: "180px", maxWidth: "200px" }}
             >
               <Link to="/">
                 <img
                   src="/logo (10).png"
                   alt="Mall of Cayman"
-                  className="h-20 w-auto object-contain"
+                  className="h-[70px] w-auto object-contain"
 />
               </Link>
             </div>
@@ -271,10 +271,10 @@ const Header = ({ activeHeading }) => {
               <img
                 src="/logo (10).png"
                 alt="Mall of Cayman"
-                className="h-16 w-auto object-contain transition-all duration-300"
+                className="h-20 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,61,165,0.1))",
-                  maxWidth: "160px",
+                  maxWidth: "200px",
                 }}
               />
             </Link>

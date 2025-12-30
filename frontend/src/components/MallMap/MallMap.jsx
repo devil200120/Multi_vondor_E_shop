@@ -368,6 +368,22 @@ const MallMap = () => {
               </button>
               <span className="text-xs text-gray-500">MCM Promenade</span>
             </div>
+            {/* Stats - Moved to header for mobile */}
+            <div className="flex lg:hidden items-center gap-3 bg-white rounded-lg px-3 py-1.5 shadow-sm border border-gray-200">
+              <div className="text-center">
+                <div className="font-bold text-blue-600 text-sm">
+                  {sellers?.length || 50}+
+                </div>
+                <div className="text-gray-500 text-[10px]">Stores</div>
+              </div>
+              <div className="w-px h-5 bg-gray-200" />
+              <div className="text-center">
+                <div className="font-bold text-pink-600 text-sm">
+                  {allProducts?.length || 500}+
+                </div>
+                <div className="text-gray-500 text-[10px]">Products</div>
+              </div>
+            </div>
           </div>
 
           {/* Interactive Floor Plan */}
@@ -516,38 +532,8 @@ const MallMap = () => {
               </div>
             )}
 
-            {/* Legend */}
-            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-md border border-gray-200">
-              <div className="text-xs font-semibold text-gray-700 mb-2">
-                Store Types
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-xs">
-                  <div
-                    className="w-4 h-3 rounded"
-                    style={{ backgroundColor: "#FFD700" }}
-                  ></div>
-                  <span className="text-gray-600">Anchor Stores</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div
-                    className="w-4 h-3 rounded"
-                    style={{ backgroundColor: "#C71585" }}
-                  ></div>
-                  <span className="text-gray-600">Retail Stores</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div
-                    className="w-4 h-3 rounded"
-                    style={{ backgroundColor: "#1E90FF" }}
-                  ></div>
-                  <span className="text-gray-600">Entertainment</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-md border border-gray-200">
+            {/* Stats - Desktop only (positioned absolute) */}
+            <div className="hidden lg:block absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-md border border-gray-200">
               <div className="flex items-center gap-4 text-xs">
                 <div className="text-center">
                   <div className="font-bold text-blue-600">
@@ -562,6 +548,36 @@ const MallMap = () => {
                   </div>
                   <div className="text-gray-500">Products</div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Legend - Below map on mobile, inside map on desktop */}
+          <div className="lg:hidden mt-3 bg-white rounded-lg p-3 shadow-sm border border-gray-200">
+            <div className="text-xs font-semibold text-gray-700 mb-2">
+              Store Types
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2 text-xs">
+                <div
+                  className="w-4 h-3 rounded"
+                  style={{ backgroundColor: "#FFD700" }}
+                ></div>
+                <span className="text-gray-600">Anchor Stores</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <div
+                  className="w-4 h-3 rounded"
+                  style={{ backgroundColor: "#C71585" }}
+                ></div>
+                <span className="text-gray-600">Retail Stores</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <div
+                  className="w-4 h-3 rounded"
+                  style={{ backgroundColor: "#1E90FF" }}
+                ></div>
+                <span className="text-gray-600">Entertainment</span>
               </div>
             </div>
           </div>
