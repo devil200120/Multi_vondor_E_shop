@@ -1,6 +1,37 @@
 const mongoose = require("mongoose");
 
 const siteSettingsSchema = new mongoose.Schema({
+  // Branding/SEO Settings (for browser tab, favicon, etc.)
+  branding: {
+    favicon: {
+      type: String,
+      default: "/WANTTA (7).png"
+    },
+    faviconPublicId: {
+      type: String,
+      default: null
+    },
+    appleTouchIcon: {
+      type: String,
+      default: "/logo192.png"
+    },
+    appleTouchIconPublicId: {
+      type: String,
+      default: null
+    },
+    themeColor: {
+      type: String,
+      default: "#000000"
+    },
+    metaDescription: {
+      type: String,
+      default: "Your trusted online marketplace for all your shopping needs"
+    },
+    siteTitle: {
+      type: String,
+      default: "Wanttar"
+    }
+  },
   // Currency Settings
   currency: {
     code: {
