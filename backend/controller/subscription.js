@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Subscription = require("../model/subscription");
+const SubscriptionPlan = require("../model/subscriptionPlan");
 const Shop = require("../model/shop");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -33,8 +34,8 @@ const getPayPalAccessToken = async () => {
   }
 };
 
-// Subscription Plans Configuration
-const SUBSCRIPTION_PLANS = {
+// Default Subscription Plans (used for initial database seeding)
+const DEFAULT_PLANS = {
   bronze: {
     name: 'Bronze',
     monthlyPrice: 100,
@@ -49,6 +50,7 @@ const SUBSCRIPTION_PLANS = {
       htmlCssEditor: false,
       adPreApproval: false,
     },
+    sortOrder: 1,
   },
   silver: {
     name: 'Silver',
@@ -64,6 +66,7 @@ const SUBSCRIPTION_PLANS = {
       htmlCssEditor: false,
       adPreApproval: false,
     },
+    sortOrder: 2,
   },
   gold: {
     name: 'Gold',
@@ -79,22 +82,48 @@ const SUBSCRIPTION_PLANS = {
       htmlCssEditor: true,
       adPreApproval: true,
     },
+    sortOrder: 3,
   },
-  'revenue-share': {
-    name: 'Revenue Share',
-    monthlyPrice: 25, // Minimum payment
-    maxProducts: 999, // Unlimited
-    features: {
-      businessProfile: true,
-      logo: true,
-      pdfUpload: true,
-      imagesPerProduct: 6,
-      videoOption: true,
-      contactSeller: true,
-      htmlCssEditor: false,
-      adPreApproval: false,
-    },
-  },
+};
+
+// Initialize default plans in database if they don't exist
+const initializeDefaultPlans = async () => {
+  try {
+    const existingPlans = await SubscriptionPlan.countDocuments();
+    if (existingPlans === 0) {
+      console.log('Initializing default subscription plans...');
+      for (const [planKey, planData] of Object.entries(DEFAULT_PLANS)) {
+        await SubscriptionPlan.create({
+          planKey,
+          ...planData,
+          isActive: true,
+        });
+      }
+      console.log('Default subscription plans created successfully');
+    }
+  } catch (error) {
+    console.error('Error initializing default plans:', error.message);
+  }
+};
+
+// Initialize plans on module load
+initializeDefaultPlans();
+
+// Helper function to get plans as object (for backward compatibility)
+const getPlansAsObject = async () => {
+  const plans = await SubscriptionPlan.find().sort({ sortOrder: 1 });
+  const plansObject = {};
+  for (const plan of plans) {
+    plansObject[plan.planKey] = {
+      name: plan.name,
+      monthlyPrice: plan.monthlyPrice,
+      maxProducts: plan.maxProducts,
+      features: plan.features,
+      isActive: plan.isActive,
+      sortOrder: plan.sortOrder,
+    };
+  }
+  return plansObject;
 };
 
 // Get billing cycle discount
@@ -131,12 +160,18 @@ const calculateEndDate = (startDate, billingCycle) => {
 router.get(
   "/get-plans",
   catchAsyncErrors(async (req, res, next) => {
-    // Filter out inactive plans for public/seller view
+    // Get active plans from database
+    const plans = await SubscriptionPlan.find({ isActive: true }).sort({ sortOrder: 1 });
     const activePlans = {};
-    for (const [key, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
-      if (plan.isActive !== false) {
-        activePlans[key] = plan;
-      }
+    for (const plan of plans) {
+      activePlans[plan.planKey] = {
+        name: plan.name,
+        monthlyPrice: plan.monthlyPrice,
+        maxProducts: plan.maxProducts,
+        features: plan.features,
+        isActive: plan.isActive,
+        sortOrder: plan.sortOrder,
+      };
     }
     
     res.status(200).json({
@@ -181,11 +216,13 @@ router.post(
     try {
       const { plan, billingCycle } = req.body;
 
-      if (!SUBSCRIPTION_PLANS[plan]) {
+      // Get plan from database
+      const planDoc = await SubscriptionPlan.findOne({ planKey: plan, isActive: true });
+      if (!planDoc) {
         return next(new ErrorHandler('Invalid subscription plan', 400));
       }
 
-      const planDetails = SUBSCRIPTION_PLANS[plan];
+      const planDetails = planDoc;
       const discount = getBillingCycleDiscount(billingCycle);
       const monthlyPrice = planDetails.monthlyPrice;
       
@@ -478,9 +515,21 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
+      const plans = await SubscriptionPlan.find().sort({ sortOrder: 1 });
+      const plansObject = {};
+      for (const plan of plans) {
+        plansObject[plan.planKey] = {
+          name: plan.name,
+          monthlyPrice: plan.monthlyPrice,
+          maxProducts: plan.maxProducts,
+          features: plan.features,
+          isActive: plan.isActive,
+          sortOrder: plan.sortOrder,
+        };
+      }
       res.status(200).json({
         success: true,
-        plans: SUBSCRIPTION_PLANS,
+        plans: plansObject,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -495,29 +544,44 @@ router.post(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { planKey, name, monthlyPrice, maxProducts, features, isActive } = req.body;
+      const { planKey, name, monthlyPrice, maxProducts, features, isActive, sortOrder } = req.body;
 
       if (!planKey || !name || monthlyPrice === undefined || maxProducts === undefined) {
         return next(new ErrorHandler('Missing required fields', 400));
       }
 
-      if (SUBSCRIPTION_PLANS[planKey]) {
+      // Check if plan already exists
+      const existingPlan = await SubscriptionPlan.findOne({ planKey: planKey.toLowerCase() });
+      if (existingPlan) {
         return next(new ErrorHandler('Plan with this key already exists', 400));
       }
 
-      // Add new plan to SUBSCRIPTION_PLANS object
-      SUBSCRIPTION_PLANS[planKey] = {
+      // Get highest sort order
+      const lastPlan = await SubscriptionPlan.findOne().sort({ sortOrder: -1 });
+      const newSortOrder = sortOrder || (lastPlan ? lastPlan.sortOrder + 1 : 1);
+
+      // Create new plan in database
+      const newPlan = await SubscriptionPlan.create({
+        planKey: planKey.toLowerCase(),
         name,
         monthlyPrice,
         maxProducts,
         features: features || {},
         isActive: isActive !== false,
-      };
+        sortOrder: newSortOrder,
+      });
 
       res.status(201).json({
         success: true,
         message: 'Subscription plan created successfully',
-        plan: SUBSCRIPTION_PLANS[planKey],
+        plan: {
+          name: newPlan.name,
+          monthlyPrice: newPlan.monthlyPrice,
+          maxProducts: newPlan.maxProducts,
+          features: newPlan.features,
+          isActive: newPlan.isActive,
+          sortOrder: newPlan.sortOrder,
+        },
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -533,23 +597,34 @@ router.put(
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { planKey } = req.params;
-      const { name, monthlyPrice, maxProducts, features, isActive } = req.body;
+      const { name, monthlyPrice, maxProducts, features, isActive, sortOrder } = req.body;
 
-      if (!SUBSCRIPTION_PLANS[planKey]) {
+      const plan = await SubscriptionPlan.findOne({ planKey });
+      if (!plan) {
         return next(new ErrorHandler('Plan not found', 404));
       }
 
       // Update plan details
-      if (name !== undefined) SUBSCRIPTION_PLANS[planKey].name = name;
-      if (monthlyPrice !== undefined) SUBSCRIPTION_PLANS[planKey].monthlyPrice = monthlyPrice;
-      if (maxProducts !== undefined) SUBSCRIPTION_PLANS[planKey].maxProducts = maxProducts;
-      if (features !== undefined) SUBSCRIPTION_PLANS[planKey].features = features;
-      if (isActive !== undefined) SUBSCRIPTION_PLANS[planKey].isActive = isActive;
+      if (name !== undefined) plan.name = name;
+      if (monthlyPrice !== undefined) plan.monthlyPrice = monthlyPrice;
+      if (maxProducts !== undefined) plan.maxProducts = maxProducts;
+      if (features !== undefined) plan.features = features;
+      if (isActive !== undefined) plan.isActive = isActive;
+      if (sortOrder !== undefined) plan.sortOrder = sortOrder;
+
+      await plan.save();
 
       res.status(200).json({
         success: true,
         message: 'Subscription plan updated successfully',
-        plan: SUBSCRIPTION_PLANS[planKey],
+        plan: {
+          name: plan.name,
+          monthlyPrice: plan.monthlyPrice,
+          maxProducts: plan.maxProducts,
+          features: plan.features,
+          isActive: plan.isActive,
+          sortOrder: plan.sortOrder,
+        },
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -567,16 +642,25 @@ router.put(
       const { planKey } = req.params;
       const { isActive } = req.body;
 
-      if (!SUBSCRIPTION_PLANS[planKey]) {
+      const plan = await SubscriptionPlan.findOne({ planKey });
+      if (!plan) {
         return next(new ErrorHandler('Plan not found', 404));
       }
 
-      SUBSCRIPTION_PLANS[planKey].isActive = isActive;
+      plan.isActive = isActive;
+      await plan.save();
 
       res.status(200).json({
         success: true,
         message: `Plan ${isActive ? 'activated' : 'deactivated'} successfully`,
-        plan: SUBSCRIPTION_PLANS[planKey],
+        plan: {
+          name: plan.name,
+          monthlyPrice: plan.monthlyPrice,
+          maxProducts: plan.maxProducts,
+          features: plan.features,
+          isActive: plan.isActive,
+          sortOrder: plan.sortOrder,
+        },
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -593,7 +677,8 @@ router.delete(
     try {
       const { planKey } = req.params;
 
-      if (!SUBSCRIPTION_PLANS[planKey]) {
+      const plan = await SubscriptionPlan.findOne({ planKey });
+      if (!plan) {
         return next(new ErrorHandler('Plan not found', 404));
       }
 
@@ -612,7 +697,7 @@ router.delete(
         );
       }
 
-      delete SUBSCRIPTION_PLANS[planKey];
+      await SubscriptionPlan.deleteOne({ planKey });
 
       res.status(200).json({
         success: true,

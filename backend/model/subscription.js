@@ -8,7 +8,6 @@ const subscriptionSchema = new mongoose.Schema({
   },
   plan: {
     type: String,
-    enum: ['bronze', 'silver', 'gold', 'revenue-share'],
     required: true,
   },
   // Plan Features
