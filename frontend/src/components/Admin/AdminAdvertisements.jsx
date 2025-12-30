@@ -75,6 +75,11 @@ const AdminAdvertisements = () => {
       return;
     }
 
+    if (!selectedAd || !selectedAd._id) {
+      toast.error("No advertisement selected");
+      return;
+    }
+
     try {
       const { data } = await axios.put(
         `${server}/advertisement/admin/reject/${selectedAd._id}`,
@@ -90,6 +95,7 @@ const AdminAdvertisements = () => {
         fetchAdvertisements();
       }
     } catch (error) {
+      console.error("Reject error:", error);
       toast.error(
         error.response?.data?.message || "Failed to reject advertisement"
       );
@@ -321,6 +327,7 @@ const AdminAdvertisements = () => {
 
   const rows = ads.map((ad) => ({
     id: ad._id,
+    _id: ad._id, // Keep _id for handleReject function
     shopName: ad.shopId?.name || "Unknown",
     shopAvatar: ad.shopId?.avatar?.url,
     title: ad.title,
