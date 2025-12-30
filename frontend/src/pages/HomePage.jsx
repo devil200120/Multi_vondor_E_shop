@@ -18,23 +18,25 @@ const HomePage = () => {
     <div className="bg-gradient-to-b from-blue-100 to-blue-50 min-h-screen">
       <Header activeHeading={1} />
 
-      {/* Leaderboard Ad Banner - Full Width, Responsive */}
+      {/* Leaderboard Ad Banner with Right Sidebar Ad */}
       <div className="w-full bg-blue-50/80 border-b-2 border-red-500 py-2 sm:py-4">
-        <div className="max-w-full sm:max-w-[728px] mx-auto px-2 sm:px-4">
-          <AdvertisementBanners adType="leaderboard" />
+        <div className="max-w-[1400px] mx-auto px-4">
+          <div className="flex items-center justify-center gap-4">
+            {/* Leaderboard Ad */}
+            <div className="flex-1 max-w-[728px]">
+              <AdvertisementBanners adType="leaderboard" />
+            </div>
+            {/* Top Sidebar Ad - Next to Leaderboard (Desktop Only) */}
+            <div className="hidden xl:block flex-shrink-0">
+              <AdvertisementBanners adType="top_sidebar" />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main 3-Column Layout */}
       <div className="max-w-[1400px] mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_300px] gap-5">
-          {/* Left Sidebar - Departments */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-24">
-              <CategoriesSidebar />
-            </div>
-          </aside>
-
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
           {/* Center Content Area */}
           <main className="space-y-5 min-w-0">
             {/* Hero Section */}
@@ -133,9 +135,6 @@ const HomePage = () => {
           {/* Right Sidebar - Ads (Desktop Only) */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-4">
-              {/* Top Sidebar Ad - 200x120 */}
-              <AdvertisementBanners adType="top_sidebar" />
-
               {/* Right Sidebar Top - 300x200 */}
               <AdvertisementBanners adType="right_sidebar_top" />
 
