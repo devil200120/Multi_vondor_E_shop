@@ -757,6 +757,7 @@ const PaymentInfo = ({
 };
 
 const CartData = ({ orderData }) => {
+  const { formatPrice } = useCurrency();
   const shipping =
     orderData?.shipping && !isNaN(orderData.shipping)
       ? Number(orderData.shipping).toFixed(2)

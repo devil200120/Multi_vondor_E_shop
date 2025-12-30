@@ -115,7 +115,11 @@ const AdminPlanManagement = () => {
   };
 
   const handleDelete = async (planKey) => {
-    if (!window.confirm(`Are you sure you want to delete the "${planKey}" plan? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the "${planKey}" plan? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -343,7 +347,14 @@ const PlanForm = ({
   );
 };
 
-const PlanDisplay = ({ planKey, planData, onEdit, onToggleActive, onDelete, isDeleting }) => {
+const PlanDisplay = ({
+  planKey,
+  planData,
+  onEdit,
+  onToggleActive,
+  onDelete,
+  isDeleting,
+}) => {
   const isActive = planData.isActive !== false;
 
   return (

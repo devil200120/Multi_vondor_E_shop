@@ -55,9 +55,9 @@ const DashboardHeader = () => {
             className="flex items-center space-x-2 md:space-x-3 group"
           >
             <img
-              src="/branding-logo-cayman.jpeg"
+              src="/logo (10).png"
               alt="Logo"
-              className="w-auto h-10 md:h-12 object-contain group-hover:scale-105 transition-transform duration-200"
+              className="w-auto h-12 md:h-14 object-contain group-hover:scale-105 transition-transform duration-200"
             />
           </Link>
         </div>

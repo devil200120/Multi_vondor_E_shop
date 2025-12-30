@@ -141,9 +141,9 @@ const Footer = () => {
                 <Link to="/" className="group">
                   <div className="bg-white p-3 rounded-lg shadow-moc">
                     <img
-                      src="/branding-logo-cayman.jpeg"
+                      src="/logo (10).png"
                       alt="Mall of Cayman"
-                      className="h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105"
+                      className="h-20 w-auto object-contain transition-all duration-300 group-hover:scale-105"
                       style={{ borderRadius: "8px" }}
                     />
                   </div>

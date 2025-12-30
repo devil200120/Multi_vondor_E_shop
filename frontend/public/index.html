@@ -10,7 +10,11 @@
       id="dynamic-description"
       content="Your trusted online marketplace for all your shopping needs"
     />
-    <link rel="apple-touch-icon" id="dynamic-apple-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link
+      rel="apple-touch-icon"
+      id="dynamic-apple-icon"
+      href="%PUBLIC_URL%/logo192.png"
+    />
 
     <!-- Font Awesome for icons -->
     <link
@@ -22,69 +26,76 @@
 
     <!-- Script to dynamically load branding settings -->
     <script>
-      (function() {
+      (function () {
         // Determine the API base URL based on environment
-        var apiBase = window.location.hostname === 'localhost' 
-          ? 'http://localhost:8000/api/v2'
-          : window.location.origin.replace(':3000', ':8000') + '/api/v2';
-        
+        var apiBase =
+          window.location.hostname === "localhost"
+            ? "http://localhost:8000/api/v2"
+            : window.location.origin.replace(":3000", ":8000") + "/api/v2";
+
         // For production, use the actual backend URL
-        if (window.location.hostname !== 'localhost') {
+        if (window.location.hostname !== "localhost") {
           // Try to detect if we're on a deployed environment
           var backendUrl = window.REACT_APP_BACKEND_URL || apiBase;
-          apiBase = backendUrl.includes('/api/v2') ? backendUrl : backendUrl + '/api/v2';
+          apiBase = backendUrl.includes("/api/v2")
+            ? backendUrl
+            : backendUrl + "/api/v2";
         }
 
-        fetch(apiBase + '/site-settings/get-site-settings')
-          .then(function(response) { return response.json(); })
-          .then(function(data) {
+        fetch(apiBase + "/site-settings/get-site-settings")
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
             if (data.success && data.settings && data.settings.branding) {
               var branding = data.settings.branding;
-              
+
               // Update favicon
               if (branding.favicon) {
-                var faviconEl = document.getElementById('dynamic-favicon');
+                var faviconEl = document.getElementById("dynamic-favicon");
                 if (faviconEl) {
-                  faviconEl.href = branding.favicon.startsWith('http') 
-                    ? branding.favicon 
+                  faviconEl.href = branding.favicon.startsWith("http")
+                    ? branding.favicon
                     : branding.favicon;
                 }
               }
-              
+
               // Update theme color
               if (branding.themeColor) {
-                var themeColorEl = document.getElementById('dynamic-theme-color');
+                var themeColorEl = document.getElementById(
+                  "dynamic-theme-color"
+                );
                 if (themeColorEl) {
                   themeColorEl.content = branding.themeColor;
                 }
               }
-              
+
               // Update meta description
               if (branding.metaDescription) {
-                var descEl = document.getElementById('dynamic-description');
+                var descEl = document.getElementById("dynamic-description");
                 if (descEl) {
                   descEl.content = branding.metaDescription;
                 }
               }
-              
+
               // Update apple touch icon
               if (branding.appleTouchIcon) {
-                var appleIconEl = document.getElementById('dynamic-apple-icon');
+                var appleIconEl = document.getElementById("dynamic-apple-icon");
                 if (appleIconEl) {
-                  appleIconEl.href = branding.appleTouchIcon.startsWith('http') 
-                    ? branding.appleTouchIcon 
+                  appleIconEl.href = branding.appleTouchIcon.startsWith("http")
+                    ? branding.appleTouchIcon
                     : branding.appleTouchIcon;
                 }
               }
-              
+
               // Update page title
               if (branding.siteTitle) {
                 document.title = branding.siteTitle;
               }
             }
           })
-          .catch(function(error) {
-            console.log('Could not load branding settings, using defaults');
+          .catch(function (error) {
+            console.log("Could not load branding settings, using defaults");
           });
       })();
     </script>

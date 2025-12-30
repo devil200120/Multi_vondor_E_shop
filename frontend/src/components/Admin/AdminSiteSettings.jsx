@@ -60,9 +60,10 @@ const useStyles = makeStyles((theme) => ({
       left: 0,
       right: 0,
       bottom: 0,
-      background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)",
+      background:
+        "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)",
       pointerEvents: "none",
-    }
+    },
   },
   headerContent: {
     position: "relative",
@@ -189,7 +190,7 @@ const AdminSiteSettings = () => {
         `${server}/site-settings/admin/get-site-settings`,
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         setSettings(response.data.settings);
         setLastUpdated(response.data.settings.updatedAt);
@@ -203,7 +204,7 @@ const AdminSiteSettings = () => {
   };
 
   const handleInputChange = (section, field, value) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -234,7 +235,9 @@ const AdminSiteSettings = () => {
   };
 
   const handleReset = async () => {
-    if (window.confirm("Are you sure you want to reset all settings to default?")) {
+    if (
+      window.confirm("Are you sure you want to reset all settings to default?")
+    ) {
       try {
         setLoading(true);
         const response = await axios.post(
@@ -262,9 +265,19 @@ const AdminSiteSettings = () => {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/x-icon', 'image/svg+xml'];
+    const validTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/gif",
+      "image/webp",
+      "image/x-icon",
+      "image/svg+xml",
+    ];
     if (!validTypes.includes(file.type)) {
-      toast.error("Please upload a valid image file (PNG, JPG, GIF, WebP, ICO, or SVG)");
+      toast.error(
+        "Please upload a valid image file (PNG, JPG, GIF, WebP, ICO, or SVG)"
+      );
       return;
     }
 
@@ -274,7 +287,8 @@ const AdminSiteSettings = () => {
       return;
     }
 
-    const setUploading = imageType === 'favicon' ? setUploadingFavicon : setUploadingAppleIcon;
+    const setUploading =
+      imageType === "favicon" ? setUploadingFavicon : setUploadingAppleIcon;
     setUploading(true);
 
     try {
@@ -294,7 +308,7 @@ const AdminSiteSettings = () => {
       );
 
       if (response.data.success) {
-        setSettings(prev => ({
+        setSettings((prev) => ({
           ...prev,
           branding: {
             ...prev.branding,
@@ -309,16 +323,23 @@ const AdminSiteSettings = () => {
     } finally {
       setUploading(false);
       // Reset the input
-      e.target.value = '';
+      e.target.value = "";
     }
   };
 
   const handleDeleteImage = async (imageType) => {
-    if (!window.confirm(`Are you sure you want to delete this ${imageType === 'favicon' ? 'favicon' : 'apple touch icon'}?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete this ${
+          imageType === "favicon" ? "favicon" : "apple touch icon"
+        }?`
+      )
+    ) {
       return;
     }
 
-    const setUploading = imageType === 'favicon' ? setUploadingFavicon : setUploadingAppleIcon;
+    const setUploading =
+      imageType === "favicon" ? setUploadingFavicon : setUploadingAppleIcon;
     setUploading(true);
 
     try {
@@ -328,11 +349,12 @@ const AdminSiteSettings = () => {
       );
 
       if (response.data.success) {
-        setSettings(prev => ({
+        setSettings((prev) => ({
           ...prev,
           branding: {
             ...prev.branding,
-            [imageType]: imageType === 'favicon' ? '/WANTTA (7).png' : '/logo192.png',
+            [imageType]:
+              imageType === "favicon" ? "/WANTTA (7).png" : "/logo192.png",
           },
         }));
         toast.success(response.data.message);
@@ -355,22 +377,40 @@ const AdminSiteSettings = () => {
       {/* Header */}
       <Card className={classes.header}>
         <CardContent className={classes.headerContent}>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <div>
-              <Typography variant="h4" gutterBottom style={{ fontWeight: 700, marginBottom: 8 }}>
+              <Typography
+                variant="h4"
+                gutterBottom
+                style={{ fontWeight: 700, marginBottom: 8 }}
+              >
                 ⚙️ Site Settings
               </Typography>
-              <Typography variant="body1" style={{ opacity: 0.9, fontSize: "1.1rem" }}>
-                Configure footer address, company information, and social media links
+              <Typography
+                variant="body1"
+                style={{ opacity: 0.9, fontSize: "1.1rem" }}
+              >
+                Configure footer address, company information, and social media
+                links
               </Typography>
               {lastUpdated && (
-                <Typography variant="caption" style={{ opacity: 0.8, display: "block", marginTop: 8 }}>
+                <Typography
+                  variant="caption"
+                  style={{ opacity: 0.8, display: "block", marginTop: 8 }}
+                >
                   Last updated: {formatDate(lastUpdated)}
                 </Typography>
               )}
             </div>
             <Box style={{ opacity: 0.7 }}>
-              <Typography variant="h2" style={{ fontWeight: 100, fontSize: "4rem" }}>
+              <Typography
+                variant="h2"
+                style={{ fontWeight: 100, fontSize: "4rem" }}
+              >
                 ⚙️
               </Typography>
             </Box>
@@ -395,7 +435,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.branding?.siteTitle || ""}
-                onChange={(e) => handleInputChange("branding", "siteTitle", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("branding", "siteTitle", e.target.value)
+                }
                 placeholder="e.g., Wanttar"
                 InputProps={{
                   startAdornment: (
@@ -415,7 +457,9 @@ const AdminSiteSettings = () => {
                 className={classes.textField}
                 type="color"
                 value={settings.branding?.themeColor || "#000000"}
-                onChange={(e) => handleInputChange("branding", "themeColor", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("branding", "themeColor", e.target.value)
+                }
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -433,7 +477,13 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.branding?.metaDescription || ""}
-                onChange={(e) => handleInputChange("branding", "metaDescription", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "branding",
+                    "metaDescription",
+                    e.target.value
+                  )
+                }
                 placeholder="e.g., Your trusted online marketplace for all your shopping needs"
                 multiline
                 rows={2}
@@ -449,13 +499,16 @@ const AdminSiteSettings = () => {
             </Grid>
             {/* Favicon Upload */}
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" style={{ marginBottom: 8, fontWeight: 600, color: "#374151" }}>
+              <Typography
+                variant="subtitle2"
+                style={{ marginBottom: 8, fontWeight: 600, color: "#374151" }}
+              >
                 Favicon
               </Typography>
-              <Box 
-                style={{ 
-                  border: "2px dashed #e2e8f0", 
-                  borderRadius: 12, 
+              <Box
+                style={{
+                  border: "2px dashed #e2e8f0",
+                  borderRadius: 12,
                   padding: 16,
                   textAlign: "center",
                   backgroundColor: "#fafafa",
@@ -463,46 +516,59 @@ const AdminSiteSettings = () => {
                 }}
               >
                 {settings.branding?.favicon ? (
-                  <Box display="flex" alignItems="center" justifyContent="center" flexDirection="column">
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    flexDirection="column"
+                  >
                     <Box position="relative" display="inline-block">
-                      <img 
-                        src={settings.branding.favicon} 
-                        alt="Favicon preview" 
-                        style={{ 
-                          width: 64, 
-                          height: 64, 
-                          objectFit: 'contain', 
-                          border: '2px solid #e2e8f0', 
+                      <img
+                        src={settings.branding.favicon}
+                        alt="Favicon preview"
+                        style={{
+                          width: 64,
+                          height: 64,
+                          objectFit: "contain",
+                          border: "2px solid #e2e8f0",
                           borderRadius: 8,
-                          backgroundColor: 'white',
+                          backgroundColor: "white",
                           padding: 4,
                         }}
-                        onError={(e) => { e.target.src = '/WANTTA (7).png'; }}
+                        onError={(e) => {
+                          e.target.src = "/WANTTA (7).png";
+                        }}
                       />
                       <IconButton
                         size="small"
-                        onClick={() => handleDeleteImage('favicon')}
+                        onClick={() => handleDeleteImage("favicon")}
                         disabled={uploadingFavicon}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: -8,
                           right: -8,
-                          backgroundColor: '#ef4444',
-                          color: 'white',
+                          backgroundColor: "#ef4444",
+                          color: "white",
                           padding: 4,
                         }}
                       >
                         <DeleteIcon style={{ fontSize: 16 }} />
                       </IconButton>
                     </Box>
-                    <Typography variant="caption" style={{ marginTop: 8, color: "#6b7280" }}>
+                    <Typography
+                      variant="caption"
+                      style={{ marginTop: 8, color: "#6b7280" }}
+                    >
                       Current favicon
                     </Typography>
                   </Box>
                 ) : (
                   <Box>
                     <ImageIcon style={{ fontSize: 48, color: "#d1d5db" }} />
-                    <Typography variant="body2" style={{ color: "#6b7280", marginTop: 8 }}>
+                    <Typography
+                      variant="body2"
+                      style={{ color: "#6b7280", marginTop: 8 }}
+                    >
                       No favicon uploaded
                     </Typography>
                   </Box>
@@ -510,10 +576,10 @@ const AdminSiteSettings = () => {
                 <Box mt={2}>
                   <input
                     accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/x-icon,image/svg+xml"
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                     id="favicon-upload"
                     type="file"
-                    onChange={(e) => handleImageUpload(e, 'favicon')}
+                    onChange={(e) => handleImageUpload(e, "favicon")}
                     disabled={uploadingFavicon}
                   />
                   <label htmlFor="favicon-upload">
@@ -521,9 +587,17 @@ const AdminSiteSettings = () => {
                       variant="contained"
                       component="span"
                       disabled={uploadingFavicon}
-                      startIcon={uploadingFavicon ? <CircularProgress size={18} color="inherit" /> : <UploadIcon />}
+                      startIcon={
+                        uploadingFavicon ? (
+                          <CircularProgress size={18} color="inherit" />
+                        ) : (
+                          <UploadIcon />
+                        )
+                      }
                       style={{
-                        backgroundColor: uploadingFavicon ? "#9ca3af" : "#667eea",
+                        backgroundColor: uploadingFavicon
+                          ? "#9ca3af"
+                          : "#667eea",
                         color: "white",
                         borderRadius: 8,
                         textTransform: "none",
@@ -533,21 +607,28 @@ const AdminSiteSettings = () => {
                     </Button>
                   </label>
                 </Box>
-                <Typography variant="caption" style={{ color: "#9ca3af", display: "block", marginTop: 8 }}>
-                  Small icon shown in browser tab (recommended: 32x32 or 16x16 PNG)
+                <Typography
+                  variant="caption"
+                  style={{ color: "#9ca3af", display: "block", marginTop: 8 }}
+                >
+                  Small icon shown in browser tab (recommended: 32x32 or 16x16
+                  PNG)
                 </Typography>
               </Box>
             </Grid>
 
             {/* Apple Touch Icon Upload */}
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" style={{ marginBottom: 8, fontWeight: 600, color: "#374151" }}>
+              <Typography
+                variant="subtitle2"
+                style={{ marginBottom: 8, fontWeight: 600, color: "#374151" }}
+              >
                 Apple Touch Icon
               </Typography>
-              <Box 
-                style={{ 
-                  border: "2px dashed #e2e8f0", 
-                  borderRadius: 12, 
+              <Box
+                style={{
+                  border: "2px dashed #e2e8f0",
+                  borderRadius: 12,
                   padding: 16,
                   textAlign: "center",
                   backgroundColor: "#fafafa",
@@ -555,46 +636,59 @@ const AdminSiteSettings = () => {
                 }}
               >
                 {settings.branding?.appleTouchIcon ? (
-                  <Box display="flex" alignItems="center" justifyContent="center" flexDirection="column">
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    flexDirection="column"
+                  >
                     <Box position="relative" display="inline-block">
-                      <img 
-                        src={settings.branding.appleTouchIcon} 
-                        alt="Apple Touch Icon preview" 
-                        style={{ 
-                          width: 64, 
-                          height: 64, 
-                          objectFit: 'contain', 
-                          border: '2px solid #e2e8f0', 
+                      <img
+                        src={settings.branding.appleTouchIcon}
+                        alt="Apple Touch Icon preview"
+                        style={{
+                          width: 64,
+                          height: 64,
+                          objectFit: "contain",
+                          border: "2px solid #e2e8f0",
                           borderRadius: 8,
-                          backgroundColor: 'white',
+                          backgroundColor: "white",
                           padding: 4,
                         }}
-                        onError={(e) => { e.target.src = '/logo192.png'; }}
+                        onError={(e) => {
+                          e.target.src = "/logo192.png";
+                        }}
                       />
                       <IconButton
                         size="small"
-                        onClick={() => handleDeleteImage('appleTouchIcon')}
+                        onClick={() => handleDeleteImage("appleTouchIcon")}
                         disabled={uploadingAppleIcon}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: -8,
                           right: -8,
-                          backgroundColor: '#ef4444',
-                          color: 'white',
+                          backgroundColor: "#ef4444",
+                          color: "white",
                           padding: 4,
                         }}
                       >
                         <DeleteIcon style={{ fontSize: 16 }} />
                       </IconButton>
                     </Box>
-                    <Typography variant="caption" style={{ marginTop: 8, color: "#6b7280" }}>
+                    <Typography
+                      variant="caption"
+                      style={{ marginTop: 8, color: "#6b7280" }}
+                    >
                       Current icon
                     </Typography>
                   </Box>
                 ) : (
                   <Box>
                     <ImageIcon style={{ fontSize: 48, color: "#d1d5db" }} />
-                    <Typography variant="body2" style={{ color: "#6b7280", marginTop: 8 }}>
+                    <Typography
+                      variant="body2"
+                      style={{ color: "#6b7280", marginTop: 8 }}
+                    >
                       No icon uploaded
                     </Typography>
                   </Box>
@@ -602,10 +696,10 @@ const AdminSiteSettings = () => {
                 <Box mt={2}>
                   <input
                     accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                     id="apple-icon-upload"
                     type="file"
-                    onChange={(e) => handleImageUpload(e, 'appleTouchIcon')}
+                    onChange={(e) => handleImageUpload(e, "appleTouchIcon")}
                     disabled={uploadingAppleIcon}
                   />
                   <label htmlFor="apple-icon-upload">
@@ -613,9 +707,17 @@ const AdminSiteSettings = () => {
                       variant="contained"
                       component="span"
                       disabled={uploadingAppleIcon}
-                      startIcon={uploadingAppleIcon ? <CircularProgress size={18} color="inherit" /> : <UploadIcon />}
+                      startIcon={
+                        uploadingAppleIcon ? (
+                          <CircularProgress size={18} color="inherit" />
+                        ) : (
+                          <UploadIcon />
+                        )
+                      }
                       style={{
-                        backgroundColor: uploadingAppleIcon ? "#9ca3af" : "#667eea",
+                        backgroundColor: uploadingAppleIcon
+                          ? "#9ca3af"
+                          : "#667eea",
                         color: "white",
                         borderRadius: 8,
                         textTransform: "none",
@@ -625,51 +727,83 @@ const AdminSiteSettings = () => {
                     </Button>
                   </label>
                 </Box>
-                <Typography variant="caption" style={{ color: "#9ca3af", display: "block", marginTop: 8 }}>
-                  Icon for iOS devices when added to home screen (recommended: 192x192 PNG)
+                <Typography
+                  variant="caption"
+                  style={{ color: "#9ca3af", display: "block", marginTop: 8 }}
+                >
+                  Icon for iOS devices when added to home screen (recommended:
+                  192x192 PNG)
                 </Typography>
               </Box>
             </Grid>
-            
+
             {/* Branding Preview */}
             <Grid item xs={12}>
               <Paper className={classes.previewCard}>
-                <Typography variant="subtitle2" style={{ fontWeight: 600, marginBottom: 8, color: "#0369a1" }}>
+                <Typography
+                  variant="subtitle2"
+                  style={{ fontWeight: 600, marginBottom: 8, color: "#0369a1" }}
+                >
                   🎨 Branding Preview:
                 </Typography>
                 <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                   {settings.branding?.favicon && (
                     <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="body2" style={{ fontWeight: 500 }}>Favicon:</Typography>
-                      <img 
-                        src={settings.branding.favicon.startsWith('http') ? settings.branding.favicon : settings.branding.favicon} 
-                        alt="Favicon preview" 
-                        style={{ width: 32, height: 32, objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: 4 }}
-                        onError={(e) => { e.target.style.display = 'none'; }}
+                      <Typography variant="body2" style={{ fontWeight: 500 }}>
+                        Favicon:
+                      </Typography>
+                      <img
+                        src={
+                          settings.branding.favicon.startsWith("http")
+                            ? settings.branding.favicon
+                            : settings.branding.favicon
+                        }
+                        alt="Favicon preview"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          objectFit: "contain",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: 4,
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                        }}
                       />
                     </Box>
                   )}
                   {settings.branding?.themeColor && (
                     <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="body2" style={{ fontWeight: 500 }}>Theme Color:</Typography>
-                      <Box 
-                        style={{ 
-                          width: 32, 
-                          height: 32, 
-                          backgroundColor: settings.branding.themeColor, 
+                      <Typography variant="body2" style={{ fontWeight: 500 }}>
+                        Theme Color:
+                      </Typography>
+                      <Box
+                        style={{
+                          width: 32,
+                          height: 32,
+                          backgroundColor: settings.branding.themeColor,
                           borderRadius: 4,
-                          border: '1px solid #e2e8f0'
-                        }} 
+                          border: "1px solid #e2e8f0",
+                        }}
                       />
-                      <Typography variant="caption" style={{ color: '#6b7280' }}>
+                      <Typography
+                        variant="caption"
+                        style={{ color: "#6b7280" }}
+                      >
                         {settings.branding.themeColor}
                       </Typography>
                     </Box>
                   )}
                   {settings.branding?.siteTitle && (
                     <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="body2" style={{ fontWeight: 500 }}>Title:</Typography>
-                      <Chip label={settings.branding.siteTitle} size="small" style={{ backgroundColor: '#e0e7ff', color: '#4338ca' }} />
+                      <Typography variant="body2" style={{ fontWeight: 500 }}>
+                        Title:
+                      </Typography>
+                      <Chip
+                        label={settings.branding.siteTitle}
+                        size="small"
+                        style={{ backgroundColor: "#e0e7ff", color: "#4338ca" }}
+                      />
                     </Box>
                   )}
                 </Box>
@@ -696,7 +830,13 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.streetAddress || ""}
-                onChange={(e) => handleInputChange("footerAddress", "streetAddress", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "footerAddress",
+                    "streetAddress",
+                    e.target.value
+                  )
+                }
                 placeholder="e.g., 5-25, 15th main road, 3rd stage, 4th block, Basaveswaranagar"
                 multiline
                 rows={2}
@@ -709,7 +849,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.landmark || ""}
-                onChange={(e) => handleInputChange("footerAddress", "landmark", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("footerAddress", "landmark", e.target.value)
+                }
                 placeholder="e.g., near Guru sagar hotel"
               />
             </Grid>
@@ -720,7 +862,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.city || ""}
-                onChange={(e) => handleInputChange("footerAddress", "city", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("footerAddress", "city", e.target.value)
+                }
                 placeholder="e.g., Bangalore"
               />
             </Grid>
@@ -731,7 +875,13 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.postalCode || ""}
-                onChange={(e) => handleInputChange("footerAddress", "postalCode", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "footerAddress",
+                    "postalCode",
+                    e.target.value
+                  )
+                }
                 placeholder="e.g., 560079"
               />
             </Grid>
@@ -742,7 +892,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.phone || ""}
-                onChange={(e) => handleInputChange("footerAddress", "phone", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("footerAddress", "phone", e.target.value)
+                }
                 placeholder="e.g., +91 7349727270"
                 InputProps={{
                   startAdornment: (
@@ -760,7 +912,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.footerAddress?.email || ""}
-                onChange={(e) => handleInputChange("footerAddress", "email", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("footerAddress", "email", e.target.value)
+                }
                 placeholder="e.g., support@wanttar.in"
                 InputProps={{
                   startAdornment: (
@@ -771,27 +925,36 @@ const AdminSiteSettings = () => {
                 }}
               />
             </Grid>
-            
+
             {/* Address Preview */}
             <Grid item xs={12}>
               <Paper className={classes.previewCard}>
-                <Typography variant="subtitle2" style={{ fontWeight: 600, marginBottom: 8, color: "#0369a1" }}>
+                <Typography
+                  variant="subtitle2"
+                  style={{ fontWeight: 600, marginBottom: 8, color: "#0369a1" }}
+                >
                   📍 Address Preview:
                 </Typography>
-                <Typography variant="body2" style={{ lineHeight: 1.6, color: "#374151" }}>
+                <Typography
+                  variant="body2"
+                  style={{ lineHeight: 1.6, color: "#374151" }}
+                >
                   {settings.footerAddress?.streetAddress && (
                     <>
                       {settings.footerAddress.streetAddress}
-                      {settings.footerAddress.landmark && `, ${settings.footerAddress.landmark}`}
+                      {settings.footerAddress.landmark &&
+                        `, ${settings.footerAddress.landmark}`}
                       <br />
                     </>
                   )}
-                  {settings.footerAddress?.city && settings.footerAddress?.postalCode && (
-                    <>
-                      {settings.footerAddress.city} - {settings.footerAddress.postalCode}
-                      <br />
-                    </>
-                  )}
+                  {settings.footerAddress?.city &&
+                    settings.footerAddress?.postalCode && (
+                      <>
+                        {settings.footerAddress.city} -{" "}
+                        {settings.footerAddress.postalCode}
+                        <br />
+                      </>
+                    )}
                   {settings.footerAddress?.phone && (
                     <>
                       📞 {settings.footerAddress.phone}
@@ -799,9 +962,7 @@ const AdminSiteSettings = () => {
                     </>
                   )}
                   {settings.footerAddress?.email && (
-                    <>
-                      ✉️ {settings.footerAddress.email}
-                    </>
+                    <>✉️ {settings.footerAddress.email}</>
                   )}
                 </Typography>
               </Paper>
@@ -827,7 +988,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.companyInfo?.name || ""}
-                onChange={(e) => handleInputChange("companyInfo", "name", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("companyInfo", "name", e.target.value)
+                }
                 placeholder="e.g., Wanttar"
               />
             </Grid>
@@ -838,7 +1001,13 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.companyInfo?.description || ""}
-                onChange={(e) => handleInputChange("companyInfo", "description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "companyInfo",
+                    "description",
+                    e.target.value
+                  )
+                }
                 placeholder="e.g., Your trusted online marketplace"
               />
             </Grid>
@@ -849,7 +1018,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.companyInfo?.website || ""}
-                onChange={(e) => handleInputChange("companyInfo", "website", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("companyInfo", "website", e.target.value)
+                }
                 placeholder="e.g., https://www.wanttar.in"
                 InputProps={{
                   startAdornment: (
@@ -881,7 +1052,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.socialMedia?.facebook || ""}
-                onChange={(e) => handleInputChange("socialMedia", "facebook", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("socialMedia", "facebook", e.target.value)
+                }
                 placeholder="https://facebook.com/yourpage"
                 InputProps={{
                   startAdornment: (
@@ -899,7 +1072,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.socialMedia?.twitter || ""}
-                onChange={(e) => handleInputChange("socialMedia", "twitter", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("socialMedia", "twitter", e.target.value)
+                }
                 placeholder="https://twitter.com/yourhandle"
                 InputProps={{
                   startAdornment: (
@@ -917,7 +1092,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.socialMedia?.instagram || ""}
-                onChange={(e) => handleInputChange("socialMedia", "instagram", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("socialMedia", "instagram", e.target.value)
+                }
                 placeholder="https://instagram.com/yourhandle"
                 InputProps={{
                   startAdornment: (
@@ -935,7 +1112,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.socialMedia?.linkedin || ""}
-                onChange={(e) => handleInputChange("socialMedia", "linkedin", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("socialMedia", "linkedin", e.target.value)
+                }
                 placeholder="https://linkedin.com/company/yourcompany"
                 InputProps={{
                   startAdornment: (
@@ -953,7 +1132,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.socialMedia?.youtube || ""}
-                onChange={(e) => handleInputChange("socialMedia", "youtube", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("socialMedia", "youtube", e.target.value)
+                }
                 placeholder="https://youtube.com/channel/yourchannel"
                 InputProps={{
                   startAdornment: (
@@ -985,7 +1166,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.businessHours?.weekdays || ""}
-                onChange={(e) => handleInputChange("businessHours", "weekdays", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("businessHours", "weekdays", e.target.value)
+                }
                 placeholder="e.g., Monday - Friday: 9:00 AM - 6:00 PM"
               />
             </Grid>
@@ -996,7 +1179,9 @@ const AdminSiteSettings = () => {
                 variant="outlined"
                 className={classes.textField}
                 value={settings.businessHours?.weekends || ""}
-                onChange={(e) => handleInputChange("businessHours", "weekends", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("businessHours", "weekends", e.target.value)
+                }
                 placeholder="e.g., Saturday - Sunday: 10:00 AM - 4:00 PM"
               />
             </Grid>
@@ -1007,7 +1192,11 @@ const AdminSiteSettings = () => {
       {/* Action Buttons */}
       <Card className={classes.sectionCard}>
         <CardContent className={classes.sectionContent}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
@@ -1017,7 +1206,7 @@ const AdminSiteSettings = () => {
             >
               Reset to Default
             </Button>
-            
+
             <Box display="flex" gap={2}>
               <Button
                 variant="outlined"

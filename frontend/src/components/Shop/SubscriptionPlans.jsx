@@ -54,7 +54,13 @@ const SubscriptionPlans = ({ isPublic = false }) => {
   };
 
   const calculatePrice = (plan) => {
-    if (!plans || !plans[plan]) return { totalBeforeDiscount: 0, discountAmount: 0, finalPrice: 0, discount: 0 };
+    if (!plans || !plans[plan])
+      return {
+        totalBeforeDiscount: 0,
+        discountAmount: 0,
+        finalPrice: 0,
+        discount: 0,
+      };
     const planData = plans[plan];
     const monthlyPrice = planData.monthlyPrice;
 
@@ -208,8 +214,12 @@ const SubscriptionPlans = ({ isPublic = false }) => {
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 text-lg">No subscription plans available at the moment.</p>
-            <p className="text-gray-400 text-sm mt-2">Please check back later.</p>
+            <p className="text-gray-500 text-lg">
+              No subscription plans available at the moment.
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Please check back later.
+            </p>
           </div>
         )}
       </div>

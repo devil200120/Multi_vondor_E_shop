@@ -61,7 +61,7 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
       <div className="flex items-center space-x-5">
         <Link to="/" className="flex items-center space-x-4">
           <img
-            src="/branding-logo-cayman.jpeg"
+            src="/logo (10).png"
             alt="Brand Logo"
             className="h-16 w-auto object-contain transition-all duration-300 hover:scale-105"
             style={{

@@ -96,14 +96,14 @@ const Header = ({ activeHeading }) => {
             {/* Logo - Fixed width */}
             <div
               className="flex-shrink-0"
-              style={{ minWidth: "140px", maxWidth: "140px" }}
+              style={{ minWidth: "200px", maxWidth: "220px" }}
             >
               <Link to="/">
                 <img
-                  src="/branding-logo-cayman.jpeg"
+                  src="/logo (10).png"
                   alt="Mall of Cayman"
-                  className="h-14 w-auto object-contain"
-                />
+                  className="h-20 w-auto object-contain"
+/>
               </Link>
             </div>
 
@@ -269,9 +269,9 @@ const Header = ({ activeHeading }) => {
               className="group hover:scale-105 transition-all duration-300 ease-in-out"
             >
               <img
-                src="/branding-logo-cayman.jpeg"
+                src="/logo (10).png"
                 alt="Mall of Cayman"
-                className="h-14 w-auto object-contain transition-all duration-300"
+                className="h-16 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,61,165,0.1))",
                   maxWidth: "160px",
