@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { Country, State } from "country-state-city";
 import { getAllOrdersOfUser } from "../../redux/actions/order";
+import { useCurrency } from "../../context/CurrencyContext";
 
 // Google Maps Configuration
 const GOOGLE_MAPS_API_KEY = "AIzaSyBecpP3O2kfTa0z-lLIiShmsZE6e1kDmOk";
@@ -317,6 +318,7 @@ const ProfileContent = ({ active }) => {
 const AllOrders = () => {
   const { user } = useSelector((state) => state.user);
   const { orders } = useSelector((state) => state.order);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -406,7 +408,7 @@ const AllOrders = () => {
         _id: item._id, // Include _id for getOrderNumber function
         orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice?.toFixed(2),
+        total: formatPrice(item.totalPrice),
         status: item.status,
       }))
     : [];
@@ -555,6 +557,7 @@ const AllOrders = () => {
 const AllRefundOrders = () => {
   const { user } = useSelector((state) => state.user);
   const { orders } = useSelector((state) => state.order);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -643,7 +646,7 @@ const AllRefundOrders = () => {
         _id: item._id,
         orderNumber: item.orderNumber,
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice?.toFixed(2),
+        total: formatPrice(item.totalPrice),
         status: item.status,
       }))
     : [];
@@ -758,6 +761,7 @@ const AllRefundOrders = () => {
 const TrackOrder = () => {
   const { user } = useSelector((state) => state.user);
   const { orders } = useSelector((state) => state.order);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -849,7 +853,7 @@ const TrackOrder = () => {
         _id: item._id,
         orderNumber: item.orderNumber,
         itemsQty: item.cart.length,
-        total: "₹" + item.totalPrice?.toFixed(2),
+        total: formatPrice(item.totalPrice),
         status: item.status,
       }))
     : [];

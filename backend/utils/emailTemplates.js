@@ -1,4 +1,10 @@
-const generateOrderConfirmationEmail = (order, user) => {
+const { createCurrencyFormatter, defaultCurrency, formatPriceSync } = require('./currencyFormatter');
+
+const generateOrderConfirmationEmail = async (order, user, currencyFormatter = null) => {
+  // Get currency formatter if not provided
+  const formatter = currencyFormatter || await createCurrencyFormatter();
+  const formatPrice = (amount) => formatter.format(amount);
+  
   // Use new orderNumber if available, otherwise fall back to old format
   const orderNumber = order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -57,17 +63,17 @@ const generateOrderConfirmationEmail = (order, user) => {
                 }
               </div>
               <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <span style="font-size: 20px; font-weight: 800; color: #059669; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">₹${item.discountPrice.toLocaleString('en-IN')}</span>
+                <span style="font-size: 20px; font-weight: 800; color: #059669; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${formatPrice(item.discountPrice)}</span>
                 ${item.originalPrice && item.originalPrice > item.discountPrice ? 
-                  `<span style="font-size: 16px; color: #9ca3af; text-decoration: line-through; opacity: 0.8;">₹${item.originalPrice.toLocaleString('en-IN')}</span>` : ''
+                  `<span style="font-size: 16px; color: #9ca3af; text-decoration: line-through; opacity: 0.8;">${formatPrice(item.originalPrice)}</span>` : ''
                 }
               </div>
               ${savings > 0 ? 
-                `<div style="background: linear-gradient(45deg, #ecfdf5, #d1fae5); color: #065f46; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border-left: 3px solid #10b981;">💰 You saved ₹${savings.toLocaleString('en-IN')} (${discountPercentage}% off)!</div>` : ''
+                `<div style="background: linear-gradient(45deg, #ecfdf5, #d1fae5); color: #065f46; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border-left: 3px solid #10b981;">💰 You saved ${formatPrice(savings)} (${discountPercentage}% off)!</div>` : ''
               }
             </div>
             <div style="text-align: right; flex-shrink: 0; padding-left: 16px;">
-              <div style="font-size: 20px; font-weight: 800; color: #111827; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">₹${itemTotal.toLocaleString('en-IN')}</div>
+              <div style="font-size: 20px; font-weight: 800; color: #111827; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${formatPrice(itemTotal)}</div>
               <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Total for ${item.qty} item${item.qty > 1 ? 's' : ''}</div>
             </div>
           </div>
@@ -195,12 +201,12 @@ const generateOrderConfirmationEmail = (order, user) => {
                     <h3 style="color: #374151; margin-bottom: 20px; font-size: 22px; display: flex; align-items: center; gap: 8px;">💰 <span>Order Summary</span></h3>
                     <div class="total-row">
                         <span style="font-size: 16px;">Subtotal (${totalItems} item${totalItems > 1 ? 's' : ''}):</span>
-                        <span style="font-weight: 600;">₹${subtotal.toLocaleString('en-IN')}</span>
+                        <span style="font-weight: 600;">${formatPrice(subtotal)}</span>
                     </div>
                     ${totalSavings > 0 ? `
                     <div class="total-row" style="color: #059669; background: #ecfdf5; margin: 8px -12px; padding: 8px 12px; border-radius: 8px;">
                         <span style="font-weight: 600;">🎉 Total Savings:</span>
-                        <span style="font-weight: 700;">-₹${totalSavings.toLocaleString('en-IN')}</span>
+                        <span style="font-weight: 700;">-${formatPrice(totalSavings)}</span>
                     </div>` : ''}
                     <div class="total-row">
                         <span>🚚 Shipping:</span>
@@ -212,11 +218,11 @@ const generateOrderConfirmationEmail = (order, user) => {
                     </div>
                     <div class="total-row final">
                         <span>💳 Total Amount Paid:</span>
-                        <span>₹${order.totalPrice.toLocaleString('en-IN')}</span>
+                        <span>${formatPrice(order.totalPrice)}</span>
                     </div>
                     ${totalSavings > 0 ? `
                     <div style="text-align: center; margin-top: 16px; padding: 12px; background: linear-gradient(45deg, #ecfdf5, #d1fae5); border-radius: 8px; border: 2px dashed #10b981;">
-                        <p style="color: #065f46; font-weight: 600; margin: 0;">🎊 Congratulations! You saved ₹${totalSavings.toLocaleString('en-IN')} on this order!</p>
+                        <p style="color: #065f46; font-weight: 600; margin: 0;">🎊 Congratulations! You saved ${formatPrice(totalSavings)} on this order!</p>
                     </div>` : ''}
                 </div>
 
@@ -326,7 +332,7 @@ const generateOrderConfirmationEmail = (order, user) => {
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; text-align: center;">
                         <div>
                             <div style="font-size: 24px; margin-bottom: 8px;">🚚</div>
-                            <p style="margin: 0; font-size: 14px; font-weight: 500;">Free Shipping on Orders Above ₹999</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: 500;">Free Shipping on Orders Above ${formatPrice(999)}</p>
                         </div>
                         <div>
                             <div style="font-size: 24px; margin-bottom: 8px;">🔄</div>
@@ -365,7 +371,11 @@ const generateOrderConfirmationEmail = (order, user) => {
 };
 
 // Generate order cancellation email
-const generateOrderCancellationEmail = (order, user, reason) => {
+const generateOrderCancellationEmail = async (order, user, reason, currencyFormatter = null) => {
+  // Get currency formatter if not provided
+  const formatter = currencyFormatter || await createCurrencyFormatter();
+  const formatPrice = (amount) => formatter.format(amount);
+
   // Use new orderNumber if available, otherwise fall back to old format
   const orderNumber = order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -409,7 +419,7 @@ const generateOrderCancellationEmail = (order, user, reason) => {
               <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #111827;">${item.name}</h4>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 14px; color: #6b7280;">Qty: ${item.qty}</span>
-                <span style="font-size: 16px; font-weight: 700; color: #111827;">₹${itemTotal.toLocaleString('en-IN')}</span>
+                <span style="font-size: 16px; font-weight: 700; color: #111827;">${formatPrice(itemTotal)}</span>
               </div>
             </div>
           </div>
@@ -484,7 +494,7 @@ const generateOrderCancellationEmail = (order, user, reason) => {
       <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #3b82f6;">
         <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px; font-weight: 600;">💳 Refund Information</h3>
         <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
-          Your refund of <strong>₹${order.totalPrice.toLocaleString('en-IN')}</strong> will be processed within 5-7 business days to your original payment method.
+          Your refund of <strong>${formatPrice(order.totalPrice)}</strong> will be processed within 5-7 business days to your original payment method.
         </p>
       </div>
 
@@ -516,7 +526,11 @@ const generateOrderCancellationEmail = (order, user, reason) => {
 };
 
 // Generate refund success email
-const generateRefundSuccessEmail = (order, user) => {
+const generateRefundSuccessEmail = async (order, user, currencyFormatter = null) => {
+  // Get currency formatter if not provided
+  const formatter = currencyFormatter || await createCurrencyFormatter();
+  const formatPrice = (amount) => formatter.format(amount);
+
   // Use new orderNumber if available, otherwise fall back to old format
   const orderNumber = order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -560,7 +574,7 @@ const generateRefundSuccessEmail = (order, user) => {
               <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #111827;">${item.name}</h4>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 14px; color: #6b7280;">Qty: ${item.qty}</span>
-                <span style="font-size: 16px; font-weight: 700; color: #111827;">₹${itemTotal.toLocaleString('en-IN')}</span>
+                <span style="font-size: 16px; font-weight: 700; color: #111827;">${formatPrice(itemTotal)}</span>
               </div>
             </div>
           </div>
@@ -634,7 +648,7 @@ const generateRefundSuccessEmail = (order, user) => {
       <!-- Refund Amount -->
       <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid #3b82f6; text-center;">
         <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px; font-weight: 600;">💰 Refund Amount</h3>
-        <p style="margin: 0 0 10px 0; color: #1e40af; font-size: 32px; font-weight: 700;">₹${order.totalPrice.toLocaleString('en-IN')}</p>
+        <p style="margin: 0 0 10px 0; color: #1e40af; font-size: 32px; font-weight: 700;">${formatPrice(order.totalPrice)}</p>
         <p style="margin: 0; color: #1e40af; font-size: 14px;">
           This amount will be credited to your original payment method within 5-7 business days.
         </p>
@@ -668,7 +682,11 @@ const generateRefundSuccessEmail = (order, user) => {
 };
 
 // Generate refund request email (for seller notification)
-const generateRefundRequestEmail = (order, user) => {
+const generateRefundRequestEmail = async (order, user, currencyFormatter = null) => {
+  // Get currency formatter if not provided
+  const formatter = currencyFormatter || await createCurrencyFormatter();
+  const formatPrice = (amount) => formatter.format(amount);
+
   // Use new orderNumber if available, otherwise fall back to old format
   const orderNumber = order.orderNumber || `#${order._id.toString().slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -738,7 +756,7 @@ const generateRefundRequestEmail = (order, user) => {
           </div>
           <div style="text-align: right;">
             <p style="margin: 0; font-size: 14px; color: #6b7280; font-weight: 600;">ORDER VALUE</p>
-            <p style="margin: 5px 0 0 0; font-size: 16px; color: #111827; font-weight: 600;">₹${order.totalPrice.toLocaleString('en-IN')}</p>
+            <p style="margin: 5px 0 0 0; font-size: 16px; color: #111827; font-weight: 600;">${formatPrice(order.totalPrice)}</p>
           </div>
         </div>
       </div>
@@ -749,7 +767,7 @@ const generateRefundRequestEmail = (order, user) => {
         <div>
           <p style="margin: 0 0 8px 0; color: #374151;"><strong>Name:</strong> ${user.name}</p>
           <p style="margin: 0 0 8px 0; color: #374151;"><strong>Email:</strong> ${user.email}</p>
-          <p style="margin: 0; color: #374151;"><strong>Order Total:</strong> ₹${order.totalPrice.toLocaleString('en-IN')}</p>
+          <p style="margin: 0; color: #374151;"><strong>Order Total:</strong> ${formatPrice(order.totalPrice)}</p>
         </div>
       </div>
 

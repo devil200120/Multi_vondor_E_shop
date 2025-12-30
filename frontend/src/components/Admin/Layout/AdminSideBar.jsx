@@ -208,6 +208,14 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       roles: ["Admin"], // Only Admin can access setup
     },
     {
+      id: 25,
+      name: "Currency",
+      icon: HiOutlineCurrencyDollar,
+      url: "/admin-currency-settings",
+      color: "bg-green-500",
+      roles: ["Admin"], // Only Admin can access currency settings
+    },
+    {
       id: 19,
       name: "Admin Staff",
       icon: HiOutlineUserAdd,
@@ -237,7 +245,11 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
             </div>
             <div className="hidden 800px:block">
               <h2 className="text-lg font-semibold text-gray-900">
-                {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
+                {user?.role === "Manager"
+                  ? "Manager Panel"
+                  : user?.role === "SubAdmin"
+                  ? "SubAdmin Panel"
+                  : "Admin Panel"}
               </h2>
               <p className="text-sm text-gray-500">Management Dashboard</p>
             </div>
@@ -396,7 +408,12 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
               isMobileOverlay ? "text-xs" : "text-xs"
             }`}
           >
-            {user?.role === "Manager" ? "Manager" : user?.role === "SubAdmin" ? "SubAdmin" : "Admin"} Dashboard v2.0
+            {user?.role === "Manager"
+              ? "Manager"
+              : user?.role === "SubAdmin"
+              ? "SubAdmin"
+              : "Admin"}{" "}
+            Dashboard v2.0
           </p>
           <p
             className={`text-gray-500 ${

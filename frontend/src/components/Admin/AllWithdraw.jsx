@@ -7,6 +7,7 @@ import { BsPencil } from "react-icons/bs";
 import { RxCross1 } from "react-icons/rx";
 import styles from "../../styles/styles";
 import { toast } from "react-toastify";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const AllWithdraw = () => {
   const [data, setData] = useState([]);
@@ -17,6 +18,7 @@ const AllWithdraw = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     const fetchWithdrawRequests = async () => {
@@ -262,7 +264,7 @@ const AllWithdraw = () => {
           id: item._id || `temp-${index}`,
           shopId: sellerId,
           name: sellerName,
-          amount: "₹ " + amount,
+          amount: formatPrice(amount),
           status: status,
           createdAt: createdAt,
         });
@@ -273,7 +275,7 @@ const AllWithdraw = () => {
           id: `error-${index}`,
           shopId: "Error",
           name: "Data Error",
-          amount: "₹ 0",
+          amount: formatPrice(0),
           status: "Error",
           createdAt: "N/A",
         });

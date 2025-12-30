@@ -16,6 +16,7 @@ import { MdCheckCircle, MdPending } from "react-icons/md";
 import { Button } from "@material-ui/core";
 import { getOrderNumber } from "../../utils/orderUtils";
 import styles from "../../styles/styles";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const AdminDashboardMain = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const AdminDashboardMain = () => {
     (state) => state.order
   );
   const { sellers } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     dispatch(getAllOrdersOfAdmin());
@@ -148,7 +150,7 @@ const AdminDashboardMain = () => {
         id: item._id, // Keep _id for internal DataGrid use
         orderNumber: getOrderNumber(item), // Use formatted order number for display
         itemsQty: item?.cart?.reduce((acc, item) => acc + item.qty, 0),
-        total: "₹" + item?.totalPrice?.toFixed(2),
+        total: formatPrice(item?.totalPrice),
         status: item?.status,
       });
     });
@@ -184,7 +186,7 @@ const AdminDashboardMain = () => {
                     Total Earnings
                   </p>
                   <p className="text-2xl font-bold text-primary-600">
-                    ₹{adminBalance}
+                    {formatPrice(adminBalance)}
                   </p>
                   <div className="flex items-center mt-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

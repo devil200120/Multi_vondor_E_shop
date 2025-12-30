@@ -42,6 +42,7 @@ import { usePincodeService } from "../../hooks/usePincodeService";
 import ReadMoreText from "../UI/ReadMoreText";
 import axios from "axios";
 import ProductCallButtons from "../Product/ProductCallButtons";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const ProductDetails = ({ data }) => {
   const { products } = useSelector((state) => state.products);
@@ -49,6 +50,7 @@ const ProductDetails = ({ data }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
+  const { formatPrice } = useCurrency();
 
   // Check if current user is admin
   const isAdmin = user && user.role === "Admin";
@@ -717,11 +719,11 @@ const ProductDetails = ({ data }) => {
               {/* Price Section */}
               <div className="flex items-center space-x-2">
                 <span className="text-xl lg:text-2xl font-bold text-gray-900">
-                  ₹{currentPrice || data.discountPrice}
+                  {formatPrice(currentPrice || data.discountPrice)}
                 </span>
                 {data.originalPrice && (
                   <span className="text-base text-gray-500 line-through">
-                    ₹{data.originalPrice}
+                    {formatPrice(data.originalPrice)}
                   </span>
                 )}
                 {currentPrice && currentPrice !== data.discountPrice && (
@@ -792,7 +794,7 @@ const ProductDetails = ({ data }) => {
                                       </span>
                                       {price && attr.hasPriceVariation && (
                                         <span className="text-xs text-blue-600 font-medium">
-                                          ₹{price}
+                                          {formatPrice(price)}
                                         </span>
                                       )}
                                     </div>
@@ -834,7 +836,7 @@ const ProductDetails = ({ data }) => {
                                       <div>{value}</div>
                                       {price && attr.hasPriceVariation && (
                                         <div className="text-xs text-blue-600 font-medium">
-                                          ₹{price}
+                                          {formatPrice(price)}
                                         </div>
                                       )}
                                     </div>
@@ -891,7 +893,7 @@ const ProductDetails = ({ data }) => {
                                     </span>
                                     {price && attr.hasPriceVariation && (
                                       <span className="text-xs text-blue-600 font-medium">
-                                        ₹{price}
+                                        {formatPrice(price)}
                                       </span>
                                     )}
                                     {attr.type && attr.type !== "text" && (

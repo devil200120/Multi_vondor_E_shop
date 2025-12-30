@@ -23,6 +23,7 @@ import { getOrderNumber } from "../../utils/orderUtils";
 import { getProductImageUrl } from "../../utils/mediaUtils";
 import { useDispatch, useSelector } from "react-redux";
 import OrderLocationMap from "./OrderLocationMap";
+import { useCurrency } from "../../context/CurrencyContext";
 import socketIO from "socket.io-client";
 const SOCKET_ENDPOINT = process.env.SOCKET_URL || "http://localhost:4000";
 
@@ -30,6 +31,7 @@ const OrderDetails = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
   const dispatch = useDispatch();
+  const { formatPrice } = useCurrency();
 
   const [status, setStatus] = useState("");
   const [shopLocation, setShopLocation] = useState(null);
@@ -564,7 +566,7 @@ const OrderDetails = () => {
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Total Amount</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ₹{data.totalPrice}
+                    {formatPrice(data.totalPrice)}
                   </p>
                 </div>
               </div>
@@ -619,12 +621,12 @@ const OrderDetails = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-semibold text-gray-900">
-                      ₹{(item.finalPrice || item.discountPrice).toFixed(2)}
+                      {formatPrice(item.finalPrice || item.discountPrice)}
                     </p>
                     {item.finalPrice &&
                       item.finalPrice !== item.discountPrice && (
                         <p className="text-sm text-gray-400 line-through">
-                          ₹{item.discountPrice.toFixed(2)}
+                          {formatPrice(item.discountPrice)}
                         </p>
                       )}
                     <p className="text-sm text-gray-600">Each</p>
@@ -709,7 +711,7 @@ const OrderDetails = () => {
                       <div className="flex justify-between items-center text-lg font-semibold">
                         <span>Total Amount:</span>
                         <span className="text-[#1c4980]">
-                          ₹{data.totalPrice?.toFixed(2)}
+                          {formatPrice(data.totalPrice)}
                         </span>
                       </div>
                     </div>

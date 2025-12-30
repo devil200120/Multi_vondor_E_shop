@@ -22,11 +22,13 @@ import { HiSparkles } from "react-icons/hi";
 import PincodeService from "../PincodeService/PincodeService";
 import { usePincodeService } from "../../hooks/usePincodeService";
 import CouponSuggestions from "./CouponSuggestions";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   const { cart } = useSelector((state) => state.cart);
+  const { formatPrice, currency } = useCurrency();
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [userInfo, setUserInfo] = useState(false);
@@ -651,6 +653,7 @@ const ShippingInfo = ({
   deliveryInfo,
   handleZipCodeValidation,
 }) => {
+  const { formatPrice } = useCurrency();
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       {/* Header */}
@@ -769,7 +772,7 @@ const ShippingInfo = ({
                           <p className="text-xs text-green-600 mt-1">
                             Estimated delivery:{" "}
                             {deliveryInfo.estimatedDeliveryDays} days |
-                            Shipping: ₹{deliveryInfo.shippingCharge}
+                            Shipping: {formatPrice(deliveryInfo.shippingCharge)}
                           </p>
                         </div>
                       </div>
@@ -941,6 +944,7 @@ const CartData = ({
   couponCodeData,
   handleRemoveCoupon,
 }) => {
+  const { formatPrice, currency } = useCurrency();
   return (
     <div className="sticky top-6 space-y-4">
       {/* Order Summary Card */}
@@ -1028,13 +1032,14 @@ const CartData = ({
                               item.price) ? (
                             <div>
                               <span className="line-through text-gray-400">
-                                ₹
-                                {item.discountPrice ||
-                                  item.originalPrice ||
-                                  item.price}
+                                {formatPrice(
+                                  item.discountPrice ||
+                                    item.originalPrice ||
+                                    item.price
+                                )}
                               </span>
                               <span className="ml-1 text-green-600 font-semibold">
-                                ₹{item.finalPrice}
+                                {formatPrice(item.finalPrice)}
                               </span>
                               <span className="block text-xs text-green-600">
                                 Attribute price applied
@@ -1042,11 +1047,12 @@ const CartData = ({
                             </div>
                           ) : (
                             <span className="text-sm font-semibold text-gray-800">
-                              ₹
-                              {item.finalPrice ||
-                                item.discountPrice ||
-                                item.originalPrice ||
-                                item.price}
+                              {formatPrice(
+                                item.finalPrice ||
+                                  item.discountPrice ||
+                                  item.originalPrice ||
+                                  item.price
+                              )}
                             </span>
                           )}
                           <span className="ml-1 text-gray-600">
@@ -1054,13 +1060,12 @@ const CartData = ({
                           </span>
                         </div>
                         <span className="text-sm font-bold text-indigo-600">
-                          ₹
-                          {(
+                          {formatPrice(
                             (item.finalPrice ||
                               item.discountPrice ||
                               item.originalPrice ||
                               item.price) * item.qty
-                          ).toFixed(2)}
+                          )}
                         </span>
                       </div>
                     </div>
@@ -1075,7 +1080,7 @@ const CartData = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Subtotal</span>
               <span className="font-semibold text-gray-800">
-                ₹{subTotalPrice}
+                {formatPrice(subTotalPrice)}
               </span>
             </div>
 
@@ -1083,14 +1088,14 @@ const CartData = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Shipping & Handling</span>
               <span className="font-semibold text-gray-800">
-                {shipping === 0 ? "FREE" : `₹${Number(shipping).toFixed(2)}`}
+                {shipping === 0 ? "FREE" : formatPrice(shipping)}
               </span>
             </div>
 
             {/* Free Shipping Message */}
             {shipping === 0 && subTotalPrice >= 999 && (
               <div className="text-xs text-green-600 -mt-2">
-                🎉 Free shipping on orders above ₹999
+                🎉 Free shipping on orders above {formatPrice(999)}
               </div>
             )}
 
@@ -1116,7 +1121,7 @@ const CartData = ({
                   Discount Applied
                 </span>
                 <span className="font-semibold">
-                  -₹{Number(discountPercentenge).toFixed(2)}
+                  -{formatPrice(discountPercentenge)}
                 </span>
               </div>
             )}
@@ -1127,7 +1132,7 @@ const CartData = ({
                   Total
                 </span>
                 <span className="text-xl font-bold text-indigo-600">
-                  ₹{totalPrice}
+                  {formatPrice(totalPrice)}
                 </span>
               </div>
             </div>

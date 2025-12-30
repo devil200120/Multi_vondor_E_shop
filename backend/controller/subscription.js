@@ -127,13 +127,21 @@ const calculateEndDate = (startDate, billingCycle) => {
   return endDate;
 };
 
-// Get available subscription plans
+// Get available subscription plans (for sellers - only active plans)
 router.get(
   "/get-plans",
   catchAsyncErrors(async (req, res, next) => {
+    // Filter out inactive plans for public/seller view
+    const activePlans = {};
+    for (const [key, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
+      if (plan.isActive !== false) {
+        activePlans[key] = plan;
+      }
+    }
+    
     res.status(200).json({
       success: true,
-      plans: SUBSCRIPTION_PLANS,
+      plans: activePlans,
     });
   })
 );

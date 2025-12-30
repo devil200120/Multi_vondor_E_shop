@@ -8,6 +8,7 @@ import {
   AiOutlinePlus,
   AiOutlineSave,
   AiOutlineClose,
+  AiOutlineDelete,
 } from "react-icons/ai";
 import { HiCheck, HiX } from "react-icons/hi";
 
@@ -16,6 +17,7 @@ const AdminPlanManagement = () => {
   const [loading, setLoading] = useState(true);
   const [editingPlan, setEditingPlan] = useState(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [deletingPlan, setDeletingPlan] = useState(null);
   const [formData, setFormData] = useState(getEmptyFormData());
 
   useEffect(() => {
@@ -112,6 +114,26 @@ const AdminPlanManagement = () => {
     }
   };
 
+  const handleDelete = async (planKey) => {
+    if (!window.confirm(`Are you sure you want to delete the "${planKey}" plan? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingPlan(planKey);
+    try {
+      await axios.delete(
+        `${server}/subscription/admin/delete-plan/${planKey}`,
+        { withCredentials: true }
+      );
+      toast.success("Plan deleted successfully");
+      fetchPlans();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete plan");
+    } finally {
+      setDeletingPlan(null);
+    }
+  };
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -189,6 +211,8 @@ const AdminPlanManagement = () => {
                 onToggleActive={() =>
                   handleToggleActive(planKey, planData.isActive !== false)
                 }
+                onDelete={() => handleDelete(planKey)}
+                isDeleting={deletingPlan === planKey}
               />
             )}
           </div>
@@ -319,7 +343,7 @@ const PlanForm = ({
   );
 };
 
-const PlanDisplay = ({ planKey, planData, onEdit, onToggleActive }) => {
+const PlanDisplay = ({ planKey, planData, onEdit, onToggleActive, onDelete, isDeleting }) => {
   const isActive = planData.isActive !== false;
 
   return (
@@ -394,11 +418,22 @@ const PlanDisplay = ({ planKey, planData, onEdit, onToggleActive }) => {
           onClick={onToggleActive}
           className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
             isActive
-              ? "bg-red-50 text-red-600 hover:bg-red-100"
+              ? "bg-yellow-50 text-yellow-600 hover:bg-yellow-100"
               : "bg-green-50 text-green-600 hover:bg-green-100"
           }`}
         >
           {isActive ? "Deactivate" : "Activate"}
+        </button>
+        <button
+          onClick={onDelete}
+          disabled={isDeleting}
+          className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isDeleting ? (
+            <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
+          ) : (
+            <AiOutlineDelete className="w-4 h-4" />
+          )}
         </button>
       </div>
     </>

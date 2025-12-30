@@ -19,6 +19,7 @@ import {
   removeFromWishlist,
 } from "../../../redux/actions/wishlist";
 import { getProductImageUrl, getAvatarUrl } from "../../../utils/mediaUtils";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 const ProductDetailsCard = ({ setOpen, data }) => {
   const { cart } = useSelector((state) => state.cart);
@@ -28,6 +29,7 @@ const ProductDetailsCard = ({ setOpen, data }) => {
   const navigate = useNavigate();
   const [count, setCount] = useState(1);
   const [click, setClick] = useState(false);
+  const { formatPrice } = useCurrency();
 
   const handleMessageSubmit = () => {};
 
@@ -235,19 +237,21 @@ const ProductDetailsCard = ({ setOpen, data }) => {
                   <div className="bg-blue-50 rounded-xl p-4">
                     <div className="flex items-baseline space-x-3 mb-2">
                       <span className="text-2xl font-bold text-gray-900">
-                        ₹{data.discountPrice}
+                        {formatPrice(data.discountPrice)}
                       </span>
                       {data.originalPrice &&
                         data.originalPrice > data.discountPrice && (
                           <span className="text-lg text-gray-400 line-through">
-                            ₹{data.originalPrice}
+                            {formatPrice(data.originalPrice)}
                           </span>
                         )}
                     </div>
                     {data.originalPrice &&
                       data.originalPrice > data.discountPrice && (
                         <div className="text-green-600 font-semibold text-sm">
-                          You save ₹{data.originalPrice - data.discountPrice} (
+                          You save{" "}
+                          {formatPrice(data.originalPrice - data.discountPrice)}{" "}
+                          (
                           {Math.round(
                             ((data.originalPrice - data.discountPrice) /
                               data.originalPrice) *

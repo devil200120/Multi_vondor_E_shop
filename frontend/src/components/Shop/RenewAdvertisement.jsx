@@ -142,7 +142,9 @@ const RenewAdvertisement = () => {
         } else {
           // Paid ad - inform about auto-approval after payment
           if (hasAdPreApproval) {
-            toast.success("Advertisement renewed! Redirecting to payment... (Auto-approval enabled)");
+            toast.success(
+              "Advertisement renewed! Redirecting to payment... (Auto-approval enabled)"
+            );
           } else {
             toast.success("Advertisement renewed! Redirecting to payment...");
           }
@@ -202,7 +204,9 @@ const RenewAdvertisement = () => {
           {hasAdPreApproval && (
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full shadow-lg">
               <span className="text-xl">⚡</span>
-              <span className="text-sm font-bold uppercase tracking-wide">Auto-Approval Active</span>
+              <span className="text-sm font-bold uppercase tracking-wide">
+                Auto-Approval Active
+              </span>
             </div>
           )}
         </div>
@@ -451,7 +455,9 @@ const RenewAdvertisement = () => {
                     <li>Your ad type and slot remain the same</li>
                     <li>Performance stats reset for the new period</li>
                     {hasAdPreApproval ? (
-                      <li className="text-amber-600 font-semibold">⚡ Your ad will be auto-approved (Gold Plan)</li>
+                      <li className="text-amber-600 font-semibold">
+                        ⚡ Your ad will be auto-approved (Gold Plan)
+                      </li>
                     ) : (
                       <li>Admin approval may be required</li>
                     )}

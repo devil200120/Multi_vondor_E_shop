@@ -226,11 +226,12 @@ const AllAdvertisements = () => {
           >
             {getStatusLabel(params.value)}
           </span>
-          {params.row.approvalNote?.includes("Auto-approved") && params.value === "active" && (
-            <span className="text-[10px] text-amber-600 mt-1 font-medium">
-              ⚡ Auto-Approved (Gold)
-            </span>
-          )}
+          {params.row.approvalNote?.includes("Auto-approved") &&
+            params.value === "active" && (
+              <span className="text-[10px] text-amber-600 mt-1 font-medium">
+                ⚡ Auto-Approved (Gold)
+              </span>
+            )}
           {params.value === "rejected" && params.row.rejectionReason && (
             <span
               className="text-[10px] text-red-600 mt-1 truncate max-w-[100px]"
@@ -431,7 +432,9 @@ const AllAdvertisements = () => {
           {hasAdPreApproval && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full shadow-md">
               <span className="text-lg">⚡</span>
-              <span className="text-xs font-bold uppercase tracking-wide">Auto-Approval Active</span>
+              <span className="text-xs font-bold uppercase tracking-wide">
+                Auto-Approval Active
+              </span>
             </div>
           )}
         </div>

@@ -11,7 +11,11 @@ import {
 } from "@paypal/react-paypal-js";
 
 // PayPal Button wrapper with loading state
-const PayPalButtonWrapper = ({ advertisement, onPaymentSuccess, hasAdPreApproval }) => {
+const PayPalButtonWrapper = ({
+  advertisement,
+  onPaymentSuccess,
+  hasAdPreApproval,
+}) => {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
   const [processing, setProcessing] = useState(false);
 
@@ -52,9 +56,13 @@ const PayPalButtonWrapper = ({ advertisement, onPaymentSuccess, hasAdPreApproval
       if (response.data.success) {
         // Check if ad was auto-approved (Gold plan)
         if (response.data.autoApproved) {
-          toast.success("Payment successful! Your ad is now ACTIVE (Auto-Approved via Gold Plan)!");
+          toast.success(
+            "Payment successful! Your ad is now ACTIVE (Auto-Approved via Gold Plan)!"
+          );
         } else {
-          toast.success("Payment successful! Your ad is pending admin approval.");
+          toast.success(
+            "Payment successful! Your ad is pending admin approval."
+          );
         }
         onPaymentSuccess();
       }
@@ -286,7 +294,9 @@ const AdvertisementPayment = () => {
                   <ul className="text-xs text-yellow-700 space-y-1 list-disc list-inside">
                     <li>Payment is non-refundable once approved</li>
                     {hasAdPreApproval ? (
-                      <li className="text-green-700 font-medium">⚡ Your ad will be auto-approved (Gold Plan)</li>
+                      <li className="text-green-700 font-medium">
+                        ⚡ Your ad will be auto-approved (Gold Plan)
+                      </li>
                     ) : (
                       <li>Ads require admin approval (1-2 business days)</li>
                     )}
@@ -307,12 +317,14 @@ const AdvertisementPayment = () => {
                       <span className="text-2xl mr-3">⚡</span>
                       <div>
                         <h4 className="font-bold">Gold Plan Auto-Approval</h4>
-                        <p className="text-sm opacity-90">Your ad will be automatically approved after payment!</p>
+                        <p className="text-sm opacity-90">
+                          Your ad will be automatically approved after payment!
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                     <span className="mr-2">💳</span> Pay with PayPal

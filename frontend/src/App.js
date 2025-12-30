@@ -4,6 +4,7 @@ import Store from "./redux/store";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGoogleTranslate } from "./hooks/useGoogleTranslate";
 import axios from "axios";
+import { CurrencyProvider } from "./context/CurrencyContext";
 import BanModal from "./components/BanDetection/BanModal";
 import BanProtection from "./components/BanDetection/BanProtection";
 import SellerBanProtection from "./components/BanDetection/SellerBanProtection";
@@ -88,6 +89,7 @@ import AdminOrderDetailsPage from "./pages/AdminOrderDetailsPage";
 import AdminDashboardLegalPages from "./pages/AdminDashboardLegalPages";
 import AdminReviewsPage from "./pages/AdminReviewsPage";
 import AdminSiteSettingsPage from "./pages/AdminSiteSettingsPage";
+import AdminCurrencySettingsPage from "./pages/AdminCurrencySettingsPage";
 import AdminFAQPage from "./pages/AdminFAQPage";
 import AdminVideoBannersPage from "./pages/AdminVideoBannersPage";
 import CreateVideoBannerPage from "./pages/CreateVideoBannerPage";
@@ -177,6 +179,7 @@ const App = () => {
   }
 
   return (
+    <CurrencyProvider>
     <SocketProvider>
       <BrowserRouter>
         <BanModal />
@@ -794,6 +797,14 @@ const App = () => {
           }
         />
         <Route
+          path="/admin-currency-settings"
+          element={
+            <ProtectedAdminRoute>
+              <AdminCurrencySettingsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin-subscriptions"
           element={
             <ProtectedAdminRoute>
@@ -871,6 +882,7 @@ const App = () => {
       />
     </BrowserRouter>
     </SocketProvider>
+    </CurrencyProvider>
   );
 };
 export default App;

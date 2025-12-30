@@ -10,6 +10,7 @@ import {
   BsVolumeMute,
 } from "react-icons/bs";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { useCurrency } from "../../context/CurrencyContext";
 
 /**
  * AdBanners Component
@@ -31,6 +32,7 @@ const AdBanners = ({ position = "header" }) => {
   const [loading, setLoading] = useState(true);
   const [playingIndex, setPlayingIndex] = useState(null);
   const [mutedStates, setMutedStates] = useState({});
+  const { formatPrice } = useCurrency();
 
   const scrollContainerRef = useRef(null);
   const videoRefs = useRef([]);
@@ -293,7 +295,7 @@ const AdBanners = ({ position = "header" }) => {
                 </h3>
                 <div className="flex items-center gap-1">
                   <span className="text-[9px] bg-green-600/80 px-1 rounded">
-                    ₹{banner.productId?.discountPrice}
+                    {formatPrice(banner.productId?.discountPrice)}
                   </span>
                 </div>
               </div>

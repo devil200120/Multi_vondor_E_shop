@@ -16,12 +16,14 @@ import { deleteProduct } from "../../redux/actions/product";
 import Loader from "../Layout/Loader";
 import { DataGrid } from "@material-ui/data-grid";
 import { toast } from "react-toastify";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const AllProducts = () => {
   const { products, isLoading, message, error } = useSelector(
     (state) => state.products
   );
   const { seller } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStock, setFilterStock] = useState("all");
 
@@ -207,7 +209,7 @@ const AllProducts = () => {
     row.push({
       id: item._id,
       name: item.name,
-      price: "₹" + item.discountPrice,
+      price: formatPrice(item.discountPrice),
       Stock: item.stock,
       approvalStatus: item.approvalStatus || "pending",
       sold: item.sold_out,
@@ -255,7 +257,7 @@ const AllProducts = () => {
         <div className="text-center p-2 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 font-medium">Price</p>
           <p className="font-bold text-green-600 text-sm">
-            ₹{product.discountPrice}
+            {formatPrice(product.discountPrice)}
           </p>
         </div>
         <div className="text-center p-2 bg-gray-50 rounded-lg">

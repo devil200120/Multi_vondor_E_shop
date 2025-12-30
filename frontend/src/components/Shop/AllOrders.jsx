@@ -16,6 +16,7 @@ import { MdFilterList, MdSearch } from "react-icons/md";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+import { useCurrency } from "../../context/CurrencyContext";
 
 // Helper function to get order number for display
 const getOrderNumber = (order) => {
@@ -28,6 +29,7 @@ const getOrderNumber = (order) => {
 const AllOrders = () => {
   const { orders, isLoading } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -252,7 +254,7 @@ const AllOrders = () => {
         orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty:
           item.cart?.reduce((acc, cartItem) => acc + cartItem.qty, 0) || 0,
-        total: "₹" + item.totalPrice?.toFixed(2),
+        total: formatPrice(item.totalPrice),
         status: item.status,
         createdAt: item.createdAt,
       });
@@ -367,7 +369,7 @@ const AllOrders = () => {
             />
             <StatsCard
               title="Total Revenue"
-              value={`₹${totalRevenue.toLocaleString()}`}
+              value={formatPrice(totalRevenue)}
               icon={FiDollarSign}
               color="text-purple-600"
               bgColor="bg-white"

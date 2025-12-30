@@ -17,10 +17,12 @@ import { server } from "../../server";
 import styles from "../../styles/styles";
 import ProductFormModal from "./ProductFormModal";
 import { toast } from "react-toastify";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const AllProducts = () => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.categories);
+  const { formatPrice } = useCurrency();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -360,7 +362,7 @@ const AllProducts = () => {
       row.push({
         id: item._id,
         name: item.name,
-        price: "₹" + item.discountPrice,
+        price: formatPrice(item.discountPrice),
 
         Stock: item.stock,
         sold: item?.sold_out,

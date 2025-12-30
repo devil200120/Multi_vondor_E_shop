@@ -7,6 +7,7 @@ import { removeFromWishlist } from "../../redux/actions/wishlist";
 import { addTocart } from "../../redux/actions/cart";
 import { backend_url } from "../../server";
 import { getProductImageUrl } from "../../utils/mediaUtils";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const Wishlist = ({ setOpenWishlist }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -90,6 +91,7 @@ const Wishlist = ({ setOpenWishlist }) => {
 const CartSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
   const [value] = useState(1);
   const totalPrice = data.discountPrice * value;
+  const { formatPrice } = useCurrency();
 
   return (
     <div className="border-b border-secondary-100 p-4 hover:bg-secondary-50 transition-colors duration-200">
@@ -109,7 +111,7 @@ const CartSingle = ({ data, removeFromWishlistHandler, addToCartHandler }) => {
             {data.name}
           </h3>
           <p className="text-lg font-semibold text-primary-500 mb-3">
-            ₹{totalPrice.toFixed(2)}
+            {formatPrice(totalPrice)}
           </p>
 
           {/* Action Button */}

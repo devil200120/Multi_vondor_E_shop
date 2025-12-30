@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
+const { createCurrencyFormatter, formatPriceSync, defaultCurrency } = require('./currencyFormatter');
 
 // Function to get company logo as base64
 const getCompanyLogoBase64 = () => {
@@ -22,6 +23,10 @@ const generateInvoiceHTML = async (order, shop) => {
   // Get company logo
   const logoBase64 = getCompanyLogoBase64();
   
+  // Get currency formatter
+  const currencyFormatter = await createCurrencyFormatter();
+  const currencySymbol = currencyFormatter.symbol;
+  
   const formatDate = (date) => {
     if (!date) return 'Not specified';
     return new Date(date).toLocaleDateString('en-IN', {
@@ -31,9 +36,15 @@ const generateInvoiceHTML = async (order, shop) => {
     });
   };
 
+  // Format currency with symbol based on site settings
   const formatCurrency = (amount) => {
     if (!amount || isNaN(amount)) return '0.00';
-    return parseFloat(amount).toFixed(2);
+    return parseFloat(amount).toFixed(currencyFormatter.decimalPlaces || 2);
+  };
+
+  // Format price with currency symbol
+  const formatPrice = (amount) => {
+    return currencyFormatter.format(amount);
   };
 
   const safeGet = (obj, path, defaultValue = undefined) => {
@@ -455,12 +466,12 @@ const generateInvoiceHTML = async (order, shop) => {
                         <th>Product</th>
                         <th>Description</th>
                         <th>Qty</th>
-                        <th>Gross<br>Amount ₹</th>
-                        <th>Discount ₹</th>
-                        <th>Taxable<br>Value ₹</th>
-                        <th>CGST ₹</th>
-                        <th>SGST ₹</th>
-                        <th>Total ₹</th>
+                        <th>Gross<br>Amount ${currencySymbol}</th>
+                        <th>Discount ${currencySymbol}</th>
+                        <th>Taxable<br>Value ${currencySymbol}</th>
+                        <th>CGST ${currencySymbol}</th>
+                        <th>SGST ${currencySymbol}</th>
+                        <th>Total ${currencySymbol}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -530,7 +541,7 @@ const generateInvoiceHTML = async (order, shop) => {
                           itemCGST = (priceWithoutGST * (gstConfig.cgstRate || 0)) / 100;
                           itemSGST = (priceWithoutGST * (gstConfig.sgstRate || 0)) / 100;
                           itemGST = itemCGST + itemSGST;
-                          gstDisplay = `CGST: ${(gstConfig.cgstRate || 0).toFixed(1)}% (₹${formatCurrency(itemCGST)}) | SGST: ${(gstConfig.sgstRate || 0).toFixed(1)}% (₹${formatCurrency(itemSGST)})`;
+                          gstDisplay = `CGST: ${(gstConfig.cgstRate || 0).toFixed(1)}% (${currencySymbol}${formatCurrency(itemCGST)}) | SGST: ${(gstConfig.sgstRate || 0).toFixed(1)}% (${currencySymbol}${formatCurrency(itemSGST)})`;
                         } else {
                           const totalGSTRate = gstConfig.combinedGstRate || 0;
                           priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
@@ -538,7 +549,7 @@ const generateInvoiceHTML = async (order, shop) => {
                           itemGST = itemDiscountPrice - priceWithoutGST;
                           itemCGST = itemGST / 2; // Split combined GST equally
                           itemSGST = itemGST / 2;
-                          gstDisplay = `Total GST: ${(totalGSTRate || 0).toFixed(1)}% | CGST: ₹${formatCurrency(itemCGST)} | SGST: ₹${formatCurrency(itemSGST)}`;
+                          gstDisplay = `Total GST: ${(totalGSTRate || 0).toFixed(1)}% | CGST: ${currencySymbol}${formatCurrency(itemCGST)} | SGST: ${currencySymbol}${formatCurrency(itemSGST)}`;
                         }
                       }
                       
@@ -565,16 +576,16 @@ const generateInvoiceHTML = async (order, shop) => {
                             <td class="title-cell">
                                 ${item.name || 'Product Name'}<br>
                                 ${getProductAttributes(item)}
-                                <strong>Unit Price:</strong> ₹${formatCurrency(itemDiscountPrice)} <em>(GST Included)</em><br>
+                                <strong>Unit Price:</strong> ${currencySymbol}${formatCurrency(itemDiscountPrice)} <em>(GST Included)</em><br>
                                 HSN: ${gstConfig.hsnCode || item.category || '9920'} | ${gstDisplay}
                             </td>
                             <td>${itemQty}</td>
-                            <td>₹${formatCurrency(itemGross)}</td>
-                            <td>-₹${formatCurrency(itemDiscount)}</td>
-                            <td>₹${formatCurrency(itemTaxableValueFinal)}</td>
-                            <td>₹${formatCurrency(itemTotalCGST)}</td>
-                            <td>₹${formatCurrency(itemTotalSGST)}</td>
-                            <td>₹${formatCurrency(itemTotal)}</td>
+                            <td>${currencySymbol}${formatCurrency(itemGross)}</td>
+                            <td>-${currencySymbol}${formatCurrency(itemDiscount)}</td>
+                            <td>${currencySymbol}${formatCurrency(itemTaxableValueFinal)}</td>
+                            <td>${currencySymbol}${formatCurrency(itemTotalCGST)}</td>
+                            <td>${currencySymbol}${formatCurrency(itemTotalSGST)}</td>
+                            <td>${currencySymbol}${formatCurrency(itemTotal)}</td>
                         </tr>
                       `;
                     }).join('')}
@@ -582,9 +593,9 @@ const generateInvoiceHTML = async (order, shop) => {
                     <tr class="total-row">
                         <td colspan="2"><strong>Subtotal</strong></td>
                         <td><strong>${order.cart.reduce((sum, item) => sum + (item.qty || 1), 0)}</strong></td>
-                        <td><strong>₹${formatCurrency(subtotal + discountPrice)}</strong></td>
-                        <td><strong>-₹${formatCurrency(discountPrice)}</strong></td>
-                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                        <td><strong>${currencySymbol}${formatCurrency(subtotal + discountPrice)}</strong></td>
+                        <td><strong>-${currencySymbol}${formatCurrency(discountPrice)}</strong></td>
+                        <td><strong>${currencySymbol}${formatCurrency(order.cart.reduce((sum, item) => {
                           const itemQty = item.qty || 1;
                           
                           // Use the same price logic as individual rows
@@ -607,7 +618,7 @@ const generateInvoiceHTML = async (order, shop) => {
                           }
                           return sum + (itemQty * itemDiscountPrice);
                         }, 0))}</strong></td>
-                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                        <td><strong>${currencySymbol}${formatCurrency(order.cart.reduce((sum, item) => {
                           const itemQty = item.qty || 1;
                           
                           // Use the same price logic as individual rows
@@ -631,7 +642,7 @@ const generateInvoiceHTML = async (order, shop) => {
                           }
                           return sum;
                         }, 0))}</strong></td>
-                        <td><strong>₹${formatCurrency(order.cart.reduce((sum, item) => {
+                        <td><strong>${currencySymbol}${formatCurrency(order.cart.reduce((sum, item) => {
                           const itemQty = item.qty || 1;
                           
                           // Use the same price logic as individual rows
@@ -655,12 +666,12 @@ const generateInvoiceHTML = async (order, shop) => {
                           }
                           return sum;
                         }, 0))}</strong></td>
-                        <td><strong>₹${formatCurrency(subtotal)}</strong></td>
+                        <td><strong>${currencySymbol}${formatCurrency(subtotal)}</strong></td>
                     </tr>
                     ${shippingPrice > 0 ? `
                     <tr>
                         <td colspan="8"><strong>Shipping Charges</strong></td>
-                        <td><strong>₹${formatCurrency(shippingPrice)}</strong></td>
+                        <td><strong>${currencySymbol}${formatCurrency(shippingPrice)}</strong></td>
                     </tr>
                     ` : ''}
                 </tbody>
@@ -669,9 +680,9 @@ const generateInvoiceHTML = async (order, shop) => {
         
         ${shippingPrice > 0 || discountPrice > 0 ? `
         <div style="text-align: right; margin-top: 10px; font-size: 12px;">
-            ${subtotal > 0 ? `<div>Subtotal: ₹${formatCurrency(subtotal)}</div>` : ''}
-            ${shippingPrice > 0 ? `<div>Shipping: ₹${formatCurrency(shippingPrice)}</div>` : ''}
-            ${discountPrice > 0 ? `<div>Discount: -₹${formatCurrency(discountPrice)}</div>` : ''}
+            ${subtotal > 0 ? `<div>Subtotal: ${currencySymbol}${formatCurrency(subtotal)}</div>` : ''}
+            ${shippingPrice > 0 ? `<div>Shipping: ${currencySymbol}${formatCurrency(shippingPrice)}</div>` : ''}
+            ${discountPrice > 0 ? `<div>Discount: -${currencySymbol}${formatCurrency(discountPrice)}</div>` : ''}
         </div>
         ` : ''}
         
@@ -705,15 +716,15 @@ const generateInvoiceHTML = async (order, shop) => {
               return `
                 <div style="margin-bottom: 5px;">
                   <strong>${item.name}:</strong><br>
-                  &nbsp;&nbsp;• Base Price: ₹${formatCurrency(priceWithoutGST * itemQty)} (excl. GST)<br>
-                  &nbsp;&nbsp;• CGST ${cgstRate.toFixed(1)}%: ₹${formatCurrency(itemCGST * itemQty)}<br>
-                  &nbsp;&nbsp;• SGST ${sgstRate.toFixed(1)}%: ₹${formatCurrency(itemSGST * itemQty)}<br>
-                  &nbsp;&nbsp;• <strong>Total with GST: ₹${formatCurrency(itemDiscountPrice * itemQty)}</strong>
+                  &nbsp;&nbsp;• Base Price: ${currencySymbol}${formatCurrency(priceWithoutGST * itemQty)} (excl. GST)<br>
+                  &nbsp;&nbsp;• CGST ${cgstRate.toFixed(1)}%: ${currencySymbol}${formatCurrency(itemCGST * itemQty)}<br>
+                  &nbsp;&nbsp;• SGST ${sgstRate.toFixed(1)}%: ${currencySymbol}${formatCurrency(itemSGST * itemQty)}<br>
+                  &nbsp;&nbsp;• <strong>Total with GST: ${currencySymbol}${formatCurrency(itemDiscountPrice * itemQty)}</strong>
                 </div>
               `;
             }).join('')}
               <div style="border-top: 1px solid #ccc; margin-top: 8px; padding-top: 5px; font-weight: bold;">
-              Total CGST: ₹${formatCurrency(order.cart.reduce((sum, item) => {
+              Total CGST: ${currencySymbol}${formatCurrency(order.cart.reduce((sum, item) => {
                 const itemQty = item.qty || 1;
                 let itemDiscountPrice = item.discountPrice || 0;
                 if (item.selectedVariant && item.selectedVariant.price) {
@@ -733,7 +744,7 @@ const generateInvoiceHTML = async (order, shop) => {
                 const priceWithoutGST = itemDiscountPrice / (1 + totalGSTRate / 100);
                 const cgstRate = gstConfig.cgstRate || (gstConfig.combinedGstRate || 0) / 2;
                 return sum + (itemQty * priceWithoutGST * cgstRate / 100);
-              }, 0))} | Total SGST: ₹${formatCurrency(order.cart.reduce((sum, item) => {
+              }, 0))} | Total SGST: ${currencySymbol}${formatCurrency(order.cart.reduce((sum, item) => {
                 const itemQty = item.qty || 1;
                 let itemDiscountPrice = item.discountPrice || 0;
                 if (item.selectedVariant && item.selectedVariant.price) {
@@ -759,7 +770,7 @@ const generateInvoiceHTML = async (order, shop) => {
         ` : ''}
         
         <div class="grand-total">
-            Grand Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ₹ ${formatCurrency(grandTotal)}
+            Grand Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${currencySymbol} ${formatCurrency(grandTotal)}
         </div>
         
         <div class="company-footer">

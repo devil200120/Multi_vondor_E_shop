@@ -32,7 +32,7 @@ const CreateAdvertisement = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  
+
   // Ad Pre-Approval (Gold Plan feature)
   const [hasAdPreApproval, setHasAdPreApproval] = useState(false);
 
@@ -105,9 +105,12 @@ const CreateAdvertisement = () => {
   useEffect(() => {
     const checkAdPreApproval = async () => {
       try {
-        const { data } = await axios.get(`${server}/subscription/my-subscription`, {
-          withCredentials: true,
-        });
+        const { data } = await axios.get(
+          `${server}/subscription/my-subscription`,
+          {
+            withCredentials: true,
+          }
+        );
         if (data.subscription?.features?.adPreApproval) {
           setHasAdPreApproval(true);
         }
@@ -323,7 +326,9 @@ const CreateAdvertisement = () => {
         {hasAdPreApproval && (
           <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              🎉 <strong>Gold Plan Benefit:</strong> Your ads will be automatically approved after payment - no waiting for admin review!
+              🎉 <strong>Gold Plan Benefit:</strong> Your ads will be
+              automatically approved after payment - no waiting for admin
+              review!
             </p>
           </div>
         )}

@@ -19,11 +19,13 @@ import { toast } from "react-toastify";
 import Loader from "../Layout/Loader";
 import styles from "../../styles/styles";
 import EventFormModal from "./EventFormModal";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const AllEvents = () => {
   const { allEvents, isLoading, message, error } = useSelector(
     (state) => state.events
   );
+  const { formatPrice } = useCurrency();
 
   const dispatch = useDispatch();
 
@@ -179,7 +181,7 @@ const AllEvents = () => {
       row.push({
         id: item._id,
         name: item.name,
-        price: "₹" + item.discountPrice,
+        price: formatPrice(item.discountPrice),
         Stock: item.stock,
         sold: item.sold_out,
       });

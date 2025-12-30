@@ -17,6 +17,7 @@ import { RxCross1 } from "react-icons/rx";
 import Lottie from "react-lottie";
 import * as loadingAnimationData from "../../Assests/animations/loading.json";
 import { getProductImageUrl } from "../../utils/mediaUtils";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const Payment = () => {
   const [orderData, setOrderData] = useState([]);
@@ -27,6 +28,7 @@ const Payment = () => {
   const [sellerPayPalEmail, setSellerPayPalEmail] = useState(null);
   const [sellerShopName, setSellerShopName] = useState("Shop");
   const { user } = useSelector((state) => state.user);
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const stripe = useStripe();
   const elements = useElements();
@@ -824,17 +826,17 @@ const CartData = ({ orderData }) => {
                       {item.finalPrice ? (
                         <>
                           <span className="text-[14px] font-[600] text-[#f63b60]">
-                            ₹{(item.finalPrice * item.qty).toFixed(2)}
+                            {formatPrice(item.finalPrice * item.qty)}
                           </span>
                           {item.finalPrice !== item.discountPrice && (
                             <span className="text-[12px] text-[#999] line-through">
-                              ₹{(item.discountPrice * item.qty).toFixed(2)}
+                              {formatPrice(item.discountPrice * item.qty)}
                             </span>
                           )}
                         </>
                       ) : (
                         <span className="text-[14px] font-[600] text-[#f63b60]">
-                          ₹{(item.discountPrice * item.qty).toFixed(2)}
+                          {formatPrice(item.discountPrice * item.qty)}
                         </span>
                       )}
                     </div>
@@ -851,32 +853,36 @@ const CartData = ({ orderData }) => {
       <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">subtotal:</h3>
         <h5 className="text-[18px] font-[600]">
-          ₹
-          {orderData?.subTotalPrice && !isNaN(orderData.subTotalPrice)
-            ? Number(orderData.subTotalPrice).toFixed(2)
-            : "0.00"}
+          {formatPrice(
+            orderData?.subTotalPrice && !isNaN(orderData.subTotalPrice)
+              ? Number(orderData.subTotalPrice)
+              : 0
+          )}
         </h5>
       </div>
       <br />
       <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">shipping:</h3>
-        <h5 className="text-[18px] font-[600]">₹{shipping}</h5>
+        <h5 className="text-[18px] font-[600]">{formatPrice(shipping)}</h5>
       </div>
       <br />
       <div className="flex justify-between">
         <h3 className="text-[16px] font-[400] text-[#000000a4]">Discount:</h3>
         <h5 className="text-[18px] font-[600]">
-          {orderData?.discountPrice ? "₹" + orderData.discountPrice : "-"}
+          {orderData?.discountPrice
+            ? formatPrice(orderData.discountPrice)
+            : "-"}
         </h5>
       </div>
 
       <div className="flex justify-between border-t pt-3 mt-3">
         <h3 className="text-[18px] font-[600] text-[#000000]">Total:</h3>
         <h5 className="text-[18px] font-[600]">
-          ₹
-          {orderData?.totalPrice && !isNaN(orderData.totalPrice)
-            ? Number(orderData.totalPrice).toFixed(2)
-            : "0.00"}
+          {formatPrice(
+            orderData?.totalPrice && !isNaN(orderData.totalPrice)
+              ? Number(orderData.totalPrice)
+              : 0
+          )}
         </h5>
       </div>
       <br />

@@ -17,7 +17,7 @@ const ShopHomePage = () => {
         <div className="800px:w-[72%] mt-5 800px:mt-['unset'] rounded-[4px]">
           {/* Custom HTML/CSS Content (Gold Plan Feature) */}
           <ShopCustomContent shopId={id} />
-          
+
           <ShopProfileData isOwner={true} />
         </div>
       </div>

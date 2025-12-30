@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import Ratings from "../../Products/Ratings";
 import { getProductImageUrl } from "../../../utils/mediaUtils";
 import axios from "axios";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 const ProductCard = ({ data, isEvent, isCompact = false }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
@@ -25,6 +26,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
   const [shippingInfo, setShippingInfo] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     if (wishlist && wishlist.find((i) => i._id === data._id)) {
@@ -231,11 +233,11 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           {/* Price */}
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-lg font-bold text-gray-900">
-              ₹{data.discountPrice || data.originalPrice}
+              {formatPrice(data.discountPrice || data.originalPrice)}
             </span>
             {discountPercent > 0 && (
               <span className="text-xs text-gray-400 line-through">
-                ₹{data.originalPrice}
+                {formatPrice(data.originalPrice)}
               </span>
             )}
           </div>
@@ -244,7 +246,7 @@ const ProductCard = ({ data, isEvent, isCompact = false }) => {
           <div className="flex items-center justify-between mt-1 text-xs">
             {discountPercent > 0 && (
               <span className="text-green-600 font-medium">
-                Save ₹{data.originalPrice - data.discountPrice}
+                Save {formatPrice(data.originalPrice - data.discountPrice)}
               </span>
             )}
             {hasFreeShipping() && (

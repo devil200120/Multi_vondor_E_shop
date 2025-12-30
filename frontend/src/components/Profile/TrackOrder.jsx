@@ -13,10 +13,12 @@ import {
 } from "react-icons/fi";
 import { MdLocalShipping, MdStore, MdHome } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const TrackOrder = () => {
   const { orders } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
   const { id } = useParams();
 
@@ -406,7 +408,7 @@ const TrackOrder = () => {
                     Total Amount
                   </p>
                   <p className="font-bold text-gray-900 text-lg">
-                    ₹{data.totalPrice?.toFixed(2)}
+                    {formatPrice(data.totalPrice)}
                   </p>
                 </div>
 
@@ -535,36 +537,40 @@ const TrackOrder = () => {
                       <p className="text-sm font-semibold text-gray-900 truncate mb-1">
                         {item.name}
                       </p>
-                      
+
                       {/* Selected Attributes */}
-                      {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
-                        <div className="mb-2">
-                          <div className="flex flex-wrap gap-1">
-                            {Object.entries(item.selectedAttributes).map(([key, value]) => (
-                              <span
-                                key={key}
-                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
-                              >
-                                {key}: {value}
-                              </span>
-                            ))}
+                      {item.selectedAttributes &&
+                        Object.keys(item.selectedAttributes).length > 0 && (
+                          <div className="mb-2">
+                            <div className="flex flex-wrap gap-1">
+                              {Object.entries(item.selectedAttributes).map(
+                                ([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                                  >
+                                    {key}: {value}
+                                  </span>
+                                )
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      
+                        )}
+
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600">
                           Qty: <span className="font-medium">{item.qty}</span>
                         </p>
                         <div className="text-right">
                           <p className="text-sm font-bold text-blue-600">
-                            ₹{(item.finalPrice || item.discountPrice).toFixed(2)}
+                            {formatPrice(item.finalPrice || item.discountPrice)}
                           </p>
-                          {item.finalPrice && item.finalPrice !== item.discountPrice && (
-                            <p className="text-xs text-gray-400 line-through">
-                              ₹{item.discountPrice.toFixed(2)}
-                            </p>
-                          )}
+                          {item.finalPrice &&
+                            item.finalPrice !== item.discountPrice && (
+                              <p className="text-xs text-gray-400 line-through">
+                                {formatPrice(item.discountPrice)}
+                              </p>
+                            )}
                         </div>
                       </div>
                     </div>

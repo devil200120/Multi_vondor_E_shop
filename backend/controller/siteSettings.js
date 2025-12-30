@@ -3,6 +3,7 @@ const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const SiteSettings = require("../model/siteSettings");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const { clearCurrencyCache } = require("../utils/currencyFormatter");
 const router = express.Router();
 
 // Get current site settings (public route)
@@ -64,13 +65,22 @@ router.put(
         footerAddress,
         companyInfo,
         socialMedia,
-        businessHours
+        businessHours,
+        currency
       } = req.body;
 
       let settings = await SiteSettings.findOne({ isActive: true });
       
       if (!settings) {
         settings = new SiteSettings({});
+      }
+
+      // Update currency settings
+      if (currency) {
+        settings.currency = {
+          ...settings.currency,
+          ...currency
+        };
       }
 
       // Update footer address
@@ -110,6 +120,11 @@ router.put(
 
       await settings.save();
 
+      // Clear currency cache if currency settings were updated
+      if (currency) {
+        clearCurrencyCache();
+      }
+
       await settings.populate('lastUpdatedBy', 'name email');
 
       res.status(200).json({
@@ -139,6 +154,10 @@ router.post(
       });
       
       await settings.save();
+      
+      // Clear currency cache after reset
+      clearCurrencyCache();
+      
       await settings.populate('lastUpdatedBy', 'name email');
 
       res.status(200).json({

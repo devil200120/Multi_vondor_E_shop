@@ -40,10 +40,8 @@ const ShopCustomContent = ({ shopId }) => {
   return (
     <div className="shop-custom-content mb-8">
       {/* Inject custom CSS */}
-      {customCss && (
-        <style dangerouslySetInnerHTML={{ __html: customCss }} />
-      )}
-      
+      {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
+
       {/* Render custom HTML */}
       {customHtml && (
         <div

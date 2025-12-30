@@ -1,6 +1,41 @@
 const mongoose = require("mongoose");
 
 const siteSettingsSchema = new mongoose.Schema({
+  // Currency Settings
+  currency: {
+    code: {
+      type: String,
+      default: "USD",
+      enum: ["USD", "EUR", "GBP", "INR", "AUD", "CAD", "JPY", "CNY", "KYD", "AED", "SGD", "MXN", "BRL", "ZAR", "NZD", "CHF", "HKD", "SEK", "NOK", "DKK"]
+    },
+    symbol: {
+      type: String,
+      default: "$"
+    },
+    name: {
+      type: String,
+      default: "US Dollar"
+    },
+    position: {
+      type: String,
+      enum: ["before", "after"],
+      default: "before"
+    },
+    decimalPlaces: {
+      type: Number,
+      default: 2,
+      min: 0,
+      max: 4
+    },
+    thousandsSeparator: {
+      type: String,
+      default: ","
+    },
+    decimalSeparator: {
+      type: String,
+      default: "."
+    }
+  },
   footerAddress: {
     streetAddress: {
       type: String,

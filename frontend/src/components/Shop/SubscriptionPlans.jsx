@@ -6,10 +6,12 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 import { HiCheck, HiX, HiSparkles } from "react-icons/hi";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const SubscriptionPlans = ({ isPublic = false }) => {
   const navigate = useNavigate();
   const { isSeller } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
   const [plans, setPlans] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ const SubscriptionPlans = ({ isPublic = false }) => {
   };
 
   const calculatePrice = (plan) => {
-    if (!plans) return 0;
+    if (!plans || !plans[plan]) return { totalBeforeDiscount: 0, discountAmount: 0, finalPrice: 0, discount: 0 };
     const planData = plans[plan];
     const monthlyPrice = planData.monthlyPrice;
 
@@ -148,7 +150,7 @@ const SubscriptionPlans = ({ isPublic = false }) => {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-green-600">
-                  ${currentSubscription.finalPrice}
+                  {formatPrice(currentSubscription.finalPrice)}
                 </p>
                 <p className="text-xs text-green-500">
                   {currentSubscription.billingCycle}
@@ -186,55 +188,28 @@ const SubscriptionPlans = ({ isPublic = false }) => {
         </div>
 
         {/* Plans Grid */}
-        {plans && (
+        {plans && Object.keys(plans).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Bronze Plan */}
-            <PlanCard
-              plan="bronze"
-              planData={plans.bronze}
-              pricing={calculatePrice("bronze")}
-              billingCycle={billingCycle}
-              onSubscribe={handleSubscribe}
-              isProcessing={processingPayment && selectedPlan === "bronze"}
-              isCurrent={currentSubscription?.plan === "bronze"}
-            />
-
-            {/* Silver Plan */}
-            <PlanCard
-              plan="silver"
-              planData={plans.silver}
-              pricing={calculatePrice("silver")}
-              billingCycle={billingCycle}
-              onSubscribe={handleSubscribe}
-              isProcessing={processingPayment && selectedPlan === "silver"}
-              isCurrent={currentSubscription?.plan === "silver"}
-              recommended={true}
-            />
-
-            {/* Gold Plan */}
-            <PlanCard
-              plan="gold"
-              planData={plans.gold}
-              pricing={calculatePrice("gold")}
-              billingCycle={billingCycle}
-              onSubscribe={handleSubscribe}
-              isProcessing={processingPayment && selectedPlan === "gold"}
-              isCurrent={currentSubscription?.plan === "gold"}
-            />
-
-            {/* Revenue Share Plan */}
-            <PlanCard
-              plan="revenue-share"
-              planData={plans["revenue-share"]}
-              pricing={calculatePrice("revenue-share")}
-              billingCycle={billingCycle}
-              onSubscribe={handleSubscribe}
-              isProcessing={
-                processingPayment && selectedPlan === "revenue-share"
-              }
-              isCurrent={currentSubscription?.plan === "revenue-share"}
-              isRevenueShare={true}
-            />
+            {Object.entries(plans).map(([planKey, planData]) => (
+              <PlanCard
+                key={planKey}
+                plan={planKey}
+                planData={planData}
+                pricing={calculatePrice(planKey)}
+                billingCycle={billingCycle}
+                onSubscribe={handleSubscribe}
+                isProcessing={processingPayment && selectedPlan === planKey}
+                isCurrent={currentSubscription?.plan === planKey}
+                recommended={planKey === "silver"}
+                isRevenueShare={planKey === "revenue-share"}
+                formatPrice={formatPrice}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <p className="text-gray-500 text-lg">No subscription plans available at the moment.</p>
+            <p className="text-gray-400 text-sm mt-2">Please check back later.</p>
           </div>
         )}
       </div>
@@ -252,6 +227,7 @@ const PlanCard = ({
   isCurrent,
   recommended = false,
   isRevenueShare = false,
+  formatPrice,
 }) => {
   return (
     <div
@@ -292,24 +268,27 @@ const PlanCard = ({
             <div className="text-3xl font-bold text-gray-900">
               10% Commission
             </div>
-            <p className="text-sm text-gray-500">$25 minimum/month</p>
+            <p className="text-sm text-gray-500">
+              {formatPrice(25)} minimum/month
+            </p>
           </>
         ) : (
           <>
             {pricing.discount > 0 && (
               <div className="text-lg text-gray-400 line-through">
-                ${pricing.totalBeforeDiscount}
+                {formatPrice(pricing.totalBeforeDiscount)}
               </div>
             )}
             <div className="text-3xl font-bold text-gray-900">
-              ${pricing.finalPrice}
+              {formatPrice(pricing.finalPrice)}
             </div>
             <p className="text-sm text-gray-500">
               {billingCycle === "monthly" ? "per month" : `for ${billingCycle}`}
             </p>
             {pricing.discount > 0 && (
               <p className="text-sm text-green-600 font-medium">
-                Save ${pricing.discountAmount} ({pricing.discount}% off)
+                Save {formatPrice(pricing.discountAmount)} ({pricing.discount}%
+                off)
               </p>
             )}
           </>

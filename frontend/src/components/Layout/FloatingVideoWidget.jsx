@@ -5,6 +5,7 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 import { AiOutlineClose } from "react-icons/ai";
 import { BsPlayFill, BsPauseFill } from "react-icons/bs";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const FloatingVideoWidget = () => {
   const [videoBanners, setVideoBanners] = useState([]);
@@ -14,6 +15,7 @@ const FloatingVideoWidget = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInteracted, setUserInteracted] = useState(false);
+  const { formatPrice } = useCurrency();
 
   const videoRef = useRef(null);
   const navigate = useNavigate();
@@ -319,12 +321,12 @@ const FloatingVideoWidget = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1 sm:gap-2">
                 <span className="text-xs bg-green-600/80 backdrop-blur-sm px-1.5 py-0.5 sm:px-2 rounded">
-                  ₹{currentBanner.productId.discountPrice}
+                  {formatPrice(currentBanner.productId.discountPrice)}
                 </span>
                 {currentBanner.productId.originalPrice >
                   currentBanner.productId.discountPrice && (
                   <span className="text-xs text-gray-300 line-through">
-                    ₹{currentBanner.productId.originalPrice}
+                    {formatPrice(currentBanner.productId.originalPrice)}
                   </span>
                 )}
               </div>

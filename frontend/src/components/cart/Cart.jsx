@@ -8,10 +8,12 @@ import { toast } from "react-toastify";
 import { backend_url } from "../../server";
 import { addTocart, removeFromCart } from "../../redux/actions/cart";
 import { getProductImageUrl } from "../../utils/mediaUtils";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const Cart = ({ setOpenCart }) => {
   const { cart } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
+  const { formatPrice } = useCurrency();
 
   // Check for multiple sellers
   const uniqueShopIds = cart
@@ -131,7 +133,7 @@ const Cart = ({ setOpenCart }) => {
                   Total:
                 </span>
                 <span className="text-lg font-bold text-text-primary">
-                  ₹{totalPrice.toFixed(2)}
+                  {formatPrice(totalPrice)}
                 </span>
               </div>
               {/* Checkout Button */}
@@ -154,6 +156,7 @@ const Cart = ({ setOpenCart }) => {
 
 const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
   const [value, setValue] = useState(data.qty);
+  const { formatPrice } = useCurrency();
   const itemPrice = data.finalPrice || data.discountPrice;
   const totalPrice = itemPrice * value;
 
@@ -209,7 +212,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
             )}
 
           <p className="text-xs text-text-muted mb-2">
-            ₹{itemPrice} each
+            {formatPrice(itemPrice)} each
             {data.finalPrice && data.finalPrice !== data.discountPrice && (
               <span className="ml-1 text-blue-600">(variant price)</span>
             )}
@@ -237,7 +240,7 @@ const CartSingle = ({ data, quantityChangeHandler, removeFromCartHandler }) => {
 
           {/* Total Price */}
           <p className="text-sm font-semibold text-primary-500">
-            ₹{totalPrice.toFixed(2)}
+            {formatPrice(totalPrice)}
           </p>
         </div>
 

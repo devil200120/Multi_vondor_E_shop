@@ -70,8 +70,9 @@ const HtmlCssEditorPage = () => {
                 Gold Plan Feature
               </h2>
               <p className="text-gray-600 mb-6">
-                The HTML/CSS Editor is a premium feature available only with the Gold plan.
-                Upgrade your subscription to unlock custom HTML and CSS styling for your shop page.
+                The HTML/CSS Editor is a premium feature available only with the
+                Gold plan. Upgrade your subscription to unlock custom HTML and
+                CSS styling for your shop page.
               </p>
               <button
                 onClick={() => navigate("/shop/subscriptions")}

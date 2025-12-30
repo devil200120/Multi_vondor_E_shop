@@ -8,11 +8,13 @@ import { server } from "../../server";
 import { toast } from "react-toastify";
 import { loadSeller } from "../../redux/actions/user";
 import { AiOutlineDelete } from "react-icons/ai";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const WithdrawMoney = () => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const { seller } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
   const [paymentMethod, setPaymentMethod] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState(1);
   const [paypalEmail, setPaypalEmail] = useState("");
@@ -116,7 +118,7 @@ const WithdrawMoney = () => {
     <div className="w-full h-[90vh] p-8">
       <div className="w-full bg-white h-full rounded flex items-center justify-center flex-col">
         <h5 className="text-[20px] pb-4">
-          Available Balance: ${availableBalance}
+          Available Balance: {formatPrice(availableBalance)}
         </h5>
         <div
           className={`${styles.button} text-white !h-[42px] !rounded`}
@@ -354,7 +356,7 @@ const WithdrawMoney = () => {
                       </div>
                     </div>
                     <br />
-                    <h4>Available Balance: ₹{availableBalance}</h4>
+                    <h4>Available Balance: {formatPrice(availableBalance)}</h4>
                     <br />
                     <div className="800px:flex w-full items-center">
                       <input

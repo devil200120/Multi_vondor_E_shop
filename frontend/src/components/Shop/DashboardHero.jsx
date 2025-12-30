@@ -4,6 +4,7 @@ import {
   AiOutlineMoneyCollect,
   AiOutlineTrendingUp,
 } from "react-icons/ai";
+import { useCurrency } from "../../context/CurrencyContext";
 import { Link } from "react-router-dom";
 import { MdBorderClear, MdTrendingUp, MdShoppingCart } from "react-icons/md";
 import { FiPackage, FiDollarSign, FiUsers, FiTrendingUp } from "react-icons/fi";
@@ -21,6 +22,7 @@ const DashboardHero = () => {
   const { orders } = useSelector((state) => state.order);
   const { seller } = useSelector((state) => state.seller);
   const { products } = useSelector((state) => state.products);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     if (seller?._id) {
@@ -168,7 +170,7 @@ const DashboardHero = () => {
         _id: item._id, // Include _id for getOrderNumber function
         orderNumber: item.orderNumber, // Include orderNumber if it exists
         itemsQty: item.cart.reduce((acc, item) => acc + item.qty, 0),
-        total: "₹" + item.totalPrice?.toFixed(2),
+        total: formatPrice(item.totalPrice),
         status: item.status,
       });
     });
@@ -233,7 +235,7 @@ const DashboardHero = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
         <StatsCard
           title="Total Revenue"
-          value={`₹${totalRevenue}`}
+          value={formatPrice(totalRevenue)}
           icon={FiDollarSign}
           color="text-green-600"
           trend={true}
@@ -255,7 +257,7 @@ const DashboardHero = () => {
         />
         <StatsCard
           title="Available Balance"
-          value={`₹${availableBalance}`}
+          value={formatPrice(availableBalance)}
           icon={AiOutlineMoneyCollect}
           color="text-indigo-600"
         />
@@ -322,7 +324,7 @@ const DashboardHero = () => {
                 Withdraw Money
               </h3>
               <p className="text-xs md:text-sm text-gray-600 truncate">
-                Available: ₹{availableBalance}
+                Available: {formatPrice(availableBalance)}
               </p>
             </div>
             <AiOutlineArrowRight

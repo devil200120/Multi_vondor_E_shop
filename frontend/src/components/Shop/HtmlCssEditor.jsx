@@ -28,7 +28,11 @@ const HtmlCssEditor = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState("html"); // 'html' or 'css'
   const [hasChanges, setHasChanges] = useState(false);
-  const [originalData, setOriginalData] = useState({ html: "", css: "", enabled: false });
+  const [originalData, setOriginalData] = useState({
+    html: "",
+    css: "",
+    enabled: false,
+  });
 
   // Fetch existing custom HTML/CSS
   useEffect(() => {
@@ -49,7 +53,9 @@ const HtmlCssEditor = () => {
       } catch (error) {
         console.error("Error fetching custom HTML/CSS:", error);
         if (error.response?.status === 403) {
-          toast.error("HTML/CSS Editor is not available in your subscription plan. Please upgrade to Gold plan.");
+          toast.error(
+            "HTML/CSS Editor is not available in your subscription plan. Please upgrade to Gold plan."
+          );
         }
       } finally {
         setLoading(false);
@@ -90,7 +96,9 @@ const HtmlCssEditor = () => {
       setHasChanges(false);
     } catch (error) {
       console.error("Error saving custom HTML/CSS:", error);
-      toast.error(error.response?.data?.message || "Failed to save custom HTML/CSS");
+      toast.error(
+        error.response?.data?.message || "Failed to save custom HTML/CSS"
+      );
     } finally {
       setSaving(false);
     }
@@ -118,7 +126,9 @@ const HtmlCssEditor = () => {
       exportedAt: new Date().toISOString(),
       shopId: seller?._id,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -191,7 +201,8 @@ const HtmlCssEditor = () => {
             <div>
               <h1 className="text-2xl font-bold">HTML/CSS Editor</h1>
               <p className="text-blue-100 text-sm">
-                Customize your shop page with custom HTML and CSS (Gold Plan Feature)
+                Customize your shop page with custom HTML and CSS (Gold Plan
+                Feature)
               </p>
             </div>
           </div>
@@ -219,7 +230,9 @@ const HtmlCssEditor = () => {
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
               <span className="text-sm font-medium text-gray-700">
-                {customHtmlEnabled ? "Custom content enabled" : "Custom content disabled"}
+                {customHtmlEnabled
+                  ? "Custom content enabled"
+                  : "Custom content disabled"}
               </span>
             </div>
 
@@ -233,14 +246,23 @@ const HtmlCssEditor = () => {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {showPreview ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                {showPreview ? (
+                  <FiEyeOff className="w-4 h-4" />
+                ) : (
+                  <FiEye className="w-4 h-4" />
+                )}
                 {showPreview ? "Hide Preview" : "Show Preview"}
               </button>
 
               <label className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer transition-all">
                 <FiUpload className="w-4 h-4" />
                 Import
-                <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={handleImport}
+                />
               </label>
 
               <button
@@ -305,7 +327,9 @@ const HtmlCssEditor = () => {
           >
             <HiOutlineCode className="w-5 h-5" />
             HTML
-            <span className="text-xs text-gray-400">({customHtml.length} chars)</span>
+            <span className="text-xs text-gray-400">
+              ({customHtml.length} chars)
+            </span>
           </button>
           <button
             onClick={() => setActiveTab("css")}
@@ -317,7 +341,9 @@ const HtmlCssEditor = () => {
           >
             <HiOutlineColorSwatch className="w-5 h-5" />
             CSS
-            <span className="text-xs text-gray-400">({customCss.length} chars)</span>
+            <span className="text-xs text-gray-400">
+              ({customCss.length} chars)
+            </span>
           </button>
         </div>
 
@@ -415,7 +441,9 @@ const HtmlCssEditor = () => {
               <BiCodeBlock className="w-5 h-5 text-gray-600" />
               <h3 className="font-semibold text-gray-800">Live Preview</h3>
             </div>
-            <span className="text-xs text-gray-500">This is how your custom content will appear on your shop page</span>
+            <span className="text-xs text-gray-500">
+              This is how your custom content will appear on your shop page
+            </span>
           </div>
           <div className="p-4 bg-gray-50 min-h-[300px]">
             <iframe
@@ -445,7 +473,8 @@ const HtmlCssEditor = () => {
           </li>
           <li className="flex items-start gap-2">
             <FiCheck className="w-4 h-4 mt-0.5 text-green-600" />
-            Script tags and event handlers are automatically removed for security
+            Script tags and event handlers are automatically removed for
+            security
           </li>
           <li className="flex items-start gap-2">
             <FiCheck className="w-4 h-4 mt-0.5 text-green-600" />
@@ -453,7 +482,8 @@ const HtmlCssEditor = () => {
           </li>
           <li className="flex items-start gap-2">
             <FiAlertTriangle className="w-4 h-4 mt-0.5 text-amber-600" />
-            Toggle "Custom content enabled" to show/hide your content on the shop page
+            Toggle "Custom content enabled" to show/hide your content on the
+            shop page
           </li>
         </ul>
       </div>

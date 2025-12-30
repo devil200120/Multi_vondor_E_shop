@@ -10,12 +10,14 @@ import {
   BsVolumeMute,
 } from "react-icons/bs";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 const VideoBanners = () => {
   const [videoBanners, setVideoBanners] = useState([]);
   const [playingIndex, setPlayingIndex] = useState(null);
   const [mutedStates, setMutedStates] = useState({}); // Track mute state for each video
   const [loading, setLoading] = useState(true);
+  const { formatPrice } = useCurrency();
 
   const scrollContainerRef = useRef(null);
   const videoRefs = useRef([]);
@@ -387,12 +389,12 @@ const VideoBanners = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <span className="text-xs sm:text-sm bg-green-600/80 backdrop-blur-sm px-1.5 py-0.5 sm:px-2 sm:py-1 rounded">
-                        ₹{banner.productId.discountPrice}
+                        {formatPrice(banner.productId.discountPrice)}
                       </span>
                       {banner.productId.originalPrice >
                         banner.productId.discountPrice && (
                         <span className="text-xs text-gray-300 line-through">
-                          ₹{banner.productId.originalPrice}
+                          {formatPrice(banner.productId.originalPrice)}
                         </span>
                       )}
                     </div>

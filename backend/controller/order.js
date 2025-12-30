@@ -11,6 +11,7 @@ const NotificationService = require("../utils/NotificationService");
 const sendMail = require("../utils/sendMail");
 const { generateOrderConfirmationEmail, generateOrderCancellationEmail, generateRefundSuccessEmail, generateRefundRequestEmail } = require("../utils/emailTemplates");
 const { generateInvoicePDF } = require("../utils/pdfGenerator");
+const { createCurrencyFormatter } = require("../utils/currencyFormatter");
 const archiver = require('archiver');
 
 // Helper function to get order number for display
@@ -119,7 +120,7 @@ router.post(
               shop.availableBalance = (shop.availableBalance || 0) + sellerEarnings;
               await shop.save();
               
-              console.log(`✅ Online payment processed: ₹${sellerEarnings} added to seller ${shopId} wallet (Order: ${getOrderNumber(order)})`);
+              console.log(`✅ Online payment processed: ${sellerEarnings} added to seller ${shopId} wallet (Order: ${getOrderNumber(order)})`);
             }
           } catch (sellerPaymentError) {
             console.error('Failed to process seller payment for online order:', sellerPaymentError);
@@ -134,7 +135,7 @@ router.post(
           // Only create notifications for regular shops, not admin products
           await NotificationService.createOrderNotification(
             'New Order Received',
-            `Order ${getOrderNumber(order)} for ${order.cart.length} items worth ₹${order.totalPrice}`,
+            `Order ${getOrderNumber(order)} for ${order.cart.length} items worth ${order.totalPrice}`,
             'new_order',
             order._id,
             null,
@@ -156,12 +157,13 @@ router.post(
           totalPrice: totalPrice // Use the total price across all orders
         };
 
-        const emailHTML = generateOrderConfirmationEmail(emailOrder, user);
+        const currencyFormatter = await createCurrencyFormatter();
+        const emailHTML = await generateOrderConfirmationEmail(emailOrder, user, currencyFormatter);
         
         // Prepare email subject and message based on payment type
         const paymentMethod = isCODOrder ? 'Cash on Delivery (COD)' : (paymentInfo?.type || 'Online Payment');
         const emailSubject = `Order Confirmation - ${getOrderNumber(firstOrder)} (${paymentMethod})`;
-        const emailMessage = `Dear ${user.name},\n\nYour order has been successfully placed!\n\nOrder Details:\n- Order Number: ${getOrderNumber(firstOrder)}\n- Total Amount: ₹${totalPrice}\n- Payment Method: ${paymentMethod}\n- Items: ${cart.length} products${isCODOrder ? '\n- Please keep the exact amount ready for delivery' : ''}\n\nYou can track your order at: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/track-order/${firstOrder._id}\n\nThank you for shopping with us!\n\nBest regards,\nYour Store Team`;
+        const emailMessage = `Dear ${user.name},\n\nYour order has been successfully placed!\n\nOrder Details:\n- Order Number: ${getOrderNumber(firstOrder)}\n- Total Amount: ${currencyFormatter.format(totalPrice)}\n- Payment Method: ${paymentMethod}\n- Items: ${cart.length} products${isCODOrder ? '\n- Please keep the exact amount ready for delivery' : ''}\n\nYou can track your order at: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/user/track-order/${firstOrder._id}\n\nThank you for shopping with us!\n\nBest regards,\nYour Store Team`;
         
         await sendMail({
           email: user.email,
@@ -312,7 +314,7 @@ router.put(
         if (isCODOrder) {
           const serviceCharge = order.totalPrice * 0.1;
           await updateSellerInfo(order.shopId, order.totalPrice - serviceCharge);
-          console.log(`✅ COD payment processed: ₹${order.totalPrice - serviceCharge} added to seller wallet (Order: ${getOrderNumber(order)})`);
+          console.log(`✅ COD payment processed: ${order.totalPrice - serviceCharge} added to seller wallet (Order: ${getOrderNumber(order)})`);
         }
       }
 
@@ -384,7 +386,7 @@ router.put(
 
       // Send refund request email notification
       try {
-        const emailHtml = generateRefundRequestEmail(order, order.user);
+        const emailHtml = await generateRefundRequestEmail(order, order.user);
         await sendMail({
           email: process.env.SMPT_MAIL, // Send to admin/seller
           subject: `Refund Request - ${getOrderNumber(order)}`,
@@ -436,7 +438,7 @@ router.put(
       if (req.body.status === "Refund Success") {
         try {
           console.log('Attempting to send refund success email to:', order.user.email);
-          const emailHtml = generateRefundSuccessEmail(order, order.user);
+          const emailHtml = await generateRefundSuccessEmail(order, order.user);
           await sendMail({
             email: order.user.email,
             subject: `Refund Processed - ${getOrderNumber(order)}`,
@@ -1110,7 +1112,7 @@ router.put(
 
       // Send cancellation email to customer
       try {
-        const emailHtml = generateOrderCancellationEmail(order, order.user, reason);
+        const emailHtml = await generateOrderCancellationEmail(order, order.user, reason);
         await sendMail({
           email: order.user.email,
           subject: `Order Cancelled - ${getOrderNumber(order)}`,

@@ -27,10 +27,12 @@ import {
 } from "react-icons/fi";
 import { BsShieldCheck, BsExclamationTriangle } from "react-icons/bs";
 import InvoiceDownloadButton from "./InvoiceDownloadButton";
+import { useCurrency } from "../context/CurrencyContext";
 
 const UserOrderDetails = () => {
   const { orders } = useSelector((state) => state.order);
   const { user } = useSelector((state) => state.user);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState("");
@@ -324,13 +326,12 @@ const UserOrderDetails = () => {
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-gray-600">Price:</span>
                           <span className="font-medium text-blue-600">
-                            ₹
-                            {(item.finalPrice || item.discountPrice).toFixed(2)}
+                            {formatPrice(item.finalPrice || item.discountPrice)}
                           </span>
                           {item.finalPrice &&
                             item.finalPrice !== item.discountPrice && (
                               <span className="text-sm text-gray-400 line-through">
-                                ₹{item.discountPrice.toFixed(2)}
+                                {formatPrice(item.discountPrice)}
                               </span>
                             )}
                         </div>
@@ -343,10 +344,9 @@ const UserOrderDetails = () => {
                       </div>
                       <div className="mt-3">
                         <span className="text-lg font-bold text-gray-900">
-                          ₹
-                          {(
+                          {formatPrice(
                             (item.finalPrice || item.discountPrice) * item.qty
-                          ).toFixed(2)}
+                          )}
                         </span>
                       </div>
                     </div>
@@ -380,27 +380,26 @@ const UserOrderDetails = () => {
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotal:</span>
                     <span>
-                      ₹
-                      {data.cart
-                        .reduce((total, item) => {
+                      {formatPrice(
+                        data.cart.reduce((total, item) => {
                           const itemPrice =
                             item.finalPrice || item.discountPrice;
                           return total + itemPrice * item.qty;
                         }, 0)
-                        .toFixed(2)}
+                      )}
                     </span>
                   </div>
                   {data.shippingPrice > 0 && (
                     <div className="flex justify-between items-center text-gray-600">
                       <span>Shipping:</span>
-                      <span>₹{data.shippingPrice.toFixed(2)}</span>
+                      <span>{formatPrice(data.shippingPrice)}</span>
                     </div>
                   )}
                   {data.discountPrice > 0 && (
                     <div className="flex justify-between items-center text-gray-600">
                       <span>Discount:</span>
                       <span className="text-green-600">
-                        -₹{data.discountPrice.toFixed(2)}
+                        -{formatPrice(data.discountPrice)}
                       </span>
                     </div>
                   )}
@@ -410,7 +409,7 @@ const UserOrderDetails = () => {
                         Total Amount
                       </span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        ₹{data.totalPrice?.toFixed(2)}
+                        {formatPrice(data.totalPrice)}
                       </span>
                     </div>
                   </div>
@@ -511,7 +510,7 @@ const UserOrderDetails = () => {
                       Amount Paid:
                     </span>
                     <span className="font-bold text-blue-900 text-lg">
-                      ₹{data.totalPrice}
+                      {formatPrice(data.totalPrice)}
                     </span>
                   </div>
                 </div>
@@ -600,12 +599,13 @@ const UserOrderDetails = () => {
                     {selectedItem?.name}
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    ₹{selectedItem?.discountPrice} × {selectedItem?.qty}
+                    {formatPrice(selectedItem?.discountPrice)} ×{" "}
+                    {selectedItem?.qty}
                   </p>
                   <p className="text-blue-600 font-semibold text-sm mt-1">
-                    Total: ₹
-                    {(selectedItem?.discountPrice * selectedItem?.qty).toFixed(
-                      2
+                    Total:{" "}
+                    {formatPrice(
+                      selectedItem?.discountPrice * selectedItem?.qty
                     )}
                   </p>
                 </div>

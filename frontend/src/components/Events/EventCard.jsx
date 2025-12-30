@@ -16,10 +16,12 @@ import {
   HiSparkles,
   HiArrowRight,
 } from "react-icons/hi";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const EventCard = ({ active, data, compact = false }) => {
   const { cart } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.user);
+  const { formatPrice } = useCurrency();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -127,13 +129,13 @@ const EventCard = ({ active, data, compact = false }) => {
 
           <div className="flex items-center space-x-2 mb-3">
             <span className="text-sm text-gray-500 line-through">
-              ₹{data.originalPrice}
+              {formatPrice(data.originalPrice)}
             </span>
             <span className="text-xl font-bold text-gray-900">
-              ₹{data.discountPrice}
+              {formatPrice(data.discountPrice)}
             </span>
             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-              Save ₹{(data.originalPrice - data.discountPrice).toFixed(2)}
+              Save {formatPrice(data.originalPrice - data.discountPrice)}
             </span>
           </div>
 
@@ -243,15 +245,15 @@ const EventCard = ({ active, data, compact = false }) => {
           <div className="mb-4">
             <div className="flex items-baseline space-x-2 mb-1">
               <span className="text-lg text-gray-500 line-through">
-                ₹{data.originalPrice}
+                {formatPrice(data.originalPrice)}
               </span>
               <span className="text-2xl font-bold text-gray-900">
-                ₹{data.discountPrice}
+                {formatPrice(data.discountPrice)}
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-1 rounded-full font-bold">
-                Save ₹{(data.originalPrice - data.discountPrice).toFixed(2)}
+                Save {formatPrice(data.originalPrice - data.discountPrice)}
               </span>
               <span className="text-xs text-gray-600">
                 ({discountPercentage}% off)

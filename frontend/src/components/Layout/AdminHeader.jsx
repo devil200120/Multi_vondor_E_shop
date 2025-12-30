@@ -70,7 +70,11 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
           />
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold text-gray-900">
-              {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
+              {user?.role === "Manager"
+                ? "Manager Panel"
+                : user?.role === "SubAdmin"
+                ? "SubAdmin Panel"
+                : "Admin Panel"}
             </h1>
             <p className="text-base text-gray-500">Management Dashboard</p>
           </div>
@@ -223,7 +227,11 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
                     </div>
                     <div>
                       <h2 className="text-sm font-semibold text-gray-800">
-                        {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
+                        {user?.role === "Manager"
+                          ? "Manager Panel"
+                          : user?.role === "SubAdmin"
+                          ? "SubAdmin Panel"
+                          : "Admin Panel"}
                       </h2>
                       <p className="text-xs text-gray-500">
                         Management Dashboard

@@ -1,226 +1,586 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { HiLocationMarker, HiMap, HiZoomIn, HiZoomOut } from "react-icons/hi";
-import { FaStore, FaShoppingBag, FaMapMarkerAlt } from "react-icons/fa";
+import { HiChevronRight, HiChevronDown } from "react-icons/hi";
+import {
+  FaStore,
+  FaTshirt,
+  FaHome,
+  FaSprayCan,
+  FaTv,
+  FaChild,
+  FaUtensils,
+  FaStar,
+  FaTree,
+  FaCogs,
+  FaBriefcase,
+  FaGem,
+} from "react-icons/fa";
 
 const MallMap = () => {
   const { categories } = useSelector((state) => state.categories);
   const { allProducts } = useSelector((state) => state.products);
   const { sellers } = useSelector((state) => state.seller);
-  const categoriesData = categories || [];
 
-  const [hoveredArea, setHoveredArea] = useState(null);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [expandedCategories, setExpandedCategories] = useState([]);
+  const [hoveredStore, setHoveredStore] = useState(null);
 
-  // Cayman Islands regions/areas for the virtual mall
-  const mallAreas = [
+  // Mall categories with icons and store counts
+  const mallCategories = [
     {
       id: 1,
-      name: "George Town",
-      stores: 45,
-      products: 320,
-      x: 35,
-      y: 55,
-      color: "#012169",
+      name: "Fashion & Jewellery",
+      icon: FaTshirt,
+      color: "#E91E63",
+      count: 12,
     },
-    {
-      id: 2,
-      name: "West Bay",
-      stores: 28,
-      products: 180,
-      x: 25,
-      y: 30,
-      color: "#C8102E",
-    },
-    {
-      id: 3,
-      name: "Bodden Town",
-      stores: 15,
-      products: 95,
-      x: 65,
-      y: 60,
-      color: "#012169",
-    },
+    { id: 2, name: "Home & Living", icon: FaHome, color: "#2196F3", count: 8 },
+    { id: 3, name: "Electronics", icon: FaTv, color: "#00BCD4", count: 10 },
     {
       id: 4,
-      name: "East End",
-      stores: 8,
-      products: 45,
-      x: 85,
-      y: 55,
-      color: "#C8102E",
+      name: "Food & Dining",
+      icon: FaUtensils,
+      color: "#FF9800",
+      count: 15,
+    },
+    { id: 5, name: "Kids & Toys", icon: FaChild, color: "#4CAF50", count: 3 },
+    { id: 6, name: "Services", icon: FaCogs, color: "#607D8B", count: 10 },
+  ];
+
+  // Mall store locations for the floor plan
+  const mallStores = [
+    // Anchor stores (large, yellow)
+    {
+      id: "jcpenney",
+      name: "JCPenney",
+      x: 5,
+      y: 45,
+      width: 8,
+      height: 35,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "A",
     },
     {
-      id: 5,
-      name: "North Side",
-      stores: 12,
-      products: 68,
-      x: 70,
+      id: "dillards",
+      name: "Dillard's",
+      x: 60,
+      y: 30,
+      width: 15,
+      height: 55,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "D",
+    },
+    {
+      id: "athome",
+      name: "At Home",
+      x: 85,
+      y: 5,
+      width: 12,
+      height: 25,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "N",
+    },
+    {
+      id: "burlington",
+      name: "Burlington",
+      x: 25,
+      y: 5,
+      width: 15,
+      height: 20,
+      color: "#C71585",
+      type: "anchor",
+      zone: "J",
+    },
+
+    // Entertainment (blue)
+    {
+      id: "regal",
+      name: "Regal Theaters",
+      x: 75,
+      y: 15,
+      width: 10,
+      height: 18,
+      color: "#1E90FF",
+      type: "entertainment",
+      zone: "N",
+    },
+    {
+      id: "rink",
+      name: "MCM Rink N Roll",
+      x: 25,
+      y: 40,
+      width: 12,
+      height: 12,
+      color: "#C71585",
+      type: "entertainment",
+      zone: "L",
+    },
+
+    // Regular stores (magenta/pink corridor)
+    {
+      id: "store1",
+      name: "Fashion Store",
+      x: 15,
+      y: 30,
+      width: 6,
+      height: 8,
+      color: "#C71585",
+      type: "retail",
+      zone: "B",
+    },
+    {
+      id: "store2",
+      name: "Electronics",
+      x: 22,
+      y: 30,
+      width: 6,
+      height: 8,
+      color: "#C71585",
+      type: "retail",
+      zone: "B",
+    },
+    {
+      id: "store3",
+      name: "Home Decor",
+      x: 30,
+      y: 55,
+      width: 8,
+      height: 10,
+      color: "#C71585",
+      type: "retail",
+      zone: "C",
+    },
+    {
+      id: "store4",
+      name: "Sports Zone",
+      x: 40,
+      y: 55,
+      width: 8,
+      height: 10,
+      color: "#C71585",
+      type: "retail",
+      zone: "C",
+    },
+    {
+      id: "store5",
+      name: "Beauty Plus",
+      x: 50,
+      y: 55,
+      width: 6,
+      height: 10,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "E",
+    },
+
+    // Food court area
+    {
+      id: "foodcourt",
+      name: "Food Court",
+      x: 15,
+      y: 55,
+      width: 12,
+      height: 15,
+      color: "#FFD700",
+      type: "food",
+      zone: "B",
+    },
+
+    // More inline stores
+    {
+      id: "store6",
+      name: "Kids Zone",
+      x: 35,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      id: "store7",
+      name: "Jewelry",
+      x: 42,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      id: "store8",
+      name: "Shoes",
+      x: 49,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      id: "store9",
+      name: "Accessories",
+      x: 35,
       y: 35,
-      color: "#012169",
+      width: 5,
+      height: 6,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "I",
+    },
+    {
+      id: "store10",
+      name: "Mobile",
+      x: 42,
+      y: 35,
+      width: 5,
+      height: 6,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "I",
     },
   ];
 
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const toggleExpand = (categoryId) => {
+    setExpandedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
   return (
-    <section className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-sm border border-blue-200 border-b-4 border-b-red-500 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <HiMap className="w-7 h-7 text-white" />
-            <div>
-              <h2 className="text-lg font-bold text-white">Mall of Cayman</h2>
-              <p className="text-primary-100 text-xs">
-                Your Virtual Shopping Destination
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/products"
-            className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm shadow-sm"
-          >
-            Browse All
-          </Link>
-        </div>
-      </div>
-
-      {/* Mall Map Content */}
-      <div className="p-5">
-        <div className="text-center mb-4">
-          <h3 className="text-xl font-bold text-primary-600 mb-1">
-            🏝️ Explore Our Virtual Mall
-          </h3>
-          <p className="text-gray-500 text-sm">
-            Click on any region to discover stores and products from across the
-            Cayman Islands
-          </p>
-        </div>
-
-        {/* Interactive Map */}
-        <div className="relative bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl overflow-hidden border-2 border-blue-200 shadow-inner">
-          {/* Map Container with Embedded Map */}
-          <div className="relative w-full h-[300px] md:h-[350px]">
-            {/* Google Maps Embed of Cayman Islands */}
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241756.64477066882!2d-81.38744565!3d19.3133!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f2587c27e097265%3A0xa99ddab4cd90a7b5!2sCayman%20Islands!5e0!3m2!1sen!2sus!4v1703689200000!5m2!1sen!2sus"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="absolute inset-0"
-              title="Cayman Islands Map"
-            />
-
-            {/* Interactive Overlay with Mall Markers */}
-            <div className="absolute inset-0 pointer-events-none">
-              {mallAreas.map((area) => (
-                <Link
-                  key={area.id}
-                  to={`/products?location=${area.name
-                    .toLowerCase()
-                    .replace(" ", "-")}`}
-                  className="pointer-events-auto absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                  style={{ left: `${area.x}%`, top: `${area.y}%` }}
-                  onMouseEnter={() => setHoveredArea(area.id)}
-                  onMouseLeave={() => setHoveredArea(null)}
-                >
-                  {/* Pulsing Marker */}
-                  <div className="relative">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg cursor-pointer transition-transform duration-200 hover:scale-125"
-                      style={{ backgroundColor: area.color }}
-                    >
-                      <FaStore className="text-white text-sm" />
-                    </div>
-                    {/* Pulse Animation */}
-                    <div
-                      className="absolute inset-0 rounded-full animate-ping opacity-30"
-                      style={{ backgroundColor: area.color }}
-                    />
+    <section className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-stretch">
+        {/* Left Sidebar - Categories */}
+        <div className="lg:w-72 bg-gray-50 border-r border-gray-200 p-4 flex-shrink-0">
+          {/* Mall Logo/Branding */}
+          <div className="mb-6 text-center">
+            <div className="relative inline-block">
+              <div className="w-28 h-28 mx-auto bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <div className="text-center">
+                  <div className="text-white font-black text-lg leading-tight">
+                    CAYMAN
                   </div>
-
-                  {/* Tooltip */}
-                  {hoveredArea === area.id && (
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-white rounded-lg shadow-xl p-3 min-w-[140px] z-10 border border-gray-200">
-                      <div className="text-sm font-bold text-primary-600 mb-1">
-                        {area.name}
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500 mb-1">
-                        <FaStore className="mr-1 text-primary-400" />{" "}
-                        {area.stores} Stores
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <FaShoppingBag className="mr-1 text-red-400" />{" "}
-                        {area.products} Products
-                      </div>
-                      <div className="text-xs text-primary-500 mt-2 font-medium">
-                        Click to explore →
-                      </div>
-                      {/* Tooltip Arrow */}
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-8 border-transparent border-t-white" />
-                    </div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Map Legend */}
-          <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-md border border-gray-200">
-            <div className="text-xs font-semibold text-gray-700 mb-1.5">
-              Shopping Districts
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {mallAreas.slice(0, 3).map((area) => (
-                <div key={area.id} className="flex items-center text-xs">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full mr-1"
-                    style={{ backgroundColor: area.color }}
-                  />
-                  <span className="text-gray-600">{area.name}</span>
+                  <div className="text-white font-black text-lg leading-tight">
+                    CITY
+                  </div>
+                  <div className="text-yellow-300 font-black text-lg leading-tight">
+                    MALL
+                  </div>
                 </div>
-              ))}
+              </div>
+              {/* Decorative element */}
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-2 bg-gradient-to-r from-pink-500 via-yellow-400 to-blue-500 rounded-full"></div>
             </div>
           </div>
 
-          {/* Stats Badge */}
-          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-md border border-gray-200">
-            <div className="flex items-center gap-3 text-xs">
-              <div className="text-center">
-                <div className="font-bold text-primary-600">108+</div>
-                <div className="text-gray-500">Stores</div>
-              </div>
-              <div className="w-px h-6 bg-gray-200" />
-              <div className="text-center">
-                <div className="font-bold text-red-500">708+</div>
-                <div className="text-gray-500">Products</div>
-              </div>
-            </div>
+          {/* Category Filter List */}
+          <div className="space-y-1">
+            {mallCategories.map((category) => {
+              const IconComponent = category.icon;
+              const isSelected = selectedCategories.includes(category.id);
+
+              return (
+                <div key={category.id}>
+                  <div
+                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-white hover:shadow-sm ${
+                      isSelected ? "bg-white shadow-sm" : ""
+                    }`}
+                    onClick={() => toggleCategory(category.id)}
+                  >
+                    {/* Checkbox */}
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleCategory(category.id)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+
+                    {/* Icon */}
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: `${category.color}20` }}
+                    >
+                      <IconComponent
+                        size={14}
+                        style={{ color: category.color }}
+                      />
+                    </div>
+
+                    {/* Category Name */}
+                    <span className="flex-1 text-sm font-medium text-gray-700">
+                      {category.name}
+                    </span>
+
+                    {/* Count */}
+                    <span className="text-xs text-gray-400 font-medium">
+                      {category.count}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quick Links */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <Link
+              to="/products"
+              className="block w-full py-2.5 px-4 bg-blue-600 text-white text-center font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Browse All Stores
+            </Link>
+            <Link
+              to="/shop-create"
+              className="block w-full mt-2 py-2.5 px-4 bg-pink-600 text-white text-center font-semibold rounded-lg hover:bg-pink-700 transition-colors text-sm"
+            >
+              Become a Seller
+            </Link>
           </div>
         </div>
 
-        {/* Quick Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 mt-4">
-          <Link
-            to="/products"
-            className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors duration-200 text-sm flex items-center gap-2"
+        {/* Right Side - Mall Floor Plan */}
+        <div className="flex-1 p-3 bg-gray-100 flex flex-col">
+          {/* Map Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <button className="p-1.5 bg-gray-200 rounded hover:bg-gray-300 transition-colors">
+                <HiChevronRight
+                  size={16}
+                  className="text-gray-600 rotate-180"
+                />
+              </button>
+              <span className="text-xs text-gray-500">MCM Promenade</span>
+            </div>
+          </div>
+
+          {/* Interactive Floor Plan */}
+          <div
+            className="relative bg-white rounded-lg shadow-inner overflow-hidden flex-1"
+            style={{ minHeight: "280px" }}
           >
-            <FaShoppingBag /> Shop Now
-          </Link>
-          <Link
-            to="/shop-create"
-            className="px-5 py-2.5 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm flex items-center gap-2"
-          >
-            <FaStore /> Become a Seller
-          </Link>
-          <Link
-            to="/shops"
-            className="px-5 py-2.5 bg-white text-primary-600 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm flex items-center gap-2 border border-primary-200"
-          >
-            <FaMapMarkerAlt /> View All Stores
-          </Link>
+            {/* Grid Background */}
+            <div className="absolute inset-0 opacity-20">
+              <svg width="100%" height="100%">
+                <defs>
+                  <pattern
+                    id="grid"
+                    width="20"
+                    height="20"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 20 0 L 0 0 0 20"
+                      fill="none"
+                      stroke="#ccc"
+                      strokeWidth="0.5"
+                    />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+              </svg>
+            </div>
+
+            {/* Parking lot lines (top) */}
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 flex">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 border-r border-gray-300"
+                  style={{ transform: "skewX(-15deg)" }}
+                />
+              ))}
+            </div>
+
+            {/* Mall Stores */}
+            <svg
+              viewBox="0 0 100 80"
+              className="w-full h-full absolute inset-0"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {/* Main corridor/walkway */}
+              <rect
+                x="12"
+                y="25"
+                width="55"
+                height="45"
+                fill="#F5F5F5"
+                stroke="#ddd"
+                strokeWidth="0.3"
+              />
+
+              {/* Render all stores */}
+              {mallStores.map((store) => (
+                <g key={store.id}>
+                  <rect
+                    x={store.x}
+                    y={store.y}
+                    width={store.width}
+                    height={store.height}
+                    fill={store.color}
+                    stroke="#333"
+                    strokeWidth="0.3"
+                    className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                    onMouseEnter={() => setHoveredStore(store.id)}
+                    onMouseLeave={() => setHoveredStore(null)}
+                    onClick={() =>
+                      (window.location.href = `/products?store=${store.id}`)
+                    }
+                  />
+                  {/* Store label for anchor stores */}
+                  {store.type === "anchor" && (
+                    <text
+                      x={store.x + store.width / 2}
+                      y={store.y + store.height / 2}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-[3px] font-bold fill-gray-800 pointer-events-none"
+                      style={{
+                        writingMode:
+                          store.height > store.width * 1.5
+                            ? "vertical-rl"
+                            : "horizontal-tb",
+                        textOrientation: "mixed",
+                      }}
+                    >
+                      {store.name}
+                    </text>
+                  )}
+                  {/* Zone markers */}
+                  <text
+                    x={store.x + store.width / 2}
+                    y={
+                      store.y +
+                      store.height / 2 +
+                      (store.type === "anchor" ? 4 : 0)
+                    }
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-[2.5px] font-semibold fill-gray-700 pointer-events-none"
+                  >
+                    {store.zone}
+                  </text>
+                  {/* Small store indicators */}
+                  {store.type === "retail" && (
+                    <circle
+                      cx={store.x + store.width / 2}
+                      cy={store.y + store.height / 2 - 1}
+                      r="0.8"
+                      fill="white"
+                      className="pointer-events-none"
+                    />
+                  )}
+                </g>
+              ))}
+
+              {/* Entry points */}
+              <circle cx="37" cy="70" r="1.5" fill="#4CAF50" />
+              <text
+                x="37"
+                y="74"
+                textAnchor="middle"
+                className="text-[2px] fill-gray-600"
+              >
+                Main Entry
+              </text>
+            </svg>
+
+            {/* Tooltip for hovered store */}
+            {hoveredStore && (
+              <div className="absolute top-4 left-4 bg-white rounded-lg shadow-xl p-3 z-10 border border-gray-200">
+                <div className="text-sm font-bold text-gray-800">
+                  {mallStores.find((s) => s.id === hoveredStore)?.name}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Zone {mallStores.find((s) => s.id === hoveredStore)?.zone}
+                </div>
+                <div className="text-xs text-blue-600 mt-1 font-medium">
+                  Click to view products →
+                </div>
+              </div>
+            )}
+
+            {/* Legend */}
+            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-md border border-gray-200">
+              <div className="text-xs font-semibold text-gray-700 mb-2">
+                Store Types
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <div
+                    className="w-4 h-3 rounded"
+                    style={{ backgroundColor: "#FFD700" }}
+                  ></div>
+                  <span className="text-gray-600">Anchor Stores</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div
+                    className="w-4 h-3 rounded"
+                    style={{ backgroundColor: "#C71585" }}
+                  ></div>
+                  <span className="text-gray-600">Retail Stores</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div
+                    className="w-4 h-3 rounded"
+                    style={{ backgroundColor: "#1E90FF" }}
+                  ></div>
+                  <span className="text-gray-600">Entertainment</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-md border border-gray-200">
+              <div className="flex items-center gap-4 text-xs">
+                <div className="text-center">
+                  <div className="font-bold text-blue-600">
+                    {sellers?.length || 50}+
+                  </div>
+                  <div className="text-gray-500">Stores</div>
+                </div>
+                <div className="w-px h-6 bg-gray-200" />
+                <div className="text-center">
+                  <div className="font-bold text-pink-600">
+                    {allProducts?.length || 500}+
+                  </div>
+                  <div className="text-gray-500">Products</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Quick Actions */}
+          <div className="flex flex-wrap justify-center gap-2 mt-3">
+            <Link
+              to="/shops"
+              className="px-4 py-2 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center gap-2 border border-gray-300 shadow-sm"
+            >
+              <FaStore /> View All Stores
+            </Link>
+            <Link
+              to="/products"
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2 shadow-sm"
+            >
+              <FaGem /> Shop Now
+            </Link>
+          </div>
         </div>
       </div>
     </section>

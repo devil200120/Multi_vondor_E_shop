@@ -3,6 +3,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { HiOutlineCheck, HiOutlineX, HiOutlineEye } from "react-icons/hi";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const PendingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -11,6 +12,7 @@ const PendingProducts = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchPendingProducts();
@@ -169,11 +171,11 @@ const PendingProducts = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        ₹{product.discountPrice}
+                        {formatPrice(product.discountPrice)}
                       </div>
                       {product.originalPrice && (
                         <div className="text-sm text-gray-500 line-through">
-                          ₹{product.originalPrice}
+                          {formatPrice(product.originalPrice)}
                         </div>
                       )}
                     </td>
