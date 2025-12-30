@@ -20,6 +20,7 @@ import {
   HiOutlineQuestionMarkCircle,
   HiOutlineFilm,
   HiOutlineUserAdd,
+  HiOutlineSpeakerphone,
 } from "react-icons/hi";
 import { logoutUser } from "../../../redux/actions/user";
 import { toast } from "react-toastify";
@@ -135,6 +136,22 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
       roles: ["Admin", "Manager"], // Manager can manage content
     },
     {
+      id: 22,
+      name: "Advertisements",
+      icon: HiOutlineSpeakerphone,
+      url: "/admin-advertisements",
+      color: "bg-orange-500",
+      roles: ["Admin", "SubAdmin"], // Admin and SubAdmin can manage ads
+    },
+    {
+      id: 23,
+      name: "Ad Plan Management",
+      icon: HiOutlineSpeakerphone,
+      url: "/admin-ad-plans",
+      color: "bg-purple-500",
+      roles: ["Admin"], // Only Admin can modify ad plans/pricing
+    },
+    {
       id: 12,
       name: "Legal Pages",
       icon: HiOutlineDocumentText,
@@ -220,7 +237,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
             </div>
             <div className="hidden 800px:block">
               <h2 className="text-lg font-semibold text-gray-900">
-                Admin Panel
+                {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
               </h2>
               <p className="text-sm text-gray-500">Management Dashboard</p>
             </div>
@@ -366,7 +383,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
             </span>
             {isMobileOverlay && (
               <p className="text-xs text-red-500 mt-0.5">
-                Sign out of admin panel
+                Sign out of {user?.role?.toLowerCase() || "admin"} panel
               </p>
             )}
           </div>
@@ -379,7 +396,7 @@ const AdminSideBar = ({ active, onItemClick, isMobileOverlay = false }) => {
               isMobileOverlay ? "text-xs" : "text-xs"
             }`}
           >
-            Admin Dashboard v2.0
+            {user?.role === "Manager" ? "Manager" : user?.role === "SubAdmin" ? "SubAdmin" : "Admin"} Dashboard v2.0
           </p>
           <p
             className={`text-gray-500 ${

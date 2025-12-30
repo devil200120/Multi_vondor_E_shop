@@ -10,7 +10,6 @@ import { HiOutlineUpload } from "react-icons/hi";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import BrandingLogo from "../../Branding_logo.jpg";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -90,7 +89,7 @@ const Signup = () => {
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-50 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-100 p-3 hover:scale-105 transition-all duration-300">
             <img
-              src={BrandingLogo}
+              src="/branding-logo-cayman.jpeg"
               alt="Brand Logo"
               className="h-full w-full object-contain filter drop-shadow-lg"
               style={{

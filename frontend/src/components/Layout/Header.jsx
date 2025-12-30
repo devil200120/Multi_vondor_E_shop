@@ -263,7 +263,7 @@ const Header = ({ activeHeading }) => {
           </div>
 
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-1 justify-center">
             <Link
               to="/"
               className="group hover:scale-105 transition-all duration-300 ease-in-out"
@@ -271,10 +271,10 @@ const Header = ({ activeHeading }) => {
               <img
                 src="/branding-logo-cayman.jpeg"
                 alt="Mall of Cayman"
-                className="h-24 w-auto object-contain transition-all duration-300"
+                className="h-14 w-auto object-contain transition-all duration-300"
                 style={{
                   filter: "drop-shadow(0 2px 4px rgba(0,61,165,0.1))",
-                  maxWidth: "280px",
+                  maxWidth: "160px",
                 }}
               />
             </Link>

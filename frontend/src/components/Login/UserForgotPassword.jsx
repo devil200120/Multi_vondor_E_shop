@@ -4,7 +4,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
-import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 
 const UserForgotPassword = () => {
   const navigate = useNavigate();
@@ -54,7 +53,7 @@ const UserForgotPassword = () => {
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-50 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-100 p-1 hover:scale-105 transition-all duration-300">
             <img
-              src={BrandingLogo}
+              src="/branding-logo-cayman.jpeg"
               alt="Brand Logo"
               className="h-full w-full object-contain"
               style={{

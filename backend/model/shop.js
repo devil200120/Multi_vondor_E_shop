@@ -231,6 +231,21 @@ const shopSchema = new mongoose.Schema({
       default: 0,
     },
   },
+  // Custom HTML/CSS Editor (Gold+ plan feature)
+  customHtml: {
+    type: String,
+    default: "",
+    maxlength: [50000, "Custom HTML cannot exceed 50000 characters"],
+  },
+  customCss: {
+    type: String,
+    default: "",
+    maxlength: [20000, "Custom CSS cannot exceed 20000 characters"],
+  },
+  customHtmlEnabled: {
+    type: Boolean,
+    default: false,
+  },
   // PayPal Integration
   paypalEmail: {
     type: String,

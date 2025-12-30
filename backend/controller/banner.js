@@ -3,7 +3,7 @@ const router = express.Router();
 const Banner = require("../model/banner");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const { isAdmin, isAuthenticated } = require("../middleware/auth");
+const { isAdmin, isAuthenticated, requirePermission } = require("../middleware/auth");
 const { upload } = require("../multer");
 const { uploadImageToCloudinary, deleteFromCloudinary, uploadToCloudinary } = require("../config/cloudinary");
 
@@ -50,11 +50,11 @@ router.get(
   })
 );
 
-// Update banner content (Admin only)
+// Update banner content (Admin and Manager with canManageContent)
 router.put(
   "/update-banner",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   upload.array('slidingImages', 10), // Support multiple images for sliding
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -236,7 +236,7 @@ router.put(
 router.get(
   "/admin/get-banner",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       let banner = await Banner.findOne({ isActive: true });
@@ -261,11 +261,11 @@ router.get(
   })
 );
 
-// Reset banner to default (Admin only)
+// Reset banner to default (Admin and Manager with canManageContent)
 router.post(
   "/reset-banner",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       // Delete current banner

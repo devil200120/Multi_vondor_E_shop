@@ -20,7 +20,6 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { server } from "../../server";
-import BrandingLogo from "../../Branding_logo.jpg";
 import { footerProductLinks, footerSupportLinks } from "../../static/data";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 
@@ -142,7 +141,7 @@ const Footer = () => {
                 <Link to="/" className="group">
                   <div className="bg-white p-3 rounded-lg shadow-moc">
                     <img
-                      src={BrandingLogo}
+                      src="/branding-logo-cayman.jpeg"
                       alt="Mall of Cayman"
                       className="h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105"
                       style={{ borderRadius: "8px" }}

@@ -628,11 +628,11 @@ router.get(
   })
 );
 
-// Download invoice PDF (Admin only)
+// Download invoice PDF (Admin/Manager)
 router.get(
   "/admin-invoice-pdf/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -776,11 +776,11 @@ router.get(
   })
 );
 
-// Preview invoice HTML (Admin only) - for debugging
+// Preview invoice HTML (Admin/Manager) - for debugging
 router.get(
   "/admin-invoice-preview/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const order = await Order.findById(req.params.id);
@@ -823,11 +823,11 @@ router.get(
   })
 );
 
-// Download multiple invoices as ZIP (Admin only)
+// Download multiple invoices as ZIP (Admin/Manager)
 router.post(
   "/admin-batch-invoices-zip",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { orderIds } = req.body;
@@ -964,7 +964,7 @@ router.post(
 router.get(
   "/admin-orders-summary",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const {
@@ -1068,7 +1068,7 @@ router.get(
 router.put(
   "/admin-cancel-order/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { reason } = req.body;

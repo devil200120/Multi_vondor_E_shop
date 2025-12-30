@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isSeller, isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const { upload } = require("../multer");
 const advertisementController = require("../controller/advertisement");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
@@ -64,25 +64,79 @@ router.put(
   advertisementController.updateAutoRenew
 );
 
-// Admin routes
+// Get single advertisement for editing
+router.get(
+  "/vendor/ad/:id",
+  isAuthenticated,
+  isSeller,
+  advertisementController.getVendorAdvertisementById
+);
+
+// Update advertisement (before approval or if rejected)
+router.put(
+  "/vendor/update/:id",
+  isAuthenticated,
+  isSeller,
+  upload.single('image'),
+  advertisementController.updateAdvertisement
+);
+
+// Admin routes - View all ads (SubAdmin can also view for approval purposes)
 router.get(
   "/admin/all",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveAds'),
   advertisementController.getAllAdvertisements
 );
 
+// Admin routes - Plan management (Admin only - setup/configuration)
+router.get(
+  "/admin/plans",
+  isAuthenticated,
+  isAdmin("Admin"),
+  advertisementController.getAdPlans
+);
+
+router.put(
+  "/admin/update-plan",
+  isAuthenticated,
+  isAdmin("Admin"),
+  advertisementController.updateAdPlan
+);
+
+router.put(
+  "/admin/toggle-plan/:adType",
+  isAuthenticated,
+  isAdmin("Admin"),
+  advertisementController.toggleAdPlan
+);
+
+router.put(
+  "/admin/toggle-free/:adType",
+  isAuthenticated,
+  isAdmin("Admin"),
+  advertisementController.toggleFreePlan
+);
+
+router.put(
+  "/admin/update-discounts",
+  isAuthenticated,
+  isAdmin("Admin"),
+  advertisementController.updateDurationDiscounts
+);
+
+// Admin routes - Ad approval (SubAdmin can also approve/reject)
 router.put(
   "/admin/approve/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveAds'),
   advertisementController.approveAdvertisement
 );
 
 router.put(
   "/admin/reject/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canApproveAds'),
   advertisementController.rejectAdvertisement
 );
 

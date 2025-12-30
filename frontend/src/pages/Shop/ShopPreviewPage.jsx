@@ -1,11 +1,15 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import ShopInfo from "../../components/Shop/ShopInfo";
 import ShopProfileData from "../../components/Shop/ShopProfileData";
 import ShopVideoBanners from "../../components/Shop/ShopVideoBanners";
+import ShopCustomContent from "../../components/Shop/ShopCustomContent";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
 
 const ShopPreviewPage = () => {
+  const { id } = useParams();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Header />
@@ -20,6 +24,9 @@ const ShopPreviewPage = () => {
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-8">
+            {/* Custom HTML/CSS Content (Gold Plan Feature) */}
+            <ShopCustomContent shopId={id} />
+
             {/* Shop Video Banners */}
             <ShopVideoBanners />
 

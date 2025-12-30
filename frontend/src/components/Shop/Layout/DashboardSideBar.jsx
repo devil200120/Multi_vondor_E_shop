@@ -6,7 +6,7 @@ import {
   AiOutlineClose,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { FiPackage, FiShoppingBag, FiLock } from "react-icons/fi";
+import { FiPackage, FiShoppingBag, FiLock, FiCode } from "react-icons/fi";
 import {
   MdOutlineLocalOffer,
   MdVideoLibrary,
@@ -294,6 +294,15 @@ const DashboardSideBar = ({ active }) => {
       badge: null,
       requiresSubscription: true,
       featureKey: null, // Always accessible with subscription
+    },
+    {
+      id: 23,
+      title: "HTML/CSS Editor",
+      link: "/dashboard-html-css-editor",
+      icon: FiCode,
+      badge: "GOLD",
+      requiresSubscription: true,
+      featureKey: "htmlCssEditor", // Requires htmlCssEditor feature (Gold+)
     },
     {
       id: 17,

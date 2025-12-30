@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const sendToken = require("../utils/jwtToken");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const { uploadImageToCloudinary, deleteFromCloudinary, uploadToCloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
@@ -535,7 +535,7 @@ router.get(
 router.delete(
   "/delete-user/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageUsers'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const user = await User.findById(req.params.id);
@@ -662,7 +662,7 @@ router.put(
 router.put(
   "/ban-user/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageUsers'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { reason } = req.body;
@@ -714,7 +714,7 @@ router.put(
 router.put(
   "/unban-user/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageUsers'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const userId = req.params.id;
@@ -1015,7 +1015,7 @@ router.put(
 );
 
 // Test endpoint to check user and shop data
-router.get("/check-user/:id", isAuthenticated, isAdmin("Admin"), async (req, res) => {
+router.get("/check-user/:id", isAuthenticated, requirePermission('canManageUsers'), async (req, res) => {
   try {
     const userId = req.params.id;
     const User = require("../model/user");
@@ -1112,7 +1112,7 @@ router.put("/fix-supplier-roles", async (req, res) => {
 });
 
 // Get user by email (for admin to check seller roles)
-router.get("/get-user-by-email/:email", isAuthenticated, isAdmin("Admin"), async (req, res) => {
+router.get("/get-user-by-email/:email", isAuthenticated, requirePermission('canManageUsers'), async (req, res) => {
   try {
     const email = req.params.email;
     const user = await User.findOne({ email: email });

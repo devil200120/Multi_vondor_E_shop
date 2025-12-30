@@ -18,9 +18,9 @@ const HomePage = () => {
     <div className="bg-gradient-to-b from-blue-100 to-blue-50 min-h-screen">
       <Header activeHeading={1} />
 
-      {/* Leaderboard Ad Banner - 728x120 - Full Width Centered */}
-      <div className="w-full bg-blue-50/80 border-b-2 border-red-500 py-4">
-        <div className="max-w-[728px] mx-auto px-4">
+      {/* Leaderboard Ad Banner - Full Width, Responsive */}
+      <div className="w-full bg-blue-50/80 border-b-2 border-red-500 py-2 sm:py-4">
+        <div className="max-w-full sm:max-w-[728px] mx-auto px-2 sm:px-4">
           <AdvertisementBanners adType="leaderboard" />
         </div>
       </div>
@@ -40,8 +40,22 @@ const HomePage = () => {
             {/* Hero Section */}
             <Hero />
 
+            {/* Mobile Ad Banner 1 - After Hero (Most visible position) */}
+            <div className="xl:hidden">
+              <div className="flex justify-center">
+                <AdvertisementBanners adType="top_sidebar" />
+              </div>
+            </div>
+
             {/* Video Banners */}
             <VideoBanners />
+
+            {/* Mobile Ad Banner 2 - After Video Banners */}
+            <div className="xl:hidden">
+              <div className="flex justify-center">
+                <AdvertisementBanners adType="right_sidebar_top" />
+              </div>
+            </div>
 
             {/* Mall Map */}
             <MallMap />
@@ -51,6 +65,13 @@ const HomePage = () => {
 
             {/* Featured Advertised Products (Paid) */}
             <FeaturedAdvertisedProducts />
+
+            {/* Mobile Ad Banner 3 - After Featured Products (Mid-page visibility) */}
+            <div className="xl:hidden">
+              <div className="flex justify-center">
+                <AdvertisementBanners adType="right_sidebar_middle" />
+              </div>
+            </div>
 
             {/* Featured Stores */}
             <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-sm p-5 border-l-4 border-l-red-500 border border-blue-200">
@@ -94,6 +115,13 @@ const HomePage = () => {
               <BestDeals />
             </div>
 
+            {/* Mobile Ad Banner 4 - After Best Deals */}
+            <div className="xl:hidden">
+              <div className="flex justify-center">
+                <AdvertisementBanners adType="right_sidebar_bottom" />
+              </div>
+            </div>
+
             {/* Featured Products */}
             <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-sm p-5 border-l-4 border-l-red-500 border border-blue-200">
               <FeaturedProduct />
@@ -105,7 +133,7 @@ const HomePage = () => {
             </div>
           </main>
 
-          {/* Right Sidebar - Ads */}
+          {/* Right Sidebar - Ads (Desktop Only) */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-4">
               {/* Top Sidebar Ad - 200x120 */}

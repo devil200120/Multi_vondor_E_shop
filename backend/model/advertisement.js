@@ -49,14 +49,27 @@ const advertisementSchema = new mongoose.Schema({
   image: {
     url: {
       type: String,
-      required: function() {
-        return ['leaderboard', 'top_sidebar', 'right_sidebar_top', 
-                'right_sidebar_middle', 'right_sidebar_bottom'].includes(this.adType);
-      },
     },
     public_id: {
       type: String,
     },
+  },
+  
+  // Video ad (alternative to image for banner types)
+  video: {
+    url: {
+      type: String,
+    },
+    public_id: {
+      type: String,
+    },
+  },
+  
+  // Media type - image or video
+  mediaType: {
+    type: String,
+    enum: ['image', 'video'],
+    default: 'image',
   },
   
   // Image dimensions validation
@@ -65,21 +78,36 @@ const advertisementSchema = new mongoose.Schema({
     height: Number,
   },
   
-  // Link - must link to vendor store only
+  // Link - must link to vendor store or product
   linkUrl: {
     type: String,
     required: [true, "Link URL is required"],
     validate: {
       validator: async function(url) {
-        // Validate that URL links to vendor's store
+        // Validate that URL links to vendor's store or a product
         const Shop = mongoose.model('Shop');
+        const Product = mongoose.model('Product');
         const shop = await Shop.findById(this.shopId);
         if (!shop) return false;
         
-        // URL should contain vendor store reference
-        return url.includes(`/shop/${shop._id}`) || url.includes(`shop=${shop._id}`);
+        // URL can be shop link or product link
+        if (url.includes(`/shop/${shop._id}`) || url.includes(`shop=${shop._id}`)) {
+          return true;
+        }
+        
+        // Check if it's a product link and the product belongs to this shop
+        const productMatch = url.match(/\/product\/([a-f0-9]{24})/i);
+        if (productMatch) {
+          const productId = productMatch[1];
+          const product = await Product.findById(productId);
+          if (product && product.shopId.toString() === shop._id.toString()) {
+            return true;
+          }
+        }
+        
+        return false;
       },
-      message: 'Ad link must point to vendor store only'
+      message: 'Ad link must point to vendor store or vendor product only'
     }
   },
   
@@ -134,8 +162,8 @@ const advertisementSchema = new mongoose.Schema({
   // Status
   status: {
     type: String,
-    enum: ['pending', 'active', 'expired', 'cancelled', 'rejected'],
-    default: 'pending',
+    enum: ['awaiting_payment', 'pending', 'active', 'expired', 'cancelled', 'rejected'],
+    default: 'awaiting_payment',
   },
   
   // Admin approval

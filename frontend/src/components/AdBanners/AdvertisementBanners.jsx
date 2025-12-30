@@ -25,32 +25,36 @@ const AdvertisementBanners = ({ adType = "leaderboard" }) => {
   const navigate = useNavigate();
   const viewTrackedRef = useRef(new Set());
 
-  // Ad dimensions based on type
+  // Ad dimensions based on type - Now mobile responsive
   const adDimensions = {
     leaderboard: {
       width: "728px",
       height: "120px",
-      className: "w-full max-w-[728px] h-[120px]",
+      className: "w-full max-w-[728px] h-[80px] sm:h-[100px] md:h-[120px]",
     },
     top_sidebar: {
       width: "200px",
       height: "120px",
-      className: "w-full max-w-[200px] h-[120px]",
+      className:
+        "w-[160px] sm:w-[180px] md:w-[200px] h-[100px] sm:h-[110px] md:h-[120px]",
     },
     right_sidebar_top: {
       width: "300px",
       height: "200px",
-      className: "w-full max-w-[300px] h-[200px]",
+      className:
+        "w-[240px] sm:w-[270px] md:w-[300px] h-[160px] sm:h-[180px] md:h-[200px]",
     },
     right_sidebar_middle: {
       width: "300px",
       height: "200px",
-      className: "w-full max-w-[300px] h-[200px]",
+      className:
+        "w-[240px] sm:w-[270px] md:w-[300px] h-[160px] sm:h-[180px] md:h-[200px]",
     },
     right_sidebar_bottom: {
       width: "300px",
       height: "200px",
-      className: "w-full max-w-[300px] h-[200px]",
+      className:
+        "w-[240px] sm:w-[270px] md:w-[300px] h-[160px] sm:h-[180px] md:h-[200px]",
     },
   };
 
@@ -217,31 +221,45 @@ const AdvertisementBanners = ({ adType = "leaderboard" }) => {
 
   const currentAd = ads[currentAdIndex];
 
+  // Check if current ad is a video
+  const isVideoAd = currentAd?.mediaType === "video" && currentAd?.video?.url;
+
   return (
     <div
       className={`${currentDimension.className} relative rounded-lg overflow-hidden shadow-md group cursor-pointer bg-gray-100`}
     >
-      {/* Ad Image with fade transition */}
+      {/* Ad Media (Image or Video) with fade transition */}
       <div
         onClick={() => handleAdClick(currentAd)}
         className={`w-full h-full transition-opacity duration-300 ${
           fadeIn ? "opacity-100" : "opacity-0"
         }`}
       >
-        <img
-          src={currentAd.image?.url || "/placeholder-ad.jpg"}
-          alt={currentAd.title || "Advertisement"}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-        />
+        {isVideoAd ? (
+          <video
+            src={currentAd.video.url}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <img
+            src={currentAd.image?.url || "/placeholder-ad.jpg"}
+            alt={currentAd.title || "Advertisement"}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        )}
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
       </div>
 
-      {/* Ad label */}
+      {/* Ad label with video indicator */}
       <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-[9px] font-medium rounded flex items-center gap-1">
         <AiOutlineEye className="w-2.5 h-2.5" />
-        <span>AD</span>
+        <span>{isVideoAd ? "VIDEO AD" : "AD"}</span>
       </div>
 
       {/* Shop name badge */}

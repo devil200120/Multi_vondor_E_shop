@@ -15,7 +15,6 @@ import { logoutUser } from "../../redux/actions/user";
 import { toast } from "react-toastify";
 import { backend_url } from "../../server";
 import { getAvatarUrl } from "../../utils/mediaUtils";
-import BrandingLogo from "../../WANTTAR_NEW_LOGO.png";
 import AdminSideBar from "../Admin/Layout/AdminSideBar";
 import AdminNotifications from "./AdminNotifications";
 
@@ -62,15 +61,17 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
       <div className="flex items-center space-x-5">
         <Link to="/" className="flex items-center space-x-4">
           <img
-            src={BrandingLogo}
+            src="/branding-logo-cayman.jpeg"
             alt="Brand Logo"
-            className="h-24 w-auto object-contain transition-all duration-300 hover:scale-105"
+            className="h-16 w-auto object-contain transition-all duration-300 hover:scale-105"
             style={{
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
             }}
           />
           <div className="hidden md:block">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
+            </h1>
             <p className="text-base text-gray-500">Management Dashboard</p>
           </div>
         </Link>
@@ -222,7 +223,7 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
                     </div>
                     <div>
                       <h2 className="text-sm font-semibold text-gray-800">
-                        Admin Panel
+                        {user?.role === "Manager" ? "Manager Panel" : user?.role === "SubAdmin" ? "SubAdmin Panel" : "Admin Panel"}
                       </h2>
                       <p className="text-xs text-gray-500">
                         Management Dashboard

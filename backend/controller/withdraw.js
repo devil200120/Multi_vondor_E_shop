@@ -2,7 +2,7 @@ const Shop = require("../model/shop");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const express = require("express");
-const { isSeller, isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isSeller, isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const Withdraw = require("../model/withdraw");
 const sendMail = require("../utils/sendMail");
 const router = express.Router();
@@ -51,12 +51,12 @@ router.post(
   })
 );
 
-// get all withdraws --- admnin
+// get all withdraws --- admin and Manager
 
 router.get(
   "/get-all-withdraw-request",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       console.log("Admin requesting all withdrawal requests");
@@ -87,11 +87,11 @@ router.get(
   })
 );
 
-// update withdraw request ---- admin
+// update withdraw request ---- admin and Manager
 router.put(
   "/update-withdraw-request/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { sellerId } = req.body;
@@ -143,7 +143,7 @@ router.put(
 router.put(
   "/approve-withdrawal-with-phonepe-payout/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { sellerId, payoutMethod } = req.body; // payoutMethod: 'bank' or 'upi'
@@ -309,7 +309,7 @@ router.put(
 router.put(
   "/approve-withdrawal-with-paypal-payout/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { sellerId } = req.body;
@@ -447,7 +447,7 @@ router.put(
 router.get(
   "/paypal-payout-status/:batchId",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageOrders'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { batchId } = req.params;

@@ -18,9 +18,27 @@ const AllAdvertisements = () => {
   const { seller } = useSelector((state) => state.seller);
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hasAdPreApproval, setHasAdPreApproval] = useState(false);
 
   useEffect(() => {
     fetchAdvertisements();
+  }, []);
+
+  // Check if seller has Ad Pre-Approval feature (Gold plan)
+  useEffect(() => {
+    const checkAdPreApproval = async () => {
+      try {
+        const { data } = await axios.get(`${server}/shop/subscription-info`, {
+          withCredentials: true,
+        });
+        if (data.success && data.subscription?.features?.adPreApproval) {
+          setHasAdPreApproval(true);
+        }
+      } catch (error) {
+        console.error("Error checking subscription:", error);
+      }
+    };
+    checkAdPreApproval();
   }, []);
 
   const fetchAdvertisements = async () => {
@@ -94,6 +112,8 @@ const AllAdvertisements = () => {
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
+      case "awaiting_payment":
+        return "bg-orange-100 text-orange-800";
       case "expired":
         return "bg-gray-100 text-gray-800";
       case "cancelled":
@@ -102,6 +122,25 @@ const AllAdvertisements = () => {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "awaiting_payment":
+        return "💳 AWAITING PAYMENT";
+      case "pending":
+        return "⏳ PENDING APPROVAL";
+      case "active":
+        return "✓ ACTIVE";
+      case "expired":
+        return "EXPIRED";
+      case "cancelled":
+        return "CANCELLED";
+      case "rejected":
+        return "REJECTED";
+      default:
+        return status?.toUpperCase();
     }
   };
 
@@ -143,13 +182,24 @@ const AllAdvertisements = () => {
       flex: 1,
       renderCell: (params) => (
         <div className="flex items-center gap-2">
-          {params.row.image?.url && (
+          {params.row.mediaType === "video" && params.row.video?.url ? (
+            <div className="relative w-12 h-8 bg-gray-200 rounded overflow-hidden">
+              <video
+                src={params.row.video.url}
+                className="w-12 h-8 object-cover"
+                muted
+              />
+              <span className="absolute bottom-0 right-0 text-[8px] bg-purple-600 text-white px-1 rounded-tl">
+                🎬
+              </span>
+            </div>
+          ) : params.row.image?.url ? (
             <img
               src={params.row.image.url}
               alt={params.row.title}
               className="w-12 h-8 object-cover rounded"
             />
-          )}
+          ) : null}
           <span className="font-medium">{params.row.title}</span>
         </div>
       ),
@@ -166,15 +216,38 @@ const AllAdvertisements = () => {
     {
       field: "status",
       headerName: "Status",
-      minWidth: 100,
+      minWidth: 160,
       renderCell: (params) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-            params.value
-          )}`}
-        >
-          {params.value.toUpperCase()}
-        </span>
+        <div className="flex flex-col">
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+              params.value
+            )}`}
+          >
+            {getStatusLabel(params.value)}
+          </span>
+          {params.row.approvalNote?.includes("Auto-approved") && params.value === "active" && (
+            <span className="text-[10px] text-amber-600 mt-1 font-medium">
+              ⚡ Auto-Approved (Gold)
+            </span>
+          )}
+          {params.value === "rejected" && params.row.rejectionReason && (
+            <span
+              className="text-[10px] text-red-600 mt-1 truncate max-w-[100px]"
+              title={params.row.rejectionReason}
+            >
+              ⚠️ {params.row.rejectionReason.substring(0, 20)}...
+            </span>
+          )}
+          {params.value === "awaiting_payment" && (
+            <Link
+              to={`/dashboard-advertisement-payment/${params.row.id}`}
+              className="text-[10px] text-blue-600 mt-1 hover:underline"
+            >
+              → Complete Payment
+            </Link>
+          )}
+        </div>
       ),
     },
     {
@@ -258,15 +331,48 @@ const AllAdvertisements = () => {
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 150,
+      minWidth: 200,
       sortable: false,
       renderCell: (params) => (
         <div className="flex items-center gap-2">
+          {/* Pay Now button - for awaiting_payment status */}
+          {params.row.status === "awaiting_payment" && (
+            <Link to={`/dashboard-advertisement-payment/${params.row.id}`}>
+              <Button
+                size="small"
+                variant="contained"
+                style={{
+                  backgroundColor: "#f97316",
+                  color: "white",
+                  fontSize: "10px",
+                }}
+                title="Complete Payment"
+              >
+                💳 Pay Now
+              </Button>
+            </Link>
+          )}
+
           <Link to={`/shop-dashboard/advertisement/analytics/${params.row.id}`}>
             <Button size="small" color="primary">
               <AiOutlineEye size={18} />
             </Button>
           </Link>
+
+          {/* Edit button - only for pending, rejected or awaiting_payment ads */}
+          {(params.row.status === "pending" ||
+            params.row.status === "rejected" ||
+            params.row.status === "awaiting_payment") && (
+            <Link to={`/dashboard-edit-advertisement/${params.row.id}`}>
+              <Button
+                size="small"
+                style={{ color: "#3b82f6" }}
+                title="Edit Advertisement"
+              >
+                <AiOutlineEdit size={18} />
+              </Button>
+            </Link>
+          )}
 
           {params.row.status === "active" && (
             <Button
@@ -280,7 +386,7 @@ const AllAdvertisements = () => {
 
           {(params.row.status === "expired" ||
             params.row.status === "cancelled") && (
-            <Link to={`/shop-dashboard/advertisement/renew/${params.row.id}`}>
+            <Link to={`/dashboard-renew-advertisement/${params.row.id}`}>
               <Button size="small" style={{ color: "#10b981" }}>
                 <MdOutlineAutorenew size={18} />
               </Button>
@@ -304,20 +410,32 @@ const AllAdvertisements = () => {
     clickThroughRate: ad.clickThroughRate,
     autoRenew: ad.autoRenew,
     image: ad.image,
+    video: ad.video,
+    mediaType: ad.mediaType,
+    rejectionReason: ad.rejectionReason,
+    approvalNote: ad.approvalNote,
   }));
 
   return (
     <div className="w-full mx-8 pt-1 mt-10 bg-white rounded-lg shadow-md">
       <div className="flex items-center justify-between p-6 border-b">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">
-            My Advertisements
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your advertising campaigns and track performance
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              My Advertisements
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your advertising campaigns and track performance
+            </p>
+          </div>
+          {hasAdPreApproval && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full shadow-md">
+              <span className="text-lg">⚡</span>
+              <span className="text-xs font-bold uppercase tracking-wide">Auto-Approval Active</span>
+            </div>
+          )}
         </div>
-        <Link to="/shop-dashboard/advertisement/create">
+        <Link to="/dashboard-create-advertisement">
           <Button
             variant="contained"
             color="primary"
@@ -329,17 +447,23 @@ const AllAdvertisements = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 border-b">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border-l-4 border-green-500">
-          <div className="text-sm text-gray-600 mb-1">Active Ads</div>
-          <div className="text-2xl font-bold text-green-700">
-            {ads.filter((ad) => ad.status === "active").length}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-6 border-b">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border-l-4 border-orange-500">
+          <div className="text-sm text-gray-600 mb-1">💳 Awaiting Payment</div>
+          <div className="text-2xl font-bold text-orange-700">
+            {ads.filter((ad) => ad.status === "awaiting_payment").length}
           </div>
         </div>
         <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border-l-4 border-yellow-500">
-          <div className="text-sm text-gray-600 mb-1">Pending Approval</div>
+          <div className="text-sm text-gray-600 mb-1">⏳ Pending Approval</div>
           <div className="text-2xl font-bold text-yellow-700">
             {ads.filter((ad) => ad.status === "pending").length}
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border-l-4 border-green-500">
+          <div className="text-sm text-gray-600 mb-1">✓ Active Ads</div>
+          <div className="text-2xl font-bold text-green-700">
+            {ads.filter((ad) => ad.status === "active").length}
           </div>
         </div>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-l-4 border-blue-500">

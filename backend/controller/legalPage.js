@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const LegalPage = require("../model/legalPage");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const { uploadDocument } = require("../multer");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
@@ -59,7 +59,7 @@ router.get(
 router.get(
   "/admin-get-all-pages",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const pages = await LegalPage.find()
@@ -80,7 +80,7 @@ router.get(
 router.get(
   "/admin-get-page/:pageType",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { pageType } = req.params;
@@ -106,7 +106,7 @@ router.get(
 router.post(
   "/admin-create-update-page",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   uploadDocument.single("document"),
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -307,7 +307,7 @@ router.post(
 router.delete(
   "/admin-delete-page/:pageType",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { pageType } = req.params;
@@ -345,7 +345,7 @@ router.delete(
 router.put(
   "/admin-toggle-status/:pageType",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { pageType } = req.params;
@@ -377,7 +377,7 @@ router.put(
 router.get(
   "/admin-page-stats",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const totalPages = await LegalPage.countDocuments();
@@ -405,7 +405,7 @@ router.get(
   })
 );
 
-// Migration endpoint to split terms-of-service into buyer and seller terms
+// Migration endpoint to split terms-of-service into buyer and seller terms (Admin only)
 router.post(
   "/admin-migrate-terms",
   isAuthenticated,

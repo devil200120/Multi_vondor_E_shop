@@ -1,9 +1,13 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import styles from "../../styles/styles";
 import ShopInfo from "../../components/Shop/ShopInfo";
 import ShopProfileData from "../../components/Shop/ShopProfileData";
+import ShopCustomContent from "../../components/Shop/ShopCustomContent";
 
 const ShopHomePage = () => {
+  const { id } = useParams();
+
   return (
     <div className={`${styles.section} bg-[#f5f5f5]`}>
       <div className="w-full 800px:flex py-10 justify-between">
@@ -11,6 +15,9 @@ const ShopHomePage = () => {
           <ShopInfo isOwner={true} />
         </div>
         <div className="800px:w-[72%] mt-5 800px:mt-['unset'] rounded-[4px]">
+          {/* Custom HTML/CSS Content (Gold Plan Feature) */}
+          <ShopCustomContent shopId={id} />
+          
           <ShopProfileData isOwner={true} />
         </div>
       </div>

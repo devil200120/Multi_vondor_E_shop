@@ -102,6 +102,8 @@ const AdminAdvertisements = () => {
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
+      case "awaiting_payment":
+        return "bg-orange-100 text-orange-800";
       case "expired":
         return "bg-gray-100 text-gray-800";
       case "cancelled":
@@ -110,6 +112,21 @@ const AdminAdvertisements = () => {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "pending":
+        return "bg-orange-100 text-orange-800 border-orange-300";
+      case "failed":
+        return "bg-red-100 text-red-800 border-red-300";
+      case "refunded":
+        return "bg-purple-100 text-purple-800 border-purple-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
 
@@ -158,15 +175,46 @@ const AdminAdvertisements = () => {
     {
       field: "status",
       headerName: "Status",
-      minWidth: 120,
+      minWidth: 140,
       renderCell: (params) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
             params.value
           )}`}
         >
-          {params.value.toUpperCase()}
+          {params.value === "awaiting_payment"
+            ? "AWAITING PAY"
+            : params.value.toUpperCase()}
         </span>
+      ),
+    },
+    {
+      field: "paymentStatus",
+      headerName: "Payment",
+      minWidth: 130,
+      renderCell: (params) => (
+        <div className="flex flex-col">
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-semibold border ${getPaymentStatusColor(
+              params.value
+            )}`}
+          >
+            {params.value === "completed"
+              ? "✓ PAID"
+              : params.value === "pending"
+              ? "⏳ UNPAID"
+              : params.value === "refunded"
+              ? "↩ REFUNDED"
+              : params.value?.toUpperCase() || "UNKNOWN"}
+          </span>
+          {params.row.paymentMethod && (
+            <span className="text-[10px] text-gray-500 mt-1">
+              {params.row.paymentMethod === "free_testing"
+                ? "🎁 Free"
+                : params.row.paymentMethod}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -192,28 +240,46 @@ const AdminAdvertisements = () => {
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 150,
+      minWidth: 200,
       sortable: false,
       renderCell: (params) => (
         <div className="flex items-center gap-2">
           <Button
             size="small"
-            onClick={() => window.open(params.row.image, "_blank")}
-            title="View Image"
+            onClick={() => {
+              const mediaUrl =
+                params.row.mediaType === "video"
+                  ? params.row.video
+                  : params.row.image;
+              if (mediaUrl) window.open(mediaUrl, "_blank");
+            }}
+            title="View Media"
           >
             <AiOutlineEye size={18} />
           </Button>
 
+          {/* Show Approve/Reject for pending ads with completed payment */}
           {params.row.status === "pending" && (
             <>
-              <Button
-                size="small"
-                style={{ color: "#10b981" }}
-                onClick={() => handleApprove(params.row.id)}
-                title="Approve"
-              >
-                <AiOutlineCheck size={18} />
-              </Button>
+              {params.row.paymentStatus === "completed" ? (
+                <Button
+                  size="small"
+                  style={{ color: "#10b981" }}
+                  onClick={() => handleApprove(params.row.id)}
+                  title="Approve"
+                >
+                  <AiOutlineCheck size={18} />
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  disabled
+                  title="Cannot approve - Payment not completed"
+                  style={{ color: "#ccc" }}
+                >
+                  <AiOutlineCheck size={18} />
+                </Button>
+              )}
               <Button
                 size="small"
                 color="secondary"
@@ -223,6 +289,30 @@ const AdminAdvertisements = () => {
                 <AiOutlineClose size={18} />
               </Button>
             </>
+          )}
+
+          {/* Show Reject for awaiting_payment ads (seller hasn't paid yet) */}
+          {params.row.status === "awaiting_payment" && (
+            <Button
+              size="small"
+              color="secondary"
+              onClick={() => handleRejectClick(params.row)}
+              title="Reject (Cancel unpaid ad)"
+            >
+              <AiOutlineClose size={18} />
+            </Button>
+          )}
+
+          {/* Show Reject for active ads (to deactivate) */}
+          {params.row.status === "active" && (
+            <Button
+              size="small"
+              color="secondary"
+              onClick={() => handleRejectClick(params.row)}
+              title="Deactivate Ad"
+            >
+              <AiOutlineClose size={18} />
+            </Button>
           )}
         </div>
       ),
@@ -236,9 +326,13 @@ const AdminAdvertisements = () => {
     title: ad.title,
     adType: ad.adType,
     status: ad.status,
+    paymentStatus: ad.paymentStatus,
+    paymentMethod: ad.paymentMethod,
     totalPrice: ad.totalPrice,
     duration: ad.duration,
     image: ad.image?.url,
+    video: ad.video?.url,
+    mediaType: ad.mediaType,
     createdAt: ad.createdAt,
   }));
 
@@ -255,8 +349,15 @@ const AdminAdvertisements = () => {
 
       {/* Status Filter */}
       <div className="p-6 border-b">
-        <div className="flex gap-2">
-          {["all", "pending", "active", "rejected", "expired"].map((status) => (
+        <div className="flex gap-2 flex-wrap">
+          {[
+            "all",
+            "awaiting_payment",
+            "pending",
+            "active",
+            "rejected",
+            "expired",
+          ].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -266,14 +367,22 @@ const AdminAdvertisements = () => {
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === "awaiting_payment"
+                ? "Awaiting Payment"
+                : status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
           ))}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 border-b">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-6 border-b">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border-l-4 border-orange-500">
+          <div className="text-sm text-gray-600 mb-1">⏳ Awaiting Payment</div>
+          <div className="text-2xl font-bold text-orange-700">
+            {ads.filter((ad) => ad.status === "awaiting_payment").length}
+          </div>
+        </div>
         <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border-l-4 border-yellow-500">
           <div className="text-sm text-gray-600 mb-1">Pending Approval</div>
           <div className="text-2xl font-bold text-yellow-700">
@@ -291,9 +400,15 @@ const AdminAdvertisements = () => {
           <div className="text-2xl font-bold text-blue-700">
             $
             {ads
-              .filter((ad) => ad.status === "active")
+              .filter((ad) => ad.paymentStatus === "completed")
               .reduce((sum, ad) => sum + ad.totalPrice, 0)
               .toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border-l-4 border-gray-500">
+          <div className="text-sm text-gray-600 mb-1">Expired</div>
+          <div className="text-2xl font-bold text-gray-700">
+            {ads.filter((ad) => ad.status === "expired").length}
           </div>
         </div>
         <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border-l-4 border-red-500">

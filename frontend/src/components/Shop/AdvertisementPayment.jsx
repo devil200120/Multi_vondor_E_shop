@@ -11,7 +11,7 @@ import {
 } from "@paypal/react-paypal-js";
 
 // PayPal Button wrapper with loading state
-const PayPalButtonWrapper = ({ advertisement, onPaymentSuccess }) => {
+const PayPalButtonWrapper = ({ advertisement, onPaymentSuccess, hasAdPreApproval }) => {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
   const [processing, setProcessing] = useState(false);
 
@@ -50,7 +50,12 @@ const PayPalButtonWrapper = ({ advertisement, onPaymentSuccess }) => {
       );
 
       if (response.data.success) {
-        toast.success("Payment successful! Your ad is pending admin approval.");
+        // Check if ad was auto-approved (Gold plan)
+        if (response.data.autoApproved) {
+          toast.success("Payment successful! Your ad is now ACTIVE (Auto-Approved via Gold Plan)!");
+        } else {
+          toast.success("Payment successful! Your ad is pending admin approval.");
+        }
         onPaymentSuccess();
       }
     } catch (error) {
@@ -123,10 +128,28 @@ const AdvertisementPayment = () => {
 
   const [advertisement, setAdvertisement] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasAdPreApproval, setHasAdPreApproval] = useState(false);
 
   useEffect(() => {
     fetchAdvertisement();
   }, [advertisementId]);
+
+  // Check if seller has Ad Pre-Approval feature (Gold plan)
+  useEffect(() => {
+    const checkAdPreApproval = async () => {
+      try {
+        const { data } = await axios.get(`${server}/shop/subscription-info`, {
+          withCredentials: true,
+        });
+        if (data.success && data.subscription?.features?.adPreApproval) {
+          setHasAdPreApproval(true);
+        }
+      } catch (error) {
+        console.error("Error checking subscription:", error);
+      }
+    };
+    checkAdPreApproval();
+  }, []);
 
   const fetchAdvertisement = async () => {
     try {
@@ -262,7 +285,11 @@ const AdvertisementPayment = () => {
                   </h4>
                   <ul className="text-xs text-yellow-700 space-y-1 list-disc list-inside">
                     <li>Payment is non-refundable once approved</li>
-                    <li>Ads require admin approval (1-2 business days)</li>
+                    {hasAdPreApproval ? (
+                      <li className="text-green-700 font-medium">⚡ Your ad will be auto-approved (Gold Plan)</li>
+                    ) : (
+                      <li>Ads require admin approval (1-2 business days)</li>
+                    )}
                     <li>Refund issued if admin rejects your ad</li>
                     <li>
                       Auto-renewal{" "}
@@ -274,6 +301,18 @@ const AdvertisementPayment = () => {
 
               {/* Right - Payment Form */}
               <div className="space-y-4">
+                {hasAdPreApproval && (
+                  <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-xl p-4">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-3">⚡</span>
+                      <div>
+                        <h4 className="font-bold">Gold Plan Auto-Approval</h4>
+                        <p className="text-sm opacity-90">Your ad will be automatically approved after payment!</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                     <span className="mr-2">💳</span> Pay with PayPal
@@ -290,6 +329,7 @@ const AdvertisementPayment = () => {
                   <PayPalButtonWrapper
                     advertisement={advertisement}
                     onPaymentSuccess={handlePaymentSuccess}
+                    hasAdPreApproval={hasAdPreApproval}
                   />
                 </div>
 

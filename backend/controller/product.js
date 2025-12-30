@@ -928,7 +928,7 @@ router.post(
 router.put(
   "/admin-update-product/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageProducts'),
   upload.array("images"),
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -1116,7 +1116,7 @@ router.put(
 router.delete(
   "/admin-delete-product/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageProducts'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const productId = req.params.id;
@@ -1159,7 +1159,7 @@ router.delete(
 router.patch(
   "/admin-toggle-product-status/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageProducts'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const productId = req.params.id;
@@ -1191,7 +1191,7 @@ router.patch(
 router.get(
   "/admin-all-products",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageProducts'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const products = await Product.find()

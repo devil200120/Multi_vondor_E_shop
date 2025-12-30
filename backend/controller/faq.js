@@ -1,5 +1,5 @@
 const express = require("express");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const FAQ = require("../model/faq");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
@@ -230,7 +230,7 @@ router.get(
 router.get(
   "/admin/get-all-faqs",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { page = 1, limit = 10, category, search, status } = req.query;
@@ -314,7 +314,7 @@ router.get(
 router.post(
   "/admin/create-faq",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const {
@@ -356,7 +356,7 @@ router.post(
 router.put(
   "/admin/update-faq/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const faq = await FAQ.findById(req.params.id);
@@ -405,7 +405,7 @@ router.put(
 router.delete(
   "/admin/delete-faq/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const faq = await FAQ.findById(req.params.id);
@@ -430,7 +430,7 @@ router.delete(
 router.delete(
   "/admin/bulk-delete-faqs",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { faqIds } = req.body;
@@ -458,7 +458,7 @@ router.delete(
 router.put(
   "/admin/update-faq-order",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { faqOrders } = req.body; // Array of { id, order }

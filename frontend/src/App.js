@@ -66,6 +66,9 @@ import {
   ShopCreateAdvertisement,
   ShopAdvertisementPricing,
   ShopAdvertisementPayment,
+  ShopEditAdvertisement,
+  ShopRenewAdvertisement,
+  HtmlCssEditorPage,
 } from "./routes/ShopRoutes";
 
 import {
@@ -98,6 +101,8 @@ import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import AdminSubscriptionsPage from "./pages/AdminSubscriptionsPage";
 import AdminPlanManagementPage from "./pages/AdminPlanManagementPage";
 import AdminReviewManagementPage from "./pages/AdminReviewManagementPage";
+import AdminAdvertisementsPage from "./pages/AdminAdvertisementsPage";
+import AdminAdPlanManagementPage from "./pages/AdminAdPlanManagementPage";
 import ReviewManagementPage from "./pages/ReviewManagementPage";
 import AdminDashboardStaff from "./pages/AdminDashboardStaff";
 import AdminDashboardPendingProducts from "./pages/AdminDashboardPendingProducts";
@@ -303,6 +308,17 @@ const App = () => {
             <SellerProtectedRoute>
               <SellerBanProtection>
                 <ShopSettingsPage />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-html-css-editor"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <HtmlCssEditorPage />
               </SellerBanProtection>
             </SellerProtectedRoute>
           }
@@ -547,6 +563,28 @@ const App = () => {
         />
 
         <Route
+          path="/dashboard-edit-advertisement/:id"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopEditAdvertisement />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-renew-advertisement/:id"
+          element={
+            <SellerProtectedRoute>
+              <SellerBanProtection>
+                <ShopRenewAdvertisement />
+              </SellerBanProtection>
+            </SellerProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard-gst-settings"
           element={
             <SellerProtectedRoute>
@@ -768,6 +806,22 @@ const App = () => {
           element={
             <ProtectedAdminRoute>
               <AdminPlanManagementPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-advertisements"
+          element={
+            <ProtectedAdminRoute>
+              <AdminAdvertisementsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin-ad-plans"
+          element={
+            <ProtectedAdminRoute>
+              <AdminAdPlanManagementPage />
             </ProtectedAdminRoute>
           }
         />

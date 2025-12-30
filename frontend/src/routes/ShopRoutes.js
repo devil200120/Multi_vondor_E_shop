@@ -25,6 +25,9 @@ import ShopAllAdvertisements from "../pages/Shop/ShopAllAdvertisements";
 import ShopCreateAdvertisement from "../pages/Shop/ShopCreateAdvertisement";
 import ShopAdvertisementPricing from "../pages/Shop/ShopAdvertisementPricing";
 import ShopAdvertisementPayment from "../pages/Shop/ShopAdvertisementPayment";
+import ShopEditAdvertisement from "../pages/Shop/EditAdvertisementPage";
+import ShopRenewAdvertisement from "../pages/Shop/RenewAdvertisementPage";
+import HtmlCssEditorPage from "../pages/Shop/HtmlCssEditorPage";
 
 export {
   ShopDashboardPage,
@@ -54,4 +57,7 @@ export {
   ShopCreateAdvertisement,
   ShopAdvertisementPricing,
   ShopAdvertisementPayment,
+  ShopEditAdvertisement,
+  ShopRenewAdvertisement,
+  HtmlCssEditorPage,
 };

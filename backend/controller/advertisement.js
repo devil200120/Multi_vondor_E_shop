@@ -62,10 +62,14 @@ exports.calculateAdvertisementPrice = catchAsyncErrors(async (req, res, next) =>
     return next(new ErrorHandler("Invalid ad type", 400));
   }
   
+  // Check if this ad type is set to free mode for testing
+  const plan = adPlansConfig?.plans?.find(p => p.adType === adType);
+  const isFree = plan?.isFree || false;
+  
   const discount = Advertisement.calculateDiscount(duration);
   const totalMonthlyPrice = basePrice * duration;
   const discountAmount = (totalMonthlyPrice * discount) / 100;
-  const totalPrice = totalMonthlyPrice - discountAmount;
+  const totalPrice = isFree ? 0 : totalMonthlyPrice - discountAmount;
   
   res.status(200).json({
     success: true,
@@ -77,6 +81,7 @@ exports.calculateAdvertisementPrice = catchAsyncErrors(async (req, res, next) =>
       discount,
       discountAmount,
       totalPrice,
+      isFree,
     },
   });
 });
@@ -84,6 +89,7 @@ exports.calculateAdvertisementPrice = catchAsyncErrors(async (req, res, next) =>
 // Get available slots for a specific ad type
 exports.getAvailableSlots = catchAsyncErrors(async (req, res, next) => {
   const { adType } = req.params;
+  const sellerId = req.seller?._id;
   
   // Ad types that have slots
   const slotTypes = ['leaderboard', 'top_sidebar', 'right_sidebar_top', 
@@ -97,28 +103,42 @@ exports.getAvailableSlots = catchAsyncErrors(async (req, res, next) => {
     });
   }
   
-  // Get all active ads for this type
+  // Get all PAID active/pending ads for this type (only count ads where payment is completed)
   const activeAds = await Advertisement.find({
     adType,
-    status: 'active',
+    status: { $in: ['active', 'pending'] },
+    paymentStatus: 'completed', // Only count paid ads
     endDate: { $gt: new Date() },
-  }).select('slotNumber');
+  }).select('slotNumber shopId');
   
-  const occupiedSlots = activeAds.map(ad => ad.slotNumber);
   const totalSlots = 6;
-  const availableSlots = [];
+  const slotInfo = [];
   
+  // Calculate ads per slot and check if seller already has ad in that slot
   for (let i = 1; i <= totalSlots; i++) {
-    if (!occupiedSlots.includes(i)) {
-      availableSlots.push(i);
-    }
+    const adsInSlot = activeAds.filter(ad => ad.slotNumber === i);
+    const sellerHasAdInSlot = sellerId 
+      ? adsInSlot.some(ad => ad.shopId.toString() === sellerId.toString())
+      : false;
+    
+    slotInfo.push({
+      slot: i,
+      adsCount: adsInSlot.length,
+      sellerHasAd: sellerHasAdInSlot,
+      available: !sellerHasAdInSlot, // Available if seller doesn't already have paid ad here
+    });
   }
+  
+  // Available slots are those where seller doesn't already have a paid ad
+  const availableSlots = slotInfo.filter(s => s.available).map(s => s.slot);
   
   res.status(200).json({
     success: true,
     totalSlots,
-    occupiedSlots: occupiedSlots.length,
-    availableSlots,
+    slotInfo, // Detailed info for each slot
+    availableSlots, // Simple array for backward compatibility
+    totalActiveAds: activeAds.length,
+    message: 'Multiple sellers can book same slot - ads rotate in carousel',
   });
 });
 
@@ -140,21 +160,40 @@ exports.createAdvertisement = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Shop not found", 404));
   }
   
-  // Check if slot is available (for banner types)
+  // Note: Multiple sellers can book the same slot
+  // Ads will rotate in a carousel (10 second intervals)
   const slotTypes = ['leaderboard', 'top_sidebar', 'right_sidebar_top', 
                      'right_sidebar_middle', 'right_sidebar_bottom'];
   
+  // Only check for same shop duplicate in same slot (only block if they have a PAID ad)
   if (slotTypes.includes(adType) && slotNumber) {
-    const existingAd = await Advertisement.findOne({
+    // Check for paid ads from same shop in same slot
+    const existingPaidAd = await Advertisement.findOne({
       adType,
       slotNumber: parseInt(slotNumber),
-      status: 'active',
+      shopId: req.seller._id,
+      status: { $in: ['active', 'pending'] },
+      paymentStatus: 'completed', // Only block if payment was completed
       endDate: { $gt: new Date() },
     });
     
-    if (existingAd) {
-      return next(new ErrorHandler(`Slot ${slotNumber} is already occupied`, 400));
+    if (existingPaidAd) {
+      return next(new ErrorHandler(`You already have a paid active/pending ad in slot ${slotNumber}`, 400));
     }
+    
+    // Auto-cancel any unpaid ads from the same seller in the same slot
+    await Advertisement.updateMany(
+      {
+        adType,
+        slotNumber: parseInt(slotNumber),
+        shopId: req.seller._id,
+        status: 'awaiting_payment',
+        paymentStatus: 'pending',
+      },
+      {
+        $set: { status: 'cancelled', cancellationReason: 'Replaced by new ad creation' }
+      }
+    );
   }
   
   // Verify product belongs to vendor (for featured_product type)
@@ -165,22 +204,41 @@ exports.createAdvertisement = catchAsyncErrors(async (req, res, next) => {
     }
   }
   
-  // Handle image upload
+  // Handle media upload (image or video)
   let imageData = null;
+  let videoData = null;
+  let mediaType = 'image';
+  
   if (req.file) {
+    const isVideo = req.file.mimetype.startsWith('video/');
+    mediaType = isVideo ? 'video' : 'image';
+    
     const result = await uploadToCloudinary(req.file.buffer, {
       folder: 'advertisements',
-      resource_type: 'image',
+      resource_type: isVideo ? 'video' : 'image',
     });
     
-    imageData = {
-      url: result.url,
-      public_id: result.public_id,
-    };
+    if (isVideo) {
+      videoData = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+    } else {
+      imageData = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+    }
   }
   
-  // Generate link URL to vendor store
-  const linkUrl = `/shop/${shop._id}`;
+  // Generate link URL - to product if selected, otherwise to shop
+  let linkUrl = `/shop/${shop._id}`;
+  if (productId) {
+    const product = await Product.findById(productId);
+    if (product && product.shopId.toString() === shop._id.toString()) {
+      linkUrl = `/product/${productId}`;
+    }
+  }
   
   // Calculate dates
   const startDate = new Date();
@@ -195,6 +253,8 @@ exports.createAdvertisement = catchAsyncErrors(async (req, res, next) => {
     title,
     description,
     image: imageData,
+    video: videoData,
+    mediaType,
     linkUrl,
     productId: productId || null,
     duration: parseInt(duration),
@@ -206,12 +266,52 @@ exports.createAdvertisement = catchAsyncErrors(async (req, res, next) => {
   // Calculate price
   advertisement.calculateTotalPrice();
   
+  // Check if this ad type is in free mode
+  const plan = adPlansConfig?.plans?.find(p => p.adType === adType);
+  const isFree = plan?.isFree || false;
+  
+  // Check if seller has adPreApproval feature (Gold plan)
+  const Subscription = require("../model/subscription");
+  const subscription = await Subscription.findOne({
+    shop: req.seller._id,
+    status: { $in: ['active', 'pending'] },
+  });
+  
+  const hasAdPreApproval = subscription?.features?.adPreApproval || false;
+  
+  if (isFree) {
+    // Free mode - skip payment
+    advertisement.paymentStatus = 'completed';
+    advertisement.totalPrice = 0;
+    advertisement.paymentMethod = 'free_testing';
+    
+    // If seller has Ad Pre-Approval (Gold plan), auto-approve
+    if (hasAdPreApproval) {
+      advertisement.status = 'active';
+      advertisement.approvedAt = new Date();
+      advertisement.approvalNote = 'Auto-approved (Gold Plan - Ad Pre-Approval feature)';
+    } else {
+      advertisement.status = 'pending'; // Still needs admin approval
+    }
+  }
+  
   await advertisement.save();
+  
+  let message = "";
+  if (isFree && hasAdPreApproval) {
+    message = "Advertisement created successfully (FREE MODE + Auto-Approved). Your ad is now LIVE!";
+  } else if (isFree) {
+    message = "Advertisement created successfully (FREE MODE). Awaiting admin approval.";
+  } else {
+    message = "Advertisement created successfully. Awaiting payment.";
+  }
   
   res.status(201).json({
     success: true,
-    message: "Advertisement created successfully. Awaiting payment.",
+    message,
     advertisement,
+    isFree,
+    autoApproved: isFree && hasAdPreApproval,
   });
 });
 
@@ -230,21 +330,43 @@ exports.processAdvertisementPayment = catchAsyncErrors(async (req, res, next) =>
     return next(new ErrorHandler("Unauthorized", 403));
   }
   
+  // Check if seller has adPreApproval feature (Gold plan)
+  const Subscription = require("../model/subscription");
+  const subscription = await Subscription.findOne({
+    shop: req.seller._id,
+    status: { $in: ['active', 'pending'] },
+  });
+  
+  const hasAdPreApproval = subscription?.features?.adPreApproval || false;
+  
   // Update payment status
   advertisement.paymentStatus = 'completed';
   advertisement.paymentId = paymentId;
   advertisement.paymentMethod = paymentMethod;
-  advertisement.status = 'pending'; // Pending admin approval
+  
+  // If seller has Ad Pre-Approval (Gold plan), auto-approve the ad
+  if (hasAdPreApproval) {
+    advertisement.status = 'active';
+    advertisement.approvedAt = new Date();
+    advertisement.approvalNote = 'Auto-approved (Gold Plan - Ad Pre-Approval feature)';
+  } else {
+    advertisement.status = 'pending'; // Pending admin approval
+  }
   
   await advertisement.save();
   
-  // Send notification to admin
+  // Send notification to admin if not auto-approved
   // TODO: Implement admin notification
+  
+  const message = hasAdPreApproval
+    ? "Payment processed successfully. Advertisement is now LIVE (Gold Plan - Auto-Approved)!"
+    : "Payment processed successfully. Advertisement pending admin approval.";
   
   res.status(200).json({
     success: true,
-    message: "Payment processed successfully. Advertisement pending admin approval.",
+    message,
     advertisement,
+    autoApproved: hasAdPreApproval,
   });
 });
 
@@ -256,6 +378,11 @@ exports.approveAdvertisement = catchAsyncErrors(async (req, res, next) => {
   
   if (!advertisement) {
     return next(new ErrorHandler("Advertisement not found", 404));
+  }
+  
+  // Check if payment is completed before allowing approval
+  if (advertisement.paymentStatus !== 'completed') {
+    return next(new ErrorHandler("Cannot approve - Payment not completed. Current status: " + advertisement.paymentStatus, 400));
   }
   
   advertisement.status = 'active';
@@ -311,6 +438,103 @@ exports.rejectAdvertisement = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Advertisement rejected and refund initiated",
+    advertisement,
+  });
+});
+
+// Get single advertisement by ID (Vendor)
+exports.getVendorAdvertisementById = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const advertisement = await Advertisement.findOne({
+    _id: id,
+    shopId: req.seller._id,
+  }).populate('productId', 'name images');
+  
+  if (!advertisement) {
+    return next(new ErrorHandler("Advertisement not found", 404));
+  }
+  
+  res.status(200).json({
+    success: true,
+    advertisement,
+  });
+});
+
+// Update advertisement (Vendor - only pending or rejected ads can be edited)
+exports.updateAdvertisement = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  const { title, description, autoRenew } = req.body;
+  
+  const advertisement = await Advertisement.findOne({
+    _id: id,
+    shopId: req.seller._id,
+  });
+  
+  if (!advertisement) {
+    return next(new ErrorHandler("Advertisement not found", 404));
+  }
+  
+  // Only allow editing of pending or rejected ads
+  if (!['pending', 'rejected'].includes(advertisement.status)) {
+    return next(new ErrorHandler(
+      "Only pending or rejected advertisements can be edited. Active ads cannot be modified.",
+      400
+    ));
+  }
+  
+  // Update fields
+  if (title) advertisement.title = title;
+  if (description !== undefined) advertisement.description = description;
+  if (autoRenew !== undefined) advertisement.autoRenew = autoRenew;
+  
+  // Handle media update (image or video)
+  if (req.file) {
+    const isVideo = req.file.mimetype.startsWith('video/');
+    
+    // Delete old media from cloudinary if exists
+    if (advertisement.image?.public_id) {
+      await deleteFromCloudinary(advertisement.image.public_id);
+    }
+    if (advertisement.video?.public_id) {
+      await deleteFromCloudinary(advertisement.video.public_id, 'video');
+    }
+    
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: 'advertisements',
+      resource_type: isVideo ? 'video' : 'image',
+    });
+    
+    if (isVideo) {
+      advertisement.video = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+      advertisement.image = { url: null, public_id: null };
+      advertisement.mediaType = 'video';
+    } else {
+      advertisement.image = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+      advertisement.video = { url: null, public_id: null };
+      advertisement.mediaType = 'image';
+    }
+  }
+  
+  // If ad was rejected, set back to pending for re-review
+  if (advertisement.status === 'rejected') {
+    advertisement.status = 'pending';
+    advertisement.rejectionReason = null;
+  }
+  
+  await advertisement.save();
+  
+  res.status(200).json({
+    success: true,
+    message: advertisement.status === 'pending' 
+      ? "Advertisement updated successfully. It will be reviewed by admin."
+      : "Advertisement updated successfully.",
     advertisement,
   });
 });
@@ -456,48 +680,126 @@ exports.cancelAdvertisement = catchAsyncErrors(async (req, res, next) => {
 // Renew advertisement (Vendor)
 exports.renewAdvertisement = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
-  const { duration, paymentId, paymentMethod } = req.body;
+  const { duration, autoRenew } = req.body;
   
-  const advertisement = await Advertisement.findOne({
+  const originalAd = await Advertisement.findOne({
     _id: id,
     shopId: req.seller._id,
   });
   
-  if (!advertisement) {
+  if (!originalAd) {
     return next(new ErrorHandler("Advertisement not found", 404));
+  }
+  
+  // Check if ad can be renewed (expired or cancelled)
+  if (!['expired', 'cancelled'].includes(originalAd.status)) {
+    return next(new ErrorHandler("Only expired or cancelled ads can be renewed", 400));
   }
   
   // Calculate new price
   const pricing = Advertisement.getPricing();
-  const basePrice = pricing[advertisement.adType];
-  const discount = Advertisement.calculateDiscount(duration);
-  const totalMonthlyPrice = basePrice * duration;
+  const basePrice = pricing[originalAd.adType];
+  const discount = Advertisement.calculateDiscount(parseInt(duration));
+  const totalMonthlyPrice = basePrice * parseInt(duration);
   const discountAmount = (totalMonthlyPrice * discount) / 100;
   const totalPrice = totalMonthlyPrice - discountAmount;
   
-  // Extend end date
-  const newEndDate = new Date(advertisement.endDate);
-  newEndDate.setMonth(newEndDate.getMonth() + parseInt(duration));
+  // Check if this ad type is in free mode
+  const plan = adPlansConfig?.plans?.find(p => p.adType === originalAd.adType);
+  const isFree = plan?.isFree || false;
   
-  advertisement.endDate = newEndDate;
-  advertisement.status = 'active';
-  advertisement.duration = duration;
-  advertisement.paymentStatus = 'completed';
-  
-  // Add to renewal history
-  advertisement.renewalHistory.push({
-    renewedAt: new Date(),
-    duration,
-    price: totalPrice,
-    paymentId,
+  // Check if seller has adPreApproval feature (Gold plan)
+  const Subscription = require("../model/subscription");
+  const subscription = await Subscription.findOne({
+    shop: req.seller._id,
+    status: { $in: ['active', 'pending'] },
   });
   
-  await advertisement.save();
+  const hasAdPreApproval = subscription?.features?.adPreApproval || false;
+  
+  // Calculate dates
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + parseInt(duration));
+  
+  // Determine status based on free mode and pre-approval
+  let adStatus = 'awaiting_payment';
+  let paymentStatus = 'pending';
+  let paymentMethod = undefined;
+  
+  if (isFree) {
+    paymentStatus = 'completed';
+    paymentMethod = 'free_testing';
+    
+    if (hasAdPreApproval) {
+      adStatus = 'active'; // Auto-approved for Gold plan
+    } else {
+      adStatus = 'pending'; // Needs admin approval
+    }
+  }
+  
+  // Build the renewed ad data - only include video/image if they exist
+  const renewedAdData = {
+    shopId: originalAd.shopId,
+    adType: originalAd.adType,
+    slotNumber: originalAd.slotNumber,
+    title: originalAd.title,
+    description: originalAd.description,
+    mediaType: originalAd.mediaType || 'image',
+    linkUrl: originalAd.linkUrl,
+    duration: parseInt(duration),
+    basePrice: basePrice,
+    discount: discount,
+    totalPrice: isFree ? 0 : totalPrice,
+    startDate,
+    endDate,
+    autoRenew: autoRenew !== undefined ? autoRenew : originalAd.autoRenew,
+    status: adStatus,
+    paymentStatus: paymentStatus,
+    paymentMethod: paymentMethod,
+  };
+  
+  // Add approval note if auto-approved
+  if (isFree && hasAdPreApproval) {
+    renewedAdData.approvedAt = new Date();
+    renewedAdData.approvalNote = 'Auto-approved (Gold Plan - Ad Pre-Approval feature)';
+  }
+  
+  // Only add image if it exists and has url
+  if (originalAd.image && originalAd.image.url) {
+    renewedAdData.image = originalAd.image;
+  }
+  
+  // Only add video if it exists and has url
+  if (originalAd.video && originalAd.video.url) {
+    renewedAdData.video = originalAd.video;
+  }
+  
+  // Only add productId if it exists
+  if (originalAd.productId) {
+    renewedAdData.productId = originalAd.productId;
+  }
+  
+  // Create a NEW advertisement (renewal creates a fresh ad with same content)
+  const renewedAd = new Advertisement(renewedAdData);
+  
+  await renewedAd.save();
+  
+  let message = "";
+  if (isFree && hasAdPreApproval) {
+    message = "Advertisement renewed successfully (FREE MODE + Auto-Approved). Your ad is now LIVE!";
+  } else if (isFree) {
+    message = "Advertisement renewed successfully (FREE MODE). Awaiting admin approval.";
+  } else {
+    message = "Advertisement renewed. Please complete payment.";
+  }
   
   res.status(200).json({
     success: true,
-    message: "Advertisement renewed successfully",
-    advertisement,
+    message,
+    advertisement: renewedAd,
+    isFree,
+    autoApproved: isFree && hasAdPreApproval,
   });
 });
 
@@ -521,6 +823,115 @@ exports.updateAutoRenew = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: `Auto-renewal ${autoRenew ? 'enabled' : 'disabled'} successfully`,
+  });
+});
+
+// In-memory storage for ad plans (can be moved to database for persistence)
+let adPlansConfig = {
+  plans: [
+    { adType: "leaderboard", name: "Leaderboard", size: "728x120", slots: 6, basePrice: 600, position: "Top of homepage", visibility: "Very High", isActive: true, isFree: false },
+    { adType: "top_sidebar", name: "Top Sidebar", size: "200x120", slots: 6, basePrice: 200, position: "Top sidebar", visibility: "High", isActive: true, isFree: false },
+    { adType: "right_sidebar_top", name: "Right Sidebar Top", size: "300x200", slots: 6, basePrice: 300, position: "Right sidebar top", visibility: "High", isActive: true, isFree: false },
+    { adType: "right_sidebar_middle", name: "Right Sidebar Middle", size: "300x200", slots: 6, basePrice: 250, position: "Right sidebar middle", visibility: "Medium", isActive: true, isFree: false },
+    { adType: "right_sidebar_bottom", name: "Right Sidebar Bottom", size: "300x200", slots: 6, basePrice: 200, position: "Right sidebar bottom", visibility: "Medium", isActive: true, isFree: false },
+    { adType: "featured_store", name: "Featured Store", size: "Store Card", slots: null, basePrice: 100, position: "Featured stores section", visibility: "Very High", isActive: true, isFree: false },
+    { adType: "featured_product", name: "Featured Product", size: "Product Card", slots: null, basePrice: 50, position: "Featured products section", visibility: "Very High", isActive: true, isFree: false },
+    { adType: "newsletter_inclusion", name: "Newsletter Inclusion", size: "Email Banner", slots: null, basePrice: 100, position: "Newsletter emails", visibility: "High", isActive: true, isFree: false },
+    { adType: "editorial_writeup", name: "Editorial Write-up", size: "Article", slots: null, basePrice: 300, position: "Blog/Editorial section", visibility: "Very High", isActive: true, isFree: false },
+  ],
+  durationDiscounts: [
+    { months: 1, discount: 0, label: "1 Month" },
+    { months: 3, discount: 10, label: "3 Months" },
+    { months: 6, discount: 15, label: "6 Months" },
+    { months: 12, discount: 20, label: "12 Months" },
+  ]
+};
+
+// Get ad plans (Admin)
+exports.getAdPlans = catchAsyncErrors(async (req, res, next) => {
+  res.status(200).json({
+    success: true,
+    plans: adPlansConfig.plans,
+    durationDiscounts: adPlansConfig.durationDiscounts,
+  });
+});
+
+// Update ad plan (Admin)
+exports.updateAdPlan = catchAsyncErrors(async (req, res, next) => {
+  const { adType, basePrice, slots, isActive } = req.body;
+  
+  const planIndex = adPlansConfig.plans.findIndex(p => p.adType === adType);
+  
+  if (planIndex === -1) {
+    return next(new ErrorHandler("Ad plan not found", 404));
+  }
+  
+  // Update the plan
+  if (basePrice !== undefined) adPlansConfig.plans[planIndex].basePrice = basePrice;
+  if (slots !== undefined) adPlansConfig.plans[planIndex].slots = slots;
+  if (isActive !== undefined) adPlansConfig.plans[planIndex].isActive = isActive;
+  
+  res.status(200).json({
+    success: true,
+    message: "Ad plan updated successfully",
+    plan: adPlansConfig.plans[planIndex],
+  });
+});
+
+// Toggle ad plan active status (Admin)
+exports.toggleAdPlan = catchAsyncErrors(async (req, res, next) => {
+  const { adType } = req.params;
+  const { isActive } = req.body;
+  
+  const planIndex = adPlansConfig.plans.findIndex(p => p.adType === adType);
+  
+  if (planIndex === -1) {
+    return next(new ErrorHandler("Ad plan not found", 404));
+  }
+  
+  adPlansConfig.plans[planIndex].isActive = isActive;
+  
+  res.status(200).json({
+    success: true,
+    message: `${adPlansConfig.plans[planIndex].name} ${isActive ? 'enabled' : 'disabled'} successfully`,
+    plan: adPlansConfig.plans[planIndex],
+  });
+});
+
+// Toggle ad plan free mode (Admin - for testing)
+exports.toggleFreePlan = catchAsyncErrors(async (req, res, next) => {
+  const { adType } = req.params;
+  const { isFree } = req.body;
+  
+  const planIndex = adPlansConfig.plans.findIndex(p => p.adType === adType);
+  
+  if (planIndex === -1) {
+    return next(new ErrorHandler("Ad plan not found", 404));
+  }
+  
+  adPlansConfig.plans[planIndex].isFree = isFree;
+  
+  res.status(200).json({
+    success: true,
+    message: `${adPlansConfig.plans[planIndex].name} is now ${isFree ? 'FREE for testing' : 'PAID (normal mode)'}`,
+    plan: adPlansConfig.plans[planIndex],
+  });
+});
+
+// Update duration discounts (Admin)
+exports.updateDurationDiscounts = catchAsyncErrors(async (req, res, next) => {
+  const { durationDiscounts } = req.body;
+  
+  if (!durationDiscounts || !Array.isArray(durationDiscounts)) {
+    return next(new ErrorHandler("Invalid duration discounts format", 400));
+  }
+  
+  adPlansConfig.durationDiscounts = durationDiscounts;
+  
+  res.status(200).json({
+    success: true,
+    message: "Duration discounts updated successfully",
+    durationDiscounts: adPlansConfig.durationDiscounts,
   });
 });
 

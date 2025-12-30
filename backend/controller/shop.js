@@ -513,7 +513,7 @@ router.get(
 router.delete(
   "/delete-seller/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const seller = await Shop.findById(req.params.id);
@@ -836,11 +836,11 @@ router.put(
   })
 );
 
-// Ban a shop (Admin only)
+// Ban a shop (Admin/Manager)
 router.put(
   "/ban-shop",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { shopId, banReason } = req.body;
@@ -876,11 +876,11 @@ router.put(
   })
 );
 
-// Unban a shop (Admin only)
+// Unban a shop (Admin/Manager)
 router.put(
   "/unban-shop",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { shopId } = req.body;
@@ -1123,7 +1123,7 @@ router.put(
 router.get(
   "/admin-seller-stats",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canViewAnalytics'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const totalSellers = await Shop.countDocuments();
@@ -1151,11 +1151,11 @@ router.get(
   })
 );
 
-// Get all sellers with their approval status (Admin only)
+// Get all sellers with their approval status (Admin/Manager)
 router.get(
   "/admin-all-sellers-with-status",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageVendors'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { status, page = 1, limit = 10 } = req.query;
@@ -1186,6 +1186,127 @@ router.get(
           hasNext: page * limit < totalSellers,
           hasPrev: page > 1,
         },
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Get custom HTML/CSS for shop (Seller)
+router.get(
+  "/get-custom-html-css",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const shop = await Shop.findById(req.seller._id).select('customHtml customCss customHtmlEnabled');
+      
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        customHtml: shop.customHtml || "",
+        customCss: shop.customCss || "",
+        customHtmlEnabled: shop.customHtmlEnabled || false,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Update custom HTML/CSS for shop (Seller - requires htmlCssEditor feature)
+router.put(
+  "/update-custom-html-css",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { customHtml, customCss, customHtmlEnabled } = req.body;
+
+      // Check if seller has htmlCssEditor feature in their subscription
+      const Subscription = require("../model/subscription");
+      const subscription = await Subscription.findOne({
+        shop: req.seller._id,
+        status: { $in: ['active', 'pending'] },
+      });
+
+      if (!subscription || !subscription.features?.htmlCssEditor) {
+        return next(new ErrorHandler("HTML/CSS Editor feature is not available in your subscription plan. Please upgrade to Gold plan.", 403));
+      }
+
+      // Validate HTML/CSS length
+      if (customHtml && customHtml.length > 50000) {
+        return next(new ErrorHandler("Custom HTML cannot exceed 50000 characters", 400));
+      }
+
+      if (customCss && customCss.length > 20000) {
+        return next(new ErrorHandler("Custom CSS cannot exceed 20000 characters", 400));
+      }
+
+      // Basic sanitization - remove script tags and event handlers
+      let sanitizedHtml = customHtml || "";
+      // Remove script tags
+      sanitizedHtml = sanitizedHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      // Remove onclick, onload, onerror, etc. event handlers
+      sanitizedHtml = sanitizedHtml.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+      // Remove javascript: URLs
+      sanitizedHtml = sanitizedHtml.replace(/javascript\s*:/gi, '');
+
+      const shop = await Shop.findByIdAndUpdate(
+        req.seller._id,
+        {
+          customHtml: sanitizedHtml,
+          customCss: customCss || "",
+          customHtmlEnabled: customHtmlEnabled ?? false,
+        },
+        { new: true }
+      ).select('customHtml customCss customHtmlEnabled');
+
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Custom HTML/CSS updated successfully",
+        customHtml: shop.customHtml,
+        customCss: shop.customCss,
+        customHtmlEnabled: shop.customHtmlEnabled,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Get custom HTML/CSS for public shop page
+router.get(
+  "/get-shop-custom-html/:shopId",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const shop = await Shop.findById(req.params.shopId).select('customHtml customCss customHtmlEnabled');
+      
+      if (!shop) {
+        return next(new ErrorHandler("Shop not found", 404));
+      }
+
+      // Only return custom content if enabled
+      if (!shop.customHtmlEnabled) {
+        return res.status(200).json({
+          success: true,
+          customHtml: "",
+          customCss: "",
+          customHtmlEnabled: false,
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        customHtml: shop.customHtml || "",
+        customCss: shop.customCss || "",
+        customHtmlEnabled: shop.customHtmlEnabled,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

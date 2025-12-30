@@ -3,19 +3,19 @@ const { upload } = require("../multer");
 const Category = require("../model/category");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const { isAuthenticated, isAdmin, requirePermission } = require("../middleware/auth");
 const fs = require("fs");
 const path = require("path");
 const { uploadImageToCloudinary, deleteFromCloudinary, uploadToCloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
 
-// Create new category
+// Create new category (Admin and Manager with canManageCategories)
 router.post(
   "/create-category",
   upload.single("image"),
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { name, description, parent, sortOrder, metaTitle, metaDescription } = req.body;
@@ -348,12 +348,12 @@ router.get(
   })
 );
 
-// Update category
+// Update category (Admin and Manager with canManageCategories)
 router.put(
   "/update-category/:id",
   upload.single("image"),
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -476,11 +476,11 @@ router.put(
   })
 );
 
-// Delete category
+// Delete category (Admin and Manager with canManageCategories)
 router.delete(
   "/delete-category/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -555,11 +555,11 @@ router.delete(
   })
 );
 
-// Toggle category status
+// Toggle category status (Admin and Manager with canManageCategories)
 router.patch(
   "/toggle-status/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -584,11 +584,11 @@ router.patch(
   })
 );
 
-// Bulk operations
+// Bulk operations (Admin and Manager with canManageCategories)
 router.patch(
   "/bulk-action",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { action, categoryIds } = req.body;
@@ -649,11 +649,11 @@ router.patch(
   })
 );
 
-// Reorder categories
+// Reorder categories (Admin and Manager with canManageCategories)
 router.patch(
   "/reorder",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { categories } = req.body;
@@ -684,11 +684,11 @@ router.patch(
   })
 );
 
-// Get category statistics
+// Get category statistics (Admin and Manager with canManageCategories)
 router.get(
   "/stats",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const totalCategories = await Category.countDocuments();
@@ -728,11 +728,11 @@ router.get(
   })
 );
 
-// Update product counts for all categories
+// Update product counts for all categories (Admin and Manager with canManageCategories)
 router.patch(
   "/update-product-counts",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageCategories'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const categories = await Category.find();

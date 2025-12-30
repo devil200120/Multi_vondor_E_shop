@@ -5,7 +5,7 @@ const Shop = require("../model/shop");
 const Event = require("../model/event");
 const Order = require("../model/order");
 const ErrorHandler = require("../utils/ErrorHandler");
-const { isSeller, isAdmin, isAuthenticated } = require("../middleware/auth");
+const { isSeller, isAdmin, isAuthenticated, requirePermission } = require("../middleware/auth");
 const router = express.Router();
 const fs = require("fs");
 const { uploadToCloudinary, deleteFromCloudinary } = require("../config/cloudinary");
@@ -155,7 +155,7 @@ router.delete(
 router.get(
   "/admin-all-events",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const events = await Event.find().sort({
@@ -175,7 +175,7 @@ router.get(
 router.post(
   "/admin-create-event",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   upload.array("images"),
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -292,7 +292,7 @@ router.post(
 router.put(
   "/admin-update-event/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   upload.array("images"),
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -354,7 +354,7 @@ router.put(
 router.delete(
   "/admin-delete-event/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const eventId = req.params.id;
@@ -401,7 +401,7 @@ router.delete(
 router.get(
   "/admin-get-event/:id",
   isAuthenticated,
-  isAdmin("Admin"),
+  requirePermission('canManageContent'),
   catchAsyncErrors(async (req, res, next) => {
     try {
       const eventId = req.params.id;
