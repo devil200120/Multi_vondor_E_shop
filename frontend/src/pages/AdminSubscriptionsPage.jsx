@@ -23,4 +23,3 @@ const AdminSubscriptionsPage = () => {
 };
 
 export default AdminSubscriptionsPage;
-

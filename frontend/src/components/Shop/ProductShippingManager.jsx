@@ -649,7 +649,7 @@ const ProductShippingManager = () => {
               {/* Basic Shipping Rate */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Base Shipping Rate ({currency?.symbol || '$'})
+                  Base Shipping Rate ({currency?.symbol || "$"})
                 </label>
                 <input
                   type="number"
@@ -673,7 +673,7 @@ const ProductShippingManager = () => {
               {/* Free Shipping Threshold */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Free Shipping Threshold ({currency?.symbol || '$'})
+                  Free Shipping Threshold ({currency?.symbol || "$"})
                 </label>
                 <input
                   type="number"

@@ -67,14 +67,17 @@ const AllUsers = () => {
       toast.info("Fetching all data... Please wait");
 
       // Fetch all orders from admin endpoint
-      const ordersResponse = await axios.get(`${server}/order/admin-all-orders`, {
-        withCredentials: true,
-      });
+      const ordersResponse = await axios.get(
+        `${server}/order/admin-all-orders`,
+        {
+          withCredentials: true,
+        }
+      );
       const allOrders = ordersResponse.data.orders || [];
 
       // Create a map of user orders
       const userOrdersMap = {};
-      allOrders.forEach(order => {
+      allOrders.forEach((order) => {
         const userId = order.user?._id || order.user;
         if (userId) {
           if (!userOrdersMap[userId]) {
@@ -87,10 +90,20 @@ const AllUsers = () => {
       // Prepare Users data for export
       const usersData = users.map((user, index) => {
         const userOrders = userOrdersMap[user._id] || [];
-        const totalSpent = userOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-        const completedOrders = userOrders.filter(o => o.status === "Delivered").length;
-        const pendingOrders = userOrders.filter(o => !["Delivered", "Cancelled", "Refund Success"].includes(o.status)).length;
-        const cancelledOrders = userOrders.filter(o => o.status === "Cancelled" || o.status === "Refund Success").length;
+        const totalSpent = userOrders.reduce(
+          (sum, order) => sum + (order.totalPrice || 0),
+          0
+        );
+        const completedOrders = userOrders.filter(
+          (o) => o.status === "Delivered"
+        ).length;
+        const pendingOrders = userOrders.filter(
+          (o) =>
+            !["Delivered", "Cancelled", "Refund Success"].includes(o.status)
+        ).length;
+        const cancelledOrders = userOrders.filter(
+          (o) => o.status === "Cancelled" || o.status === "Refund Success"
+        ).length;
 
         return {
           "S.No": index + 1,
@@ -98,26 +111,29 @@ const AllUsers = () => {
           "Full Name": user.name,
           "Email Address": user.email,
           "Phone Number": user.phoneNumber || "N/A",
-          "Role": user.role === "user" ? "User" : user.role,
-          "Status": user.isBanned ? "Banned" : "Active",
+          Role: user.role === "user" ? "User" : user.role,
+          Status: user.isBanned ? "Banned" : "Active",
           "Ban Reason": user.banReason || "N/A",
           "Email Verified": user.isEmailVerified ? "Yes" : "No",
-          "Address": user.addresses && user.addresses.length > 0 
-            ? `${user.addresses[0].address1 || ""}, ${user.addresses[0].city || ""}, ${user.addresses[0].country || ""}`.replace(/^, |, $/g, "")
-            : "N/A",
+          Address:
+            user.addresses && user.addresses.length > 0
+              ? `${user.addresses[0].address1 || ""}, ${
+                  user.addresses[0].city || ""
+                }, ${user.addresses[0].country || ""}`.replace(/^, |, $/g, "")
+              : "N/A",
           "Total Orders": userOrders.length,
           "Completed Orders": completedOrders,
           "Pending Orders": pendingOrders,
           "Cancelled/Refunded": cancelledOrders,
           "Total Amount Spent": `$${totalSpent.toFixed(2)}`,
-          "Account Created": user.createdAt 
+          "Account Created": user.createdAt
             ? new Date(user.createdAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
               })
             : "N/A",
-          "Last Updated": user.updatedAt 
+          "Last Updated": user.updatedAt
             ? new Date(user.updatedAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
@@ -133,23 +149,23 @@ const AllUsers = () => {
       // Sheet 1: Users Overview
       const usersSheet = XLSX.utils.json_to_sheet(usersData);
       usersSheet["!cols"] = [
-        { wch: 6 },   // S.No
-        { wch: 26 },  // User ID
-        { wch: 25 },  // Full Name
-        { wch: 30 },  // Email Address
-        { wch: 15 },  // Phone Number
-        { wch: 12 },  // Role
-        { wch: 10 },  // Status
-        { wch: 30 },  // Ban Reason
-        { wch: 15 },  // Email Verified
-        { wch: 40 },  // Address
-        { wch: 14 },  // Total Orders
-        { wch: 16 },  // Completed Orders
-        { wch: 15 },  // Pending Orders
-        { wch: 18 },  // Cancelled/Refunded
-        { wch: 18 },  // Total Amount Spent
-        { wch: 20 },  // Account Created
-        { wch: 20 },  // Last Updated
+        { wch: 6 }, // S.No
+        { wch: 26 }, // User ID
+        { wch: 25 }, // Full Name
+        { wch: 30 }, // Email Address
+        { wch: 15 }, // Phone Number
+        { wch: 12 }, // Role
+        { wch: 10 }, // Status
+        { wch: 30 }, // Ban Reason
+        { wch: 15 }, // Email Verified
+        { wch: 40 }, // Address
+        { wch: 14 }, // Total Orders
+        { wch: 16 }, // Completed Orders
+        { wch: 15 }, // Pending Orders
+        { wch: 18 }, // Cancelled/Refunded
+        { wch: 18 }, // Total Amount Spent
+        { wch: 20 }, // Account Created
+        { wch: 20 }, // Last Updated
       ];
       XLSX.utils.book_append_sheet(workbook, usersSheet, "Users Overview");
 
@@ -161,22 +177,26 @@ const AllUsers = () => {
         "Customer Name": order.user?.name || "N/A",
         "Customer Email": order.user?.email || "N/A",
         "Customer Phone": order.shippingAddress?.phoneNumber || "N/A",
-        "Shipping Address": order.shippingAddress 
-          ? `${order.shippingAddress.address1 || ""}, ${order.shippingAddress.city || ""}, ${order.shippingAddress.country || ""}`.replace(/^, |, $/g, "")
+        "Shipping Address": order.shippingAddress
+          ? `${order.shippingAddress.address1 || ""}, ${
+              order.shippingAddress.city || ""
+            }, ${order.shippingAddress.country || ""}`.replace(/^, |, $/g, "")
           : "N/A",
         "Zip Code": order.shippingAddress?.zipCode || "N/A",
         "Items Count": order.cart?.length || 0,
-        "Products": order.cart?.map(item => `${item.name} (x${item.qty})`).join(", ") || "N/A",
-        "Subtotal": `$${(order.subTotalPrice || 0).toFixed(2)}`,
+        Products:
+          order.cart?.map((item) => `${item.name} (x${item.qty})`).join(", ") ||
+          "N/A",
+        Subtotal: `$${(order.subTotalPrice || 0).toFixed(2)}`,
         "Shipping Cost": `$${(order.shippingPrice || 0).toFixed(2)}`,
-        "Discount": `$${(order.discountPrice || 0).toFixed(2)}`,
+        Discount: `$${(order.discountPrice || 0).toFixed(2)}`,
         "Tax (GST)": `$${(order.gstAmount || 0).toFixed(2)}`,
         "Total Amount": `$${(order.totalPrice || 0).toFixed(2)}`,
         "Payment Method": order.paymentInfo?.type || "N/A",
         "Payment Status": order.paymentInfo?.status || "N/A",
         "Order Status": order.status || "N/A",
         "Coupon Used": order.couponCode || "None",
-        "Order Date": order.createdAt 
+        "Order Date": order.createdAt
           ? new Date(order.createdAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
@@ -185,7 +205,7 @@ const AllUsers = () => {
               minute: "2-digit",
             })
           : "N/A",
-        "Delivered At": order.deliveredAt 
+        "Delivered At": order.deliveredAt
           ? new Date(order.deliveredAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
@@ -195,33 +215,33 @@ const AllUsers = () => {
       }));
       const ordersSheet = XLSX.utils.json_to_sheet(ordersData);
       ordersSheet["!cols"] = [
-        { wch: 6 },   // S.No
-        { wch: 26 },  // Order ID
-        { wch: 15 },  // Order Number
-        { wch: 20 },  // Customer Name
-        { wch: 28 },  // Customer Email
-        { wch: 15 },  // Customer Phone
-        { wch: 45 },  // Shipping Address
-        { wch: 10 },  // Zip Code
-        { wch: 12 },  // Items Count
-        { wch: 50 },  // Products
-        { wch: 12 },  // Subtotal
-        { wch: 14 },  // Shipping Cost
-        { wch: 12 },  // Discount
-        { wch: 12 },  // Tax (GST)
-        { wch: 14 },  // Total Amount
-        { wch: 18 },  // Payment Method
-        { wch: 15 },  // Payment Status
-        { wch: 18 },  // Order Status
-        { wch: 15 },  // Coupon Used
-        { wch: 25 },  // Order Date
-        { wch: 20 },  // Delivered At
+        { wch: 6 }, // S.No
+        { wch: 26 }, // Order ID
+        { wch: 15 }, // Order Number
+        { wch: 20 }, // Customer Name
+        { wch: 28 }, // Customer Email
+        { wch: 15 }, // Customer Phone
+        { wch: 45 }, // Shipping Address
+        { wch: 10 }, // Zip Code
+        { wch: 12 }, // Items Count
+        { wch: 50 }, // Products
+        { wch: 12 }, // Subtotal
+        { wch: 14 }, // Shipping Cost
+        { wch: 12 }, // Discount
+        { wch: 12 }, // Tax (GST)
+        { wch: 14 }, // Total Amount
+        { wch: 18 }, // Payment Method
+        { wch: 15 }, // Payment Status
+        { wch: 18 }, // Order Status
+        { wch: 15 }, // Coupon Used
+        { wch: 25 }, // Order Date
+        { wch: 20 }, // Delivered At
       ];
       XLSX.utils.book_append_sheet(workbook, ordersSheet, "All Orders");
 
       // Sheet 3: Orders by User (Detailed)
       const userOrdersDetailData = [];
-      users.forEach(user => {
+      users.forEach((user) => {
         const userOrders = userOrdersMap[user._id] || [];
         if (userOrders.length > 0) {
           userOrders.forEach((order, idx) => {
@@ -231,11 +251,14 @@ const AllUsers = () => {
               "Order #": idx + 1,
               "Order ID": order._id,
               "Order Number": order.orderNumber || "N/A",
-              "Products": order.cart?.map(item => `${item.name} (x${item.qty})`).join(", ") || "N/A",
+              Products:
+                order.cart
+                  ?.map((item) => `${item.name} (x${item.qty})`)
+                  .join(", ") || "N/A",
               "Total Amount": `$${(order.totalPrice || 0).toFixed(2)}`,
-              "Status": order.status || "N/A",
-              "Payment": order.paymentInfo?.type || "N/A",
-              "Order Date": order.createdAt 
+              Status: order.status || "N/A",
+              Payment: order.paymentInfo?.type || "N/A",
+              "Order Date": order.createdAt
                 ? new Date(order.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
@@ -251,58 +274,115 @@ const AllUsers = () => {
             "Order #": "N/A",
             "Order ID": "No Orders",
             "Order Number": "N/A",
-            "Products": "N/A",
+            Products: "N/A",
             "Total Amount": "$0.00",
-            "Status": "N/A",
-            "Payment": "N/A",
+            Status: "N/A",
+            Payment: "N/A",
             "Order Date": "N/A",
           });
         }
       });
       const userOrdersSheet = XLSX.utils.json_to_sheet(userOrdersDetailData);
       userOrdersSheet["!cols"] = [
-        { wch: 25 },  // User Name
-        { wch: 30 },  // User Email
-        { wch: 10 },  // Order #
-        { wch: 26 },  // Order ID
-        { wch: 15 },  // Order Number
-        { wch: 50 },  // Products
-        { wch: 14 },  // Total Amount
-        { wch: 15 },  // Status
-        { wch: 15 },  // Payment
-        { wch: 18 },  // Order Date
+        { wch: 25 }, // User Name
+        { wch: 30 }, // User Email
+        { wch: 10 }, // Order #
+        { wch: 26 }, // Order ID
+        { wch: 15 }, // Order Number
+        { wch: 50 }, // Products
+        { wch: 14 }, // Total Amount
+        { wch: 15 }, // Status
+        { wch: 15 }, // Payment
+        { wch: 18 }, // Order Date
       ];
       XLSX.utils.book_append_sheet(workbook, userOrdersSheet, "Orders by User");
 
       // Sheet 4: Summary Statistics
-      const totalRevenue = allOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-      const deliveredOrders = allOrders.filter(o => o.status === "Delivered");
-      const pendingOrders = allOrders.filter(o => !["Delivered", "Cancelled", "Refund Success"].includes(o.status));
-      const cancelledOrders = allOrders.filter(o => o.status === "Cancelled" || o.status === "Refund Success");
-      
+      const totalRevenue = allOrders.reduce(
+        (sum, o) => sum + (o.totalPrice || 0),
+        0
+      );
+      const deliveredOrders = allOrders.filter((o) => o.status === "Delivered");
+      const pendingOrders = allOrders.filter(
+        (o) => !["Delivered", "Cancelled", "Refund Success"].includes(o.status)
+      );
+      const cancelledOrders = allOrders.filter(
+        (o) => o.status === "Cancelled" || o.status === "Refund Success"
+      );
+
       const summaryData = [
-        { "Category": "USER STATISTICS", "Metric": "", "Value": "" },
-        { "Category": "", "Metric": "Total Users", "Value": users.length },
-        { "Category": "", "Metric": "Active Users", "Value": users.filter(u => !u.isBanned).length },
-        { "Category": "", "Metric": "Banned Users", "Value": users.filter(u => u.isBanned).length },
-        { "Category": "", "Metric": "Admin Users", "Value": users.filter(u => u.role === "Admin").length },
-        { "Category": "", "Metric": "Regular Users", "Value": users.filter(u => u.role === "user").length },
-        { "Category": "", "Metric": "Supplier Users", "Value": users.filter(u => u.role === "Supplier").length },
-        { "Category": "", "Metric": "", "Value": "" },
-        { "Category": "ORDER STATISTICS", "Metric": "", "Value": "" },
-        { "Category": "", "Metric": "Total Orders", "Value": allOrders.length },
-        { "Category": "", "Metric": "Delivered Orders", "Value": deliveredOrders.length },
-        { "Category": "", "Metric": "Pending Orders", "Value": pendingOrders.length },
-        { "Category": "", "Metric": "Cancelled/Refunded", "Value": cancelledOrders.length },
-        { "Category": "", "Metric": "", "Value": "" },
-        { "Category": "REVENUE STATISTICS", "Metric": "", "Value": "" },
-        { "Category": "", "Metric": "Total Revenue", "Value": `$${totalRevenue.toFixed(2)}` },
-        { "Category": "", "Metric": "Avg Order Value", "Value": `$${allOrders.length > 0 ? (totalRevenue / allOrders.length).toFixed(2) : "0.00"}` },
-        { "Category": "", "Metric": "Revenue from Delivered", "Value": `$${deliveredOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0).toFixed(2)}` },
-        { "Category": "", "Metric": "", "Value": "" },
-        { "Category": "EXPORT INFO", "Metric": "", "Value": "" },
-        { "Category": "", "Metric": "Export Date", "Value": new Date().toLocaleString() },
-        { "Category": "", "Metric": "Exported By", "Value": "Mall of Cayman Admin" },
+        { Category: "USER STATISTICS", Metric: "", Value: "" },
+        { Category: "", Metric: "Total Users", Value: users.length },
+        {
+          Category: "",
+          Metric: "Active Users",
+          Value: users.filter((u) => !u.isBanned).length,
+        },
+        {
+          Category: "",
+          Metric: "Banned Users",
+          Value: users.filter((u) => u.isBanned).length,
+        },
+        {
+          Category: "",
+          Metric: "Admin Users",
+          Value: users.filter((u) => u.role === "Admin").length,
+        },
+        {
+          Category: "",
+          Metric: "Regular Users",
+          Value: users.filter((u) => u.role === "user").length,
+        },
+        {
+          Category: "",
+          Metric: "Supplier Users",
+          Value: users.filter((u) => u.role === "Supplier").length,
+        },
+        { Category: "", Metric: "", Value: "" },
+        { Category: "ORDER STATISTICS", Metric: "", Value: "" },
+        { Category: "", Metric: "Total Orders", Value: allOrders.length },
+        {
+          Category: "",
+          Metric: "Delivered Orders",
+          Value: deliveredOrders.length,
+        },
+        { Category: "", Metric: "Pending Orders", Value: pendingOrders.length },
+        {
+          Category: "",
+          Metric: "Cancelled/Refunded",
+          Value: cancelledOrders.length,
+        },
+        { Category: "", Metric: "", Value: "" },
+        { Category: "REVENUE STATISTICS", Metric: "", Value: "" },
+        {
+          Category: "",
+          Metric: "Total Revenue",
+          Value: `$${totalRevenue.toFixed(2)}`,
+        },
+        {
+          Category: "",
+          Metric: "Avg Order Value",
+          Value: `$${
+            allOrders.length > 0
+              ? (totalRevenue / allOrders.length).toFixed(2)
+              : "0.00"
+          }`,
+        },
+        {
+          Category: "",
+          Metric: "Revenue from Delivered",
+          Value: `$${deliveredOrders
+            .reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+            .toFixed(2)}`,
+        },
+        { Category: "", Metric: "", Value: "" },
+        { Category: "EXPORT INFO", Metric: "", Value: "" },
+        {
+          Category: "",
+          Metric: "Export Date",
+          Value: new Date().toLocaleString(),
+        },
+        { Category: "", Metric: "Exported By", Value: "Mall of Cayman Admin" },
       ];
       const summarySheet = XLSX.utils.json_to_sheet(summaryData);
       summarySheet["!cols"] = [{ wch: 22 }, { wch: 25 }, { wch: 20 }];
@@ -310,12 +390,16 @@ const AllUsers = () => {
 
       // Generate filename with date
       const date = new Date();
-      const filename = `Users_Orders_Complete_Export_${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}.xlsx`;
+      const filename = `Users_Orders_Complete_Export_${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}.xlsx`;
 
       // Save the file
       XLSX.writeFile(workbook, filename);
 
-      toast.success(`Successfully exported ${users.length} users and ${allOrders.length} orders to Excel`);
+      toast.success(
+        `Successfully exported ${users.length} users and ${allOrders.length} orders to Excel`
+      );
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Failed to export data. Please try again.");

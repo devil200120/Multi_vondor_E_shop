@@ -205,8 +205,8 @@ const shopSchema = new mongoose.Schema({
   // Subscription plan
   subscriptionPlan: {
     type: String,
-    enum: ['bronze', 'silver', 'gold', 'revenue-share'],
-    default: 'bronze',
+    enum: ['free', 'bronze', 'silver', 'gold', 'revenue-share'],
+    default: 'free',
   },
   currentSubscription: {
     type: mongoose.Schema.Types.ObjectId,

@@ -44,48 +44,277 @@ const MallMap = () => {
   // Store positions for gold sellers - predefined layout positions
   const storePositions = [
     // Anchor stores (large, yellow) - for first 4 gold sellers
-    { x: 5, y: 45, width: 8, height: 35, color: "#FFD700", type: "anchor", zone: "A" },
-    { x: 60, y: 30, width: 15, height: 55, color: "#FFD700", type: "anchor", zone: "D" },
-    { x: 85, y: 5, width: 12, height: 25, color: "#FFD700", type: "anchor", zone: "N" },
-    { x: 25, y: 5, width: 15, height: 20, color: "#FFD700", type: "anchor", zone: "J" },
+    {
+      x: 5,
+      y: 45,
+      width: 8,
+      height: 35,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "A",
+    },
+    {
+      x: 60,
+      y: 30,
+      width: 15,
+      height: 55,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "D",
+    },
+    {
+      x: 85,
+      y: 5,
+      width: 12,
+      height: 25,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "N",
+    },
+    {
+      x: 25,
+      y: 5,
+      width: 15,
+      height: 20,
+      color: "#FFD700",
+      type: "anchor",
+      zone: "J",
+    },
     // Regular stores (magenta/pink) - for remaining gold sellers
-    { x: 15, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
-    { x: 22, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
-    { x: 30, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
-    { x: 40, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
-    { x: 50, y: 55, width: 6, height: 10, color: "#1E90FF", type: "retail", zone: "E" },
-    { x: 35, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
-    { x: 42, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
-    { x: 49, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
-    { x: 35, y: 35, width: 5, height: 6, color: "#1E90FF", type: "retail", zone: "I" },
-    { x: 42, y: 35, width: 5, height: 6, color: "#1E90FF", type: "retail", zone: "I" },
-    { x: 75, y: 15, width: 10, height: 18, color: "#1E90FF", type: "retail", zone: "N" },
-    { x: 25, y: 40, width: 12, height: 12, color: "#C71585", type: "retail", zone: "L" },
+    {
+      x: 15,
+      y: 30,
+      width: 6,
+      height: 8,
+      color: "#C71585",
+      type: "retail",
+      zone: "B",
+    },
+    {
+      x: 22,
+      y: 30,
+      width: 6,
+      height: 8,
+      color: "#C71585",
+      type: "retail",
+      zone: "B",
+    },
+    {
+      x: 30,
+      y: 55,
+      width: 8,
+      height: 10,
+      color: "#C71585",
+      type: "retail",
+      zone: "C",
+    },
+    {
+      x: 40,
+      y: 55,
+      width: 8,
+      height: 10,
+      color: "#C71585",
+      type: "retail",
+      zone: "C",
+    },
+    {
+      x: 50,
+      y: 55,
+      width: 6,
+      height: 10,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "E",
+    },
+    {
+      x: 35,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      x: 42,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      x: 49,
+      y: 25,
+      width: 5,
+      height: 6,
+      color: "#C71585",
+      type: "retail",
+      zone: "H",
+    },
+    {
+      x: 35,
+      y: 35,
+      width: 5,
+      height: 6,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "I",
+    },
+    {
+      x: 42,
+      y: 35,
+      width: 5,
+      height: 6,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "I",
+    },
+    {
+      x: 75,
+      y: 15,
+      width: 10,
+      height: 18,
+      color: "#1E90FF",
+      type: "retail",
+      zone: "N",
+    },
+    {
+      x: 25,
+      y: 40,
+      width: 12,
+      height: 12,
+      color: "#C71585",
+      type: "retail",
+      zone: "L",
+    },
   ];
 
   // Map gold sellers to store positions
-  const mallStores = goldSellers.length > 0
-    ? goldSellers.map((seller, index) => ({
-        id: seller._id,
-        name: seller.name,
-        sellerId: seller._id,
-        avatar: seller.avatar?.url,
-        isGoldSeller: true,
-        ...storePositions[index % storePositions.length],
-      }))
-    : [
-        // Default placeholder stores when no gold sellers
-        { id: "store1", name: "Premium Store 1", x: 5, y: 45, width: 8, height: 35, color: "#FFD700", type: "anchor", zone: "A" },
-        { id: "store2", name: "Premium Store 2", x: 60, y: 30, width: 15, height: 55, color: "#FFD700", type: "anchor", zone: "D" },
-        { id: "store3", name: "Premium Store 3", x: 85, y: 5, width: 12, height: 25, color: "#FFD700", type: "anchor", zone: "N" },
-        { id: "store4", name: "Premium Store 4", x: 25, y: 5, width: 15, height: 20, color: "#C71585", type: "anchor", zone: "J" },
-        { id: "store5", name: "Store 5", x: 15, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
-        { id: "store6", name: "Store 6", x: 22, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
-        { id: "store7", name: "Store 7", x: 30, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
-        { id: "store8", name: "Store 8", x: 40, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
-        { id: "store9", name: "Store 9", x: 50, y: 55, width: 6, height: 10, color: "#1E90FF", type: "retail", zone: "E" },
-        { id: "store10", name: "Store 10", x: 35, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
-      ];
+  const mallStores =
+    goldSellers.length > 0
+      ? goldSellers.map((seller, index) => ({
+          id: seller._id,
+          name: seller.name,
+          sellerId: seller._id,
+          avatar: seller.avatar?.url,
+          isGoldSeller: true,
+          ...storePositions[index % storePositions.length],
+        }))
+      : [
+          // Default placeholder stores when no gold sellers
+          {
+            id: "store1",
+            name: "Premium Store 1",
+            x: 5,
+            y: 45,
+            width: 8,
+            height: 35,
+            color: "#FFD700",
+            type: "anchor",
+            zone: "A",
+          },
+          {
+            id: "store2",
+            name: "Premium Store 2",
+            x: 60,
+            y: 30,
+            width: 15,
+            height: 55,
+            color: "#FFD700",
+            type: "anchor",
+            zone: "D",
+          },
+          {
+            id: "store3",
+            name: "Premium Store 3",
+            x: 85,
+            y: 5,
+            width: 12,
+            height: 25,
+            color: "#FFD700",
+            type: "anchor",
+            zone: "N",
+          },
+          {
+            id: "store4",
+            name: "Premium Store 4",
+            x: 25,
+            y: 5,
+            width: 15,
+            height: 20,
+            color: "#C71585",
+            type: "anchor",
+            zone: "J",
+          },
+          {
+            id: "store5",
+            name: "Store 5",
+            x: 15,
+            y: 30,
+            width: 6,
+            height: 8,
+            color: "#C71585",
+            type: "retail",
+            zone: "B",
+          },
+          {
+            id: "store6",
+            name: "Store 6",
+            x: 22,
+            y: 30,
+            width: 6,
+            height: 8,
+            color: "#C71585",
+            type: "retail",
+            zone: "B",
+          },
+          {
+            id: "store7",
+            name: "Store 7",
+            x: 30,
+            y: 55,
+            width: 8,
+            height: 10,
+            color: "#C71585",
+            type: "retail",
+            zone: "C",
+          },
+          {
+            id: "store8",
+            name: "Store 8",
+            x: 40,
+            y: 55,
+            width: 8,
+            height: 10,
+            color: "#C71585",
+            type: "retail",
+            zone: "C",
+          },
+          {
+            id: "store9",
+            name: "Store 9",
+            x: 50,
+            y: 55,
+            width: 6,
+            height: 10,
+            color: "#1E90FF",
+            type: "retail",
+            zone: "E",
+          },
+          {
+            id: "store10",
+            name: "Store 10",
+            x: 35,
+            y: 25,
+            width: 5,
+            height: 6,
+            color: "#C71585",
+            type: "retail",
+            zone: "H",
+          },
+        ];
 
   const toggleCategory = (category) => {
     // Navigate to products page filtered by this category
@@ -124,7 +353,10 @@ const MallMap = () => {
             {isLoading ? (
               // Loading skeleton
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 animate-pulse">
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-2.5 animate-pulse"
+                >
                   <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
                   <div className="flex-1 h-4 bg-gray-200 rounded"></div>
                   <div className="w-6 h-4 bg-gray-200 rounded"></div>
@@ -140,7 +372,10 @@ const MallMap = () => {
                     {/* Category Image */}
                     <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <img
-                        src={getCategoryImageUrl(category.image || category.image_Url, backend_url)}
+                        src={getCategoryImageUrl(
+                          category.image || category.image_Url,
+                          backend_url
+                        )}
                         alt={category.name || category.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -309,7 +544,9 @@ const MallMap = () => {
                         textOrientation: "mixed",
                       }}
                     >
-                      {store.name.length > 12 ? store.name.substring(0, 12) + '...' : store.name}
+                      {store.name.length > 12
+                        ? store.name.substring(0, 12) + "..."
+                        : store.name}
                     </text>
                   )}
                   {/* Gold crown indicator for gold sellers */}
@@ -373,8 +610,8 @@ const MallMap = () => {
                     <>
                       <div className="flex items-center gap-2">
                         {store.isGoldSeller && store.avatar && (
-                          <img 
-                            src={store.avatar} 
+                          <img
+                            src={store.avatar}
                             alt={store.name}
                             className="w-8 h-8 rounded-full object-cover border-2 border-yellow-400"
                           />
@@ -398,7 +635,9 @@ const MallMap = () => {
                         </div>
                       </div>
                       <div className="text-xs text-blue-600 mt-2 font-medium">
-                        {store.isGoldSeller ? "Click to visit shop →" : "Click to view products →"}
+                        {store.isGoldSeller
+                          ? "Click to visit shop →"
+                          : "Click to view products →"}
                       </div>
                     </>
                   ) : null;
@@ -458,7 +697,8 @@ const MallMap = () => {
             </div>
             {goldSellers.length > 0 && (
               <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-yellow-600 font-medium">
-                👑 {goldSellers.length} Premium Gold Seller{goldSellers.length !== 1 ? 's' : ''} on map
+                👑 {goldSellers.length} Premium Gold Seller
+                {goldSellers.length !== 1 ? "s" : ""} on map
               </div>
             )}
           </div>

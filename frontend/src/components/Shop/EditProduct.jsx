@@ -167,7 +167,7 @@ const EditProduct = () => {
     newForm.append("discountPrice", discountPrice);
     newForm.append("stock", stock);
     newForm.append("shopId", seller._id);
-    
+
     // Add attributes to form data
     if (attributes && attributes.length > 0) {
       newForm.append("attributes", JSON.stringify(attributes));
@@ -271,7 +271,8 @@ const EditProduct = () => {
                     required
                   />
                   <p className="text-xs text-gray-500">
-                    Select any category from the tree. You can choose categories at any level.
+                    Select any category from the tree. You can choose categories
+                    at any level.
                   </p>
                 </div>
 
@@ -386,9 +387,9 @@ const EditProduct = () => {
               </div>
 
               <div className="bg-gray-50/50 rounded-xl p-4 md:p-6">
-                <ProductAttributesForm 
-                  attributes={attributes} 
-                  onChange={setAttributes} 
+                <ProductAttributesForm
+                  attributes={attributes}
+                  onChange={setAttributes}
                 />
               </div>
             </div>

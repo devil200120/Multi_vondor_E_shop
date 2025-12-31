@@ -436,7 +436,8 @@ const ProductFormModal = ({
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Select any category from the tree. You can choose categories at any level.
+              Select any category from the tree. You can choose categories at
+              any level.
             </p>
           </div>
 

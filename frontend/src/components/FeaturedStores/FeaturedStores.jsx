@@ -19,25 +19,25 @@ const FeaturedStores = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef(null);
-  
+
   // Number of items to show at a time based on screen size
   const getItemsPerView = () => {
-    if (typeof window === 'undefined') return 5;
+    if (typeof window === "undefined") return 5;
     if (window.innerWidth < 640) return 2;
     if (window.innerWidth < 768) return 3;
     if (window.innerWidth < 1024) return 4;
     return 5;
   };
-  
+
   const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
-  
+
   // Update items per view on resize
   useEffect(() => {
     const handleResize = () => {
       setItemsPerView(getItemsPerView());
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const FeaturedStores = () => {
 
     fetchShops();
   }, []);
-  
+
   // Navigate to next set
   const goToNext = useCallback(() => {
     if (shops.length <= itemsPerView) return;
@@ -71,35 +71,38 @@ const FeaturedStores = () => {
     });
     setTimeout(() => setIsTransitioning(false), 500);
   }, [shops.length, itemsPerView]);
-  
+
   // Navigate to previous set
   const goToPrevious = useCallback(() => {
     if (shops.length <= itemsPerView) return;
     setIsTransitioning(true);
     setCurrentIndex((prev) => {
       const prevIndex = prev - itemsPerView;
-      return prevIndex < 0 ? Math.max(0, shops.length - itemsPerView) : prevIndex;
+      return prevIndex < 0
+        ? Math.max(0, shops.length - itemsPerView)
+        : prevIndex;
     });
     setTimeout(() => setIsTransitioning(false), 500);
   }, [shops.length, itemsPerView]);
-  
+
   // Auto-scroll every 10 seconds
   useEffect(() => {
     if (shops.length <= itemsPerView || isPaused) return;
-    
+
     const interval = setInterval(() => {
       goToNext();
     }, 10000); // 10 seconds
-    
+
     return () => clearInterval(interval);
   }, [shops.length, itemsPerView, isPaused, goToNext]);
-  
+
   // Get visible shops
   const visibleShops = shops.slice(currentIndex, currentIndex + itemsPerView);
   // If we don't have enough shops at the end, wrap around
-  const displayShops = visibleShops.length < itemsPerView && shops.length > itemsPerView
-    ? [...visibleShops, ...shops.slice(0, itemsPerView - visibleShops.length)]
-    : visibleShops;
+  const displayShops =
+    visibleShops.length < itemsPerView && shops.length > itemsPerView
+      ? [...visibleShops, ...shops.slice(0, itemsPerView - visibleShops.length)]
+      : visibleShops;
 
   if (loading) {
     return (
@@ -136,7 +139,7 @@ const FeaturedStores = () => {
 
       {/* Stores Grid - Responsive with Auto-Scroll */}
       {shops.length > 0 ? (
-        <div 
+        <div
           className="relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
@@ -160,10 +163,12 @@ const FeaturedStores = () => {
               </button>
             </>
           )}
-          
-          <div 
+
+          <div
             ref={scrollContainerRef}
-            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-opacity duration-500 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}
+            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-opacity duration-500 ${
+              isTransitioning ? "opacity-50" : "opacity-100"
+            }`}
           >
             {displayShops.map((shop, index) => (
               <Link
@@ -202,11 +207,13 @@ const FeaturedStores = () => {
               </Link>
             ))}
           </div>
-          
+
           {/* Pagination Dots */}
           {shops.length > itemsPerView && (
             <div className="flex justify-center items-center mt-4 gap-2">
-              {Array.from({ length: Math.ceil(shops.length / itemsPerView) }).map((_, idx) => (
+              {Array.from({
+                length: Math.ceil(shops.length / itemsPerView),
+              }).map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
@@ -215,14 +222,16 @@ const FeaturedStores = () => {
                     setTimeout(() => setIsTransitioning(false), 500);
                   }}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    Math.floor(currentIndex / itemsPerView) === idx 
-                      ? 'bg-red-500 w-4' 
-                      : 'bg-gray-300 hover:bg-gray-400'
+                    Math.floor(currentIndex / itemsPerView) === idx
+                      ? "bg-red-500 w-4"
+                      : "bg-gray-300 hover:bg-gray-400"
                   }`}
                   aria-label={`Go to page ${idx + 1}`}
                 />
               ))}
-              <span className="ml-2 text-xs text-gray-400">Auto-scrolls every 10s</span>
+              <span className="ml-2 text-xs text-gray-400">
+                Auto-scrolls every 10s
+              </span>
             </div>
           )}
         </div>

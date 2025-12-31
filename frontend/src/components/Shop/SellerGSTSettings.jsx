@@ -744,10 +744,13 @@ const ProductGSTCard = ({
 
                     {/* Preview */}
                     <div className="bg-blue-50 p-2 rounded text-xs">
-                      <strong>Preview on {formatPrice(product.discountPrice)}:</strong>
+                      <strong>
+                        Preview on {formatPrice(product.discountPrice)}:
+                      </strong>
                       {gstSettings.gstType === "separate" ? (
                         <div>
-                          CGST: {formatPrice(preview.cgst)}, SGST: {formatPrice(preview.sgst)}
+                          CGST: {formatPrice(preview.cgst)}, SGST:{" "}
+                          {formatPrice(preview.sgst)}
                         </div>
                       ) : null}
                       <div>Total GST: {formatPrice(preview.total)}</div>

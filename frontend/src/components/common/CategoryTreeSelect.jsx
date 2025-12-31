@@ -1,9 +1,15 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import { HiChevronRight, HiChevronDown, HiCheck } from "react-icons/hi";
 
 /**
  * CategoryTreeSelect - A tree-based category selector supporting unlimited depth
- * 
+ *
  * @param {Array} categories - All categories from the database
  * @param {string} value - Currently selected category ID
  * @param {function} onChange - Callback when category is selected (receives category object)
@@ -221,11 +227,7 @@ const CategoryTreeSelect = ({
         {hasKids && isExpanded && (
           <div>
             {filteredChildren.map((child) => (
-              <TreeItem
-                key={child._id}
-                category={child}
-                level={level + 1}
-              />
+              <TreeItem key={child._id} category={child} level={level + 1} />
             ))}
           </div>
         )}

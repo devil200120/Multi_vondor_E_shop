@@ -18,24 +18,24 @@ const FeaturedProduct = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const { allProducts } = useSelector((state) => state.products);
-  
+
   // Number of items to show at a time based on screen size
   const getItemsPerView = () => {
-    if (typeof window === 'undefined') return 3;
+    if (typeof window === "undefined") return 3;
     if (window.innerWidth < 768) return 2; // Mobile: horizontal scroll handles this
     if (window.innerWidth < 1024) return 2;
     return 3;
   };
-  
+
   const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
-  
+
   // Update items per view on resize
   useEffect(() => {
     const handleResize = () => {
       setItemsPerView(getItemsPerView());
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Add CSS animations
@@ -82,7 +82,7 @@ const FeaturedProduct = () => {
     setData(featuredProducts);
     setLoading(false);
   }, [allProducts]);
-  
+
   // Navigate to next set
   const goToNext = useCallback(() => {
     if (data.length <= itemsPerView) return;
@@ -93,35 +93,41 @@ const FeaturedProduct = () => {
     });
     setTimeout(() => setIsTransitioning(false), 500);
   }, [data.length, itemsPerView]);
-  
+
   // Navigate to previous set
   const goToPrevious = useCallback(() => {
     if (data.length <= itemsPerView) return;
     setIsTransitioning(true);
     setCurrentIndex((prev) => {
       const prevIndex = prev - itemsPerView;
-      return prevIndex < 0 ? Math.max(0, data.length - itemsPerView) : prevIndex;
+      return prevIndex < 0
+        ? Math.max(0, data.length - itemsPerView)
+        : prevIndex;
     });
     setTimeout(() => setIsTransitioning(false), 500);
   }, [data.length, itemsPerView]);
-  
+
   // Auto-scroll every 10 seconds
   useEffect(() => {
     if (data.length <= itemsPerView || isPaused) return;
-    
+
     const interval = setInterval(() => {
       goToNext();
     }, 10000); // 10 seconds
-    
+
     return () => clearInterval(interval);
   }, [data.length, itemsPerView, isPaused, goToNext]);
-  
+
   // Get visible products
   const visibleProducts = data.slice(currentIndex, currentIndex + itemsPerView);
   // If we don't have enough products at the end, wrap around
-  const displayProducts = visibleProducts.length < itemsPerView && data.length > itemsPerView
-    ? [...visibleProducts, ...data.slice(0, itemsPerView - visibleProducts.length)]
-    : visibleProducts;
+  const displayProducts =
+    visibleProducts.length < itemsPerView && data.length > itemsPerView
+      ? [
+          ...visibleProducts,
+          ...data.slice(0, itemsPerView - visibleProducts.length),
+        ]
+      : visibleProducts;
 
   if (loading) {
     return (
@@ -237,7 +243,7 @@ const FeaturedProduct = () => {
               </div>
 
               {/* Desktop/Tablet View - Grid Layout with Auto-Scroll */}
-              <div 
+              <div
                 className="hidden md:block relative"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
@@ -261,19 +267,25 @@ const FeaturedProduct = () => {
                     </button>
                   </>
                 )}
-                
-                <div className={`grid md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-500 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+
+                <div
+                  className={`grid md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-500 ${
+                    isTransitioning ? "opacity-50" : "opacity-100"
+                  }`}
+                >
                   {displayProducts.map((product, index) => (
                     <div key={index} className="h-full w-full">
                       <ProductCard data={product} />
                     </div>
                   ))}
                 </div>
-                
+
                 {/* Pagination Dots */}
                 {data.length > itemsPerView && (
                   <div className="flex justify-center items-center mt-4 gap-2">
-                    {Array.from({ length: Math.ceil(data.length / itemsPerView) }).map((_, idx) => (
+                    {Array.from({
+                      length: Math.ceil(data.length / itemsPerView),
+                    }).map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => {
@@ -282,14 +294,16 @@ const FeaturedProduct = () => {
                           setTimeout(() => setIsTransitioning(false), 500);
                         }}
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          Math.floor(currentIndex / itemsPerView) === idx 
-                            ? 'bg-purple-500 w-4' 
-                            : 'bg-gray-300 hover:bg-gray-400'
+                          Math.floor(currentIndex / itemsPerView) === idx
+                            ? "bg-purple-500 w-4"
+                            : "bg-gray-300 hover:bg-gray-400"
                         }`}
                         aria-label={`Go to page ${idx + 1}`}
                       />
                     ))}
-                    <span className="ml-2 text-xs text-gray-400">Auto-scrolls every 10s</span>
+                    <span className="ml-2 text-xs text-gray-400">
+                      Auto-scrolls every 10s
+                    </span>
                   </div>
                 )}
               </div>

@@ -36,6 +36,22 @@ const getPayPalAccessToken = async () => {
 
 // Default Subscription Plans (used for initial database seeding)
 const DEFAULT_PLANS = {
+  free: {
+    name: 'Free',
+    monthlyPrice: 0,
+    maxProducts: 3,
+    features: {
+      businessProfile: true,
+      logo: true,
+      pdfUpload: false,
+      imagesPerProduct: 2,
+      videoOption: false,
+      contactSeller: false,
+      htmlCssEditor: false,
+      adPreApproval: false,
+    },
+    sortOrder: 0,
+  },
   bronze: {
     name: 'Bronze',
     monthlyPrice: 100,
@@ -89,17 +105,18 @@ const DEFAULT_PLANS = {
 // Initialize default plans in database if they don't exist
 const initializeDefaultPlans = async () => {
   try {
-    const existingPlans = await SubscriptionPlan.countDocuments();
-    if (existingPlans === 0) {
-      console.log('Initializing default subscription plans...');
-      for (const [planKey, planData] of Object.entries(DEFAULT_PLANS)) {
+    // Check and add missing plans (including free plan for existing databases)
+    for (const [planKey, planData] of Object.entries(DEFAULT_PLANS)) {
+      const existingPlan = await SubscriptionPlan.findOne({ planKey });
+      if (!existingPlan) {
+        console.log(`Creating ${planKey} subscription plan...`);
         await SubscriptionPlan.create({
           planKey,
           ...planData,
           isActive: true,
         });
+        console.log(`${planKey} plan created successfully`);
       }
-      console.log('Default subscription plans created successfully');
     }
   } catch (error) {
     console.error('Error initializing default plans:', error.message);
@@ -501,6 +518,218 @@ router.put(
         success: true,
         message: 'Subscription cancelled successfully',
         subscription,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Admin: Change seller subscription plan (upgrade/downgrade)
+router.put(
+  "/admin/change-subscription/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { newPlan, billingCycle, reason } = req.body;
+      const subscriptionId = req.params.id;
+
+      // Validate new plan exists
+      const planDoc = await SubscriptionPlan.findOne({ planKey: newPlan, isActive: true });
+      if (!planDoc) {
+        return next(new ErrorHandler('Invalid subscription plan', 400));
+      }
+
+      // Get current subscription
+      const subscription = await Subscription.findById(subscriptionId).populate('shop');
+      if (!subscription) {
+        return next(new ErrorHandler('Subscription not found', 404));
+      }
+
+      const oldPlan = subscription.plan;
+      const cycle = billingCycle || subscription.billingCycle;
+      const discount = getBillingCycleDiscount(cycle);
+      const monthlyPrice = planDoc.monthlyPrice;
+      
+      // Calculate months for billing cycle
+      const months = cycle === '3-months' ? 3 : cycle === '6-months' ? 6 : cycle === '12-months' ? 12 : 1;
+      const totalBeforeDiscount = monthlyPrice * months;
+      const discountAmount = (totalBeforeDiscount * discount) / 100;
+      const finalPrice = totalBeforeDiscount - discountAmount;
+
+      // Update subscription with new plan
+      subscription.plan = newPlan;
+      subscription.maxProducts = planDoc.maxProducts;
+      subscription.features = planDoc.features;
+      subscription.monthlyPrice = monthlyPrice;
+      if (billingCycle) subscription.billingCycle = billingCycle;
+      subscription.discountPercent = discount;
+      subscription.finalPrice = finalPrice;
+      subscription.status = 'active';
+      subscription.updatedAt = new Date();
+      
+      // Add to payment history as admin change
+      subscription.paymentHistory.push({
+        amount: 0,
+        date: new Date(),
+        status: 'success',
+        transactionId: `ADMIN_CHANGE_${Date.now()}`,
+        billingPeriodStart: subscription.startDate,
+        billingPeriodEnd: subscription.endDate,
+      });
+
+      await subscription.save();
+
+      // Update shop subscription plan
+      if (subscription.shop) {
+        const shop = await Shop.findById(subscription.shop._id);
+        if (shop) {
+          shop.subscriptionPlan = newPlan;
+          await shop.save();
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Subscription changed from ${oldPlan} to ${newPlan} successfully`,
+        subscription,
+        changes: {
+          oldPlan,
+          newPlan,
+          reason: reason || 'Admin change',
+        },
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Admin: Create subscription for a shop (assign free or paid plan)
+router.post(
+  "/admin/create-subscription",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { shopId, plan, billingCycle, durationMonths, isFree, reason } = req.body;
+
+      // Validate shop exists
+      const shop = await Shop.findById(shopId);
+      if (!shop) {
+        return next(new ErrorHandler('Shop not found', 404));
+      }
+
+      // Check if shop already has an active subscription
+      const existingSubscription = await Subscription.findOne({
+        shop: shopId,
+        status: 'active',
+      });
+
+      if (existingSubscription) {
+        return next(new ErrorHandler('Shop already has an active subscription. Please change or cancel it first.', 400));
+      }
+
+      // Validate plan exists
+      const planDoc = await SubscriptionPlan.findOne({ planKey: plan, isActive: true });
+      if (!planDoc) {
+        return next(new ErrorHandler('Invalid subscription plan', 400));
+      }
+
+      const cycle = billingCycle || 'monthly';
+      const discount = getBillingCycleDiscount(cycle);
+      const monthlyPrice = isFree ? 0 : planDoc.monthlyPrice;
+      
+      // Calculate months for billing cycle or custom duration
+      let months;
+      if (durationMonths) {
+        months = durationMonths;
+      } else {
+        months = cycle === '3-months' ? 3 : cycle === '6-months' ? 6 : cycle === '12-months' ? 12 : 1;
+      }
+      
+      const totalBeforeDiscount = monthlyPrice * months;
+      const discountAmount = (totalBeforeDiscount * discount) / 100;
+      const finalPrice = isFree ? 0 : (totalBeforeDiscount - discountAmount);
+
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + months);
+
+      // Create new subscription
+      const subscription = await Subscription.create({
+        shop: shopId,
+        plan,
+        maxProducts: planDoc.maxProducts,
+        features: planDoc.features,
+        monthlyPrice: isFree ? 0 : planDoc.monthlyPrice,
+        billingCycle: cycle,
+        discountPercent: discount,
+        finalPrice,
+        status: 'active',
+        startDate,
+        endDate,
+        nextBillingDate: endDate,
+        paymentMethod: 'admin',
+        paypalSubscriptionId: `ADMIN_ASSIGNED_${Date.now()}`,
+        lastPaymentDate: new Date(),
+        lastPaymentAmount: finalPrice,
+        paymentHistory: [{
+          amount: finalPrice,
+          date: new Date(),
+          status: 'success',
+          transactionId: `ADMIN_ASSIGNED_${Date.now()}`,
+          billingPeriodStart: startDate,
+          billingPeriodEnd: endDate,
+        }],
+      });
+
+      // Update shop with new subscription
+      shop.subscriptionPlan = plan;
+      shop.currentSubscription = subscription._id;
+      await shop.save();
+
+      res.status(201).json({
+        success: true,
+        message: `${isFree ? 'Free' : ''} ${plan} subscription assigned to ${shop.name} successfully`,
+        subscription,
+        details: {
+          shop: shop.name,
+          plan,
+          duration: `${months} month(s)`,
+          price: isFree ? 'Free (assigned by admin)' : `$${finalPrice}`,
+          startDate,
+          endDate,
+          reason: reason || 'Assigned by admin',
+        },
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Admin: Get shops without active subscription
+router.get(
+  "/admin/shops-without-subscription",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      // Get all shop IDs that have active subscriptions
+      const activeSubscriptions = await Subscription.find({ status: 'active' }).select('shop');
+      const shopsWithSubscription = activeSubscriptions.map(sub => sub.shop.toString());
+
+      // Get all shops without active subscription (including pending approval)
+      const shopsWithoutSubscription = await Shop.find({
+        _id: { $nin: shopsWithSubscription },
+      }).select('_id name email avatar phoneNumber createdAt subscriptionPlan approvalStatus');
+
+      res.status(200).json({
+        success: true,
+        shops: shopsWithoutSubscription,
+        count: shopsWithoutSubscription.length,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

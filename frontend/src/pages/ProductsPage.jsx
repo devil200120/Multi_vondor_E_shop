@@ -40,7 +40,7 @@ const CategoryTreeItem = ({
 
   return (
     <div>
-      <div 
+      <div
         className="flex items-center py-1"
         style={{ paddingLeft: `${level * 12}px` }}
       >
@@ -62,7 +62,7 @@ const CategoryTreeItem = ({
         ) : (
           <span className="w-4 h-4 mr-1" /> // Spacer for alignment
         )}
-        
+
         <label className="flex items-center flex-1 cursor-pointer">
           <input
             type="radio"
@@ -71,7 +71,11 @@ const CategoryTreeItem = ({
             onChange={() => onSelect(category)}
             className="w-3 h-3 text-blue-600"
           />
-          <span className={`ml-2 text-xs ${level === 0 ? 'font-medium text-gray-700' : 'text-gray-600'} ${isSelected ? 'text-blue-600 font-semibold' : ''}`}>
+          <span
+            className={`ml-2 text-xs ${
+              level === 0 ? "font-medium text-gray-700" : "text-gray-600"
+            } ${isSelected ? "text-blue-600 font-semibold" : ""}`}
+          >
             {categoryName}
           </span>
         </label>
@@ -140,7 +144,7 @@ const ProductsPage = () => {
     () => allCategoriesData.filter((cat) => !cat.parent),
     [allCategoriesData]
   );
-  
+
   // Helper function to get direct children of a category
   const getChildCategories = useCallback(
     (parentId) => {
@@ -150,7 +154,7 @@ const ProductsPage = () => {
     },
     [allCategoriesData]
   );
-  
+
   // Check if a category has children
   const hasChildren = useCallback(
     (categoryId) => {
@@ -160,10 +164,10 @@ const ProductsPage = () => {
     },
     [allCategoriesData]
   );
-  
+
   // Track expanded categories for tree view
   const [expandedCategories, setExpandedCategories] = useState(new Set());
-  
+
   const toggleExpanded = (categoryId) => {
     setExpandedCategories((prev) => {
       const newSet = new Set(prev);
@@ -190,20 +194,20 @@ const ProductsPage = () => {
       if (!category) return [];
 
       const subcategoryIds = [category._id];
-      
+
       // Recursive function to get all descendants at any depth
       const findAllDescendants = (parentId) => {
         const children = allCategoriesData.filter(
           (cat) => cat.parent === parentId || cat.parent?._id === parentId
         );
-        
+
         children.forEach((child) => {
           subcategoryIds.push(child._id);
           // Recursively find children of this child (unlimited depth)
           findAllDescendants(child._id);
         });
       };
-      
+
       findAllDescendants(category._id);
 
       console.log("Final subcategory IDs (recursive):", subcategoryIds);
@@ -615,7 +619,9 @@ const ProductsPage = () => {
                               handleCategoryChange(cat.name || cat.title, cat);
                               // Auto-expand parent when selecting
                               if (cat.parent) {
-                                setExpandedCategories((prev) => new Set([...prev, cat.parent]));
+                                setExpandedCategories(
+                                  (prev) => new Set([...prev, cat.parent])
+                                );
                               }
                             }}
                             getChildCategories={getChildCategories}

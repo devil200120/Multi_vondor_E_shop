@@ -298,10 +298,10 @@ router.get(
         sellerWithSubscription.maxProducts = subscription.maxProducts;
         sellerWithSubscription.subscriptionFeatures = subscription.features;
       } else {
-        // Default to bronze if no subscription found
-        sellerWithSubscription.subscriptionPlan = "bronze";
+        // Default to free if no subscription found
+        sellerWithSubscription.subscriptionPlan = "free";
         sellerWithSubscription.subscriptionStatus = "none";
-        sellerWithSubscription.maxProducts = 10;
+        sellerWithSubscription.maxProducts = 5;
       }
 
       res.status(200).json({

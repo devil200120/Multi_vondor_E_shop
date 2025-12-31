@@ -76,13 +76,14 @@ const ContactPage = () => {
           subject: "",
           message: "",
         });
-        
+
         // Reset submitted state after 5 seconds
         setTimeout(() => setSubmitted(false), 5000);
       }
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to send message. Please try again."
+        error.response?.data?.message ||
+          "Failed to send message. Please try again."
       );
     } finally {
       setLoading(false);
@@ -92,7 +93,7 @@ const ContactPage = () => {
   return (
     <>
       <Header activeHeading={7} />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 py-12">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Contact Form */}
@@ -102,19 +103,34 @@ const ContactPage = () => {
                 Contact Us
               </h1>
               <p className="text-gray-600">
-                Fill out the form below and we'll get back to you as soon as possible.
+                Fill out the form below and we'll get back to you as soon as
+                possible.
               </p>
             </div>
 
             {submitted ? (
               <div className="text-center py-12">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  <svg
+                    className="w-10 h-10 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h3>
-                <p className="text-gray-600">Your message has been sent successfully.</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  Thank You!
+                </h3>
+                <p className="text-gray-600">
+                  Your message has been sent successfully.
+                </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -180,9 +196,13 @@ const ContactPage = () => {
                       <option value="General Inquiry">General Inquiry</option>
                       <option value="Order Support">Order Support</option>
                       <option value="Product Question">Product Question</option>
-                      <option value="Returns & Refunds">Returns & Refunds</option>
+                      <option value="Returns & Refunds">
+                        Returns & Refunds
+                      </option>
                       <option value="Seller Inquiry">Seller Inquiry</option>
-                      <option value="Technical Support">Technical Support</option>
+                      <option value="Technical Support">
+                        Technical Support
+                      </option>
                       <option value="Partnership">Partnership</option>
                       <option value="Feedback">Feedback</option>
                       <option value="Other">Other</option>
