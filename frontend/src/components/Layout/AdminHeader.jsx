@@ -56,7 +56,7 @@ const AdminHeader = ({ activeMenuItem = 1 }) => {
   }, []);
 
   return (
-    <div className="w-full h-20 bg-white shadow-sm border-b border-gray-200 sticky top-0 left-0 z-30 flex items-center justify-between px-6">
+    <div className="w-full h-20 bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6">
       {/* Left Side - Logo */}
       <div className="flex items-center space-x-5">
         <Link to="/" className="flex items-center space-x-4">

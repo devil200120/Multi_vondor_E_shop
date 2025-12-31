@@ -7,14 +7,14 @@ const AdminSubscriptionsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminHeader activeMenuItem={15} />
-      <div className="flex">
+      <div className="flex pt-20">
         {/* Sidebar - Fixed positioning for better responsiveness */}
         <div className="hidden 800px:block w-64 fixed left-0 top-20 h-full z-10">
           <AdminSideBar active={15} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 800px:ml-64">
+        <div className="flex-1 800px:ml-64 overflow-x-auto">
           <AdminSubscriptions />
         </div>
       </div>
