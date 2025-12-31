@@ -29,32 +29,43 @@
       (function () {
         // Determine the API base URL based on environment
         var apiBase;
-        
+
         if (window.location.hostname === "localhost") {
           apiBase = "http://localhost:8000/api/v2";
-        } else if (window.location.hostname.includes("onrender.com")) {
-          // Render deployment - use the backend URL
-          apiBase = "https://multi-vondor-e-shop.onrender.com/api/v2";
         } else {
-          // Fallback for other deployments
-          apiBase = window.location.origin + "/api/v2";
+          // For any production deployment (Render, Vercel, etc.)
+          // Always use the backend URL directly
+          apiBase = "https://multi-vondor-e-shop.onrender.com/api/v2";
         }
+
+        console.log("Fetching site settings from:", apiBase);
 
         fetch(apiBase + "/site-settings/get-site-settings")
           .then(function (response) {
             return response.json();
           })
           .then(function (data) {
+            console.log("Site settings response:", data);
             if (data.success && data.settings && data.settings.branding) {
               var branding = data.settings.branding;
+              console.log("Branding settings:", branding);
 
-              // Update favicon
+              // Update favicon - add cache buster
               if (branding.favicon) {
                 var faviconEl = document.getElementById("dynamic-favicon");
                 if (faviconEl) {
-                  faviconEl.href = branding.favicon.startsWith("http")
-                    ? branding.favicon
-                    : branding.favicon;
+                  var faviconUrl = branding.favicon;
+                  // Add cache buster to force browser to reload
+                  faviconUrl = faviconUrl + (faviconUrl.includes('?') ? '&' : '?') + 'v=' + Date.now();
+                  faviconEl.href = faviconUrl;
+                  console.log("Updated favicon to:", faviconUrl);
+                  
+                  // Also add a new link element for better browser support
+                  var newFavicon = document.createElement('link');
+                  newFavicon.rel = 'icon';
+                  newFavicon.type = 'image/png';
+                  newFavicon.href = faviconUrl;
+                  document.head.appendChild(newFavicon);
                 }
               }
 
@@ -80,9 +91,7 @@
               if (branding.appleTouchIcon) {
                 var appleIconEl = document.getElementById("dynamic-apple-icon");
                 if (appleIconEl) {
-                  appleIconEl.href = branding.appleTouchIcon.startsWith("http")
-                    ? branding.appleTouchIcon
-                    : branding.appleTouchIcon;
+                  appleIconEl.href = branding.appleTouchIcon;
                 }
               }
 
@@ -93,7 +102,7 @@
             }
           })
           .catch(function (error) {
-            console.log("Could not load branding settings, using defaults");
+            console.log("Could not load branding settings, using defaults:", error);
           });
       })();
     </script>

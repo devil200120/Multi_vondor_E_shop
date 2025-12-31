@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "../components/Layout/Header";
 import Footer from "../components/Layout/Footer";
 import { useLegalPage } from "../hooks/useLegalPage";
+import { useSiteSettings } from "../hooks/useSiteSettings";
 import {
   HiOutlineLocationMarker,
   HiOutlinePhone,
@@ -19,6 +20,18 @@ import { AiOutlineRocket, AiOutlineAim, AiOutlineEye } from "react-icons/ai";
 
 const AboutUsPage = () => {
   const { legalPage, loading, error } = useLegalPage("about-us");
+  const { settings: siteSettings } = useSiteSettings();
+
+  // Get contact info from site settings
+  const contactInfo = {
+    address: siteSettings?.footerAddress?.streetAddress 
+      ? `${siteSettings.footerAddress.streetAddress}, ${siteSettings.footerAddress.city} ${siteSettings.footerAddress.postalCode}`
+      : "Contact address not set",
+    phone: siteSettings?.footerAddress?.phone || "Phone not set",
+    email: siteSettings?.footerAddress?.email || "Email not set",
+  };
+  
+  const companyName = siteSettings?.companyInfo?.name || siteSettings?.branding?.siteTitle || "Our Company";
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -116,9 +129,7 @@ const AboutUsPage = () => {
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
                   <p className="text-blue-100 text-center">
-                    5-25, 15th main road, 3rd stage, 4th block,
-                    <br />
-                    Basaveswaranagar, Bangalore 560079
+                    {contactInfo.address}
                   </p>
                 </div>
 
@@ -127,7 +138,7 @@ const AboutUsPage = () => {
                     <HiOutlinePhone className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Call Us</h3>
-                  <p className="text-blue-100">+91 7349727270</p>
+                  <p className="text-blue-100">{contactInfo.phone}</p>
                 </div>
 
                 <div className="flex flex-col items-center">
@@ -135,7 +146,7 @@ const AboutUsPage = () => {
                     <HiOutlineMail className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Email Us</h3>
-                  <p className="text-blue-100">support@wanttar.com</p>
+                  <p className="text-blue-100">{contactInfo.email}</p>
                 </div>
               </div>
 
@@ -248,12 +259,10 @@ const AboutUsPage = () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-            About Wanttar
+            About {companyName}
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            Your premier destination for quality products from trusted sellers
-            worldwide. We're revolutionizing e-commerce with innovation, trust,
-            and exceptional service.
+            {siteSettings?.companyInfo?.description || "Your premier destination for quality products from trusted sellers worldwide. We're revolutionizing e-commerce with innovation, trust, and exceptional service."}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
@@ -283,7 +292,7 @@ const AboutUsPage = () => {
               </h2>
               <div className="space-y-4 text-lg text-gray-600 leading-relaxed">
                 <p>
-                  Founded with a vision to democratize e-commerce, Wanttar began
+                  Founded with a vision to democratize e-commerce, {companyName} began
                   as a simple idea: create a platform where quality meets
                   affordability, and where every seller, regardless of size, can
                   reach customers worldwide.
@@ -296,7 +305,7 @@ const AboutUsPage = () => {
                   all sizes.
                 </p>
                 <p>
-                  Today, Wanttar stands as a testament to innovation,
+                  Today, {companyName} stands as a testament to innovation,
                   reliability, and customer-centricity. Every feature we build,
                   every partnership we forge, and every customer interaction we
                   have is guided by our commitment to excellence.
@@ -432,7 +441,7 @@ const AboutUsPage = () => {
               Meet Our Team
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              The passionate people behind Wanttar's success
+              The passionate people behind {companyName}'s success
             </p>
           </div>
 
@@ -479,9 +488,7 @@ const AboutUsPage = () => {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
                 <p className="text-blue-100 text-center">
-                  5-25, 15th main road, 3rd stage, 4th block,
-                  <br />
-                  Basaveswaranagar, Bangalore 560079
+                  {contactInfo.address}
                 </p>
               </div>
 
@@ -490,7 +497,7 @@ const AboutUsPage = () => {
                   <HiOutlinePhone className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Call Us</h3>
-                <p className="text-blue-100">+91 7349727270</p>
+                <p className="text-blue-100">{contactInfo.phone}</p>
               </div>
 
               <div className="flex flex-col items-center">
@@ -498,7 +505,7 @@ const AboutUsPage = () => {
                   <HiOutlineMail className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Email Us</h3>
-                <p className="text-blue-100">support@wanttar.com</p>
+                <p className="text-blue-100">{contactInfo.email}</p>
               </div>
             </div>
 

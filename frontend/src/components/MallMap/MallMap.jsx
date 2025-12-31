@@ -304,14 +304,6 @@ const MallMap = () => {
                     }`}
                     onClick={() => toggleCategory(category.id)}
                   >
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleCategory(category.id)}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-
                     {/* Icon */}
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center"

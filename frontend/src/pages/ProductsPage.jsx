@@ -16,9 +16,11 @@ import {
   HiViewGrid,
   HiViewList,
 } from "react-icons/hi";
+import { useCurrency } from "../context/CurrencyContext";
 
 const ProductsPage = () => {
   const dispatch = useDispatch();
+  const { formatPrice } = useCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryData = searchParams.get("category");
   const { allProducts, isLoading } = useSelector((state) => state.products);
@@ -639,7 +641,8 @@ const ProductsPage = () => {
                           />
                         </div>
                         <div className="text-xs text-gray-500">
-                          ₹{priceRange[0]} - ₹{priceRange[1]}
+                          {formatPrice(priceRange[0])} -{" "}
+                          {formatPrice(priceRange[1])}
                         </div>
                       </div>
                     </div>
