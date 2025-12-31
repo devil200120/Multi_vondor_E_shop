@@ -103,7 +103,7 @@ const Header = ({ activeHeading }) => {
                   src="/logo (10).png"
                   alt="Mall of Cayman"
                   className="h-[70px] w-auto object-contain"
-/>
+                />
               </Link>
             </div>
 

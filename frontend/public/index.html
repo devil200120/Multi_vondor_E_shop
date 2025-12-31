@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" id="dynamic-favicon" href="%PUBLIC_URL%/WANTTA (7).png" />
+    <link rel="icon" id="dynamic-favicon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" id="dynamic-theme-color" content="#000000" />
     <meta
@@ -28,18 +28,16 @@
     <script>
       (function () {
         // Determine the API base URL based on environment
-        var apiBase =
-          window.location.hostname === "localhost"
-            ? "http://localhost:8000/api/v2"
-            : window.location.origin.replace(":3000", ":8000") + "/api/v2";
-
-        // For production, use the actual backend URL
-        if (window.location.hostname !== "localhost") {
-          // Try to detect if we're on a deployed environment
-          var backendUrl = window.REACT_APP_BACKEND_URL || apiBase;
-          apiBase = backendUrl.includes("/api/v2")
-            ? backendUrl
-            : backendUrl + "/api/v2";
+        var apiBase;
+        
+        if (window.location.hostname === "localhost") {
+          apiBase = "http://localhost:8000/api/v2";
+        } else if (window.location.hostname.includes("onrender.com")) {
+          // Render deployment - use the backend URL
+          apiBase = "https://multi-vondor-e-shop.onrender.com/api/v2";
+        } else {
+          // Fallback for other deployments
+          apiBase = window.location.origin + "/api/v2";
         }
 
         fetch(apiBase + "/site-settings/get-site-settings")
@@ -108,7 +106,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title id="dynamic-title">Wanttar</title>
+    <title id="dynamic-title">Mall of Cayman</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
