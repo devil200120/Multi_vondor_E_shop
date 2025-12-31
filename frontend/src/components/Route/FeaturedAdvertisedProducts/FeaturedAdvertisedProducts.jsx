@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { server } from "../../../server";
@@ -8,10 +8,34 @@ import {
   AiOutlineHeart,
 } from "react-icons/ai";
 import { MdLocalOffer } from "react-icons/md";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
 const FeaturedAdvertisedProducts = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  
+  // Number of items to show at a time based on screen size
+  const getItemsPerView = () => {
+    if (typeof window === 'undefined') return 5;
+    if (window.innerWidth < 640) return 2;
+    if (window.innerWidth < 768) return 2;
+    if (window.innerWidth < 1024) return 4;
+    return 5;
+  };
+  
+  const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
+  
+  // Update items per view on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setItemsPerView(getItemsPerView());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -41,6 +65,46 @@ const FeaturedAdvertisedProducts = () => {
       console.error("Error tracking click:", error);
     }
   };
+  
+  // Navigate to next set
+  const goToNext = useCallback(() => {
+    if (featuredProducts.length <= itemsPerView) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => {
+      const nextIndex = prev + itemsPerView;
+      return nextIndex >= featuredProducts.length ? 0 : nextIndex;
+    });
+    setTimeout(() => setIsTransitioning(false), 500);
+  }, [featuredProducts.length, itemsPerView]);
+  
+  // Navigate to previous set
+  const goToPrevious = useCallback(() => {
+    if (featuredProducts.length <= itemsPerView) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => {
+      const prevIndex = prev - itemsPerView;
+      return prevIndex < 0 ? Math.max(0, featuredProducts.length - itemsPerView) : prevIndex;
+    });
+    setTimeout(() => setIsTransitioning(false), 500);
+  }, [featuredProducts.length, itemsPerView]);
+  
+  // Auto-scroll every 10 seconds
+  useEffect(() => {
+    if (featuredProducts.length <= itemsPerView || isPaused) return;
+    
+    const interval = setInterval(() => {
+      goToNext();
+    }, 10000); // 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [featuredProducts.length, itemsPerView, isPaused, goToNext]);
+  
+  // Get visible products
+  const visibleProducts = featuredProducts.slice(currentIndex, currentIndex + itemsPerView);
+  // If we don't have enough products at the end, wrap around
+  const displayProducts = visibleProducts.length < itemsPerView && featuredProducts.length > itemsPerView
+    ? [...visibleProducts, ...featuredProducts.slice(0, itemsPerView - visibleProducts.length)]
+    : visibleProducts;
 
   if (loading) {
     return (
@@ -80,8 +144,33 @@ const FeaturedAdvertisedProducts = () => {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {featuredProducts.map((ad) => {
+      <div 
+        className="relative"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        {/* Navigation Arrows */}
+        {featuredProducts.length > itemsPerView && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors border border-gray-200"
+              aria-label="Previous products"
+            >
+              <HiChevronLeft className="w-5 h-5 text-gray-700" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors border border-gray-200"
+              aria-label="Next products"
+            >
+              <HiChevronRight className="w-5 h-5 text-gray-700" />
+            </button>
+          </>
+        )}
+
+        <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 transition-opacity duration-500 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+          {displayProducts.map((ad) => {
           const product = ad.productId;
           if (!product) return null;
 
@@ -185,6 +274,30 @@ const FeaturedAdvertisedProducts = () => {
             </Link>
           );
         })}
+        </div>
+        
+        {/* Pagination Dots */}
+        {featuredProducts.length > itemsPerView && (
+          <div className="flex justify-center items-center mt-4 gap-2">
+            {Array.from({ length: Math.ceil(featuredProducts.length / itemsPerView) }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setIsTransitioning(true);
+                  setCurrentIndex(idx * itemsPerView);
+                  setTimeout(() => setIsTransitioning(false), 500);
+                }}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  Math.floor(currentIndex / itemsPerView) === idx 
+                    ? 'bg-red-500 w-4' 
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`Go to page ${idx + 1}`}
+              />
+            ))}
+            <span className="ml-2 text-xs text-gray-400">Auto-scrolls every 10s</span>
+          </div>
+        )}
       </div>
     </div>
   );

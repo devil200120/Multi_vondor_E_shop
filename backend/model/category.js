@@ -37,8 +37,8 @@ const categorySchema = new mongoose.Schema({
   level: {
     type: Number,
     default: 0,
-    min: 0,
-    max: 3 // Limiting to 3 levels: Category -> Subcategory -> Sub-subcategory
+    min: 0
+    // No max limit - supports unlimited nesting depth
   },
   sortOrder: {
     type: Number,

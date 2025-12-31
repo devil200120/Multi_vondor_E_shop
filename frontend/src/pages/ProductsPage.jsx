@@ -15,8 +15,89 @@ import {
   HiFilter,
   HiViewGrid,
   HiViewList,
+  HiChevronRight,
+  HiChevronDown,
 } from "react-icons/hi";
 import { useCurrency } from "../context/CurrencyContext";
+
+// Recursive Category Tree Item Component for unlimited nesting
+const CategoryTreeItem = ({
+  category,
+  level,
+  selectedCategory,
+  onSelect,
+  getChildCategories,
+  hasChildren,
+  expandedCategories,
+  toggleExpanded,
+}) => {
+  const categoryName = category.name || category.title;
+  const categoryId = category._id || category.id;
+  const isExpanded = expandedCategories.has(categoryId);
+  const hasChildCategories = hasChildren(categoryId);
+  const children = hasChildCategories ? getChildCategories(categoryId) : [];
+  const isSelected = selectedCategory === categoryName;
+
+  return (
+    <div>
+      <div 
+        className="flex items-center py-1"
+        style={{ paddingLeft: `${level * 12}px` }}
+      >
+        {/* Expand/Collapse button */}
+        {hasChildCategories ? (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              toggleExpanded(categoryId);
+            }}
+            className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 mr-1"
+          >
+            {isExpanded ? (
+              <HiChevronDown className="w-3 h-3" />
+            ) : (
+              <HiChevronRight className="w-3 h-3" />
+            )}
+          </button>
+        ) : (
+          <span className="w-4 h-4 mr-1" /> // Spacer for alignment
+        )}
+        
+        <label className="flex items-center flex-1 cursor-pointer">
+          <input
+            type="radio"
+            name="category"
+            checked={isSelected}
+            onChange={() => onSelect(category)}
+            className="w-3 h-3 text-blue-600"
+          />
+          <span className={`ml-2 text-xs ${level === 0 ? 'font-medium text-gray-700' : 'text-gray-600'} ${isSelected ? 'text-blue-600 font-semibold' : ''}`}>
+            {categoryName}
+          </span>
+        </label>
+      </div>
+
+      {/* Render children recursively */}
+      {isExpanded && hasChildCategories && (
+        <div className="border-l border-gray-200 ml-2">
+          {children.map((child) => (
+            <CategoryTreeItem
+              key={child._id || child.id}
+              category={child}
+              level={level + 1}
+              selectedCategory={selectedCategory}
+              onSelect={onSelect}
+              getChildCategories={getChildCategories}
+              hasChildren={hasChildren}
+              expandedCategories={expandedCategories}
+              toggleExpanded={toggleExpanded}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProductsPage = () => {
   const dispatch = useDispatch();
@@ -24,8 +105,7 @@ const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryData = searchParams.get("category");
   const { allProducts, isLoading } = useSelector((state) => state.products);
-  const { categories, subcategories, subcategoriesLoading, parentCategory } =
-    useSelector((state) => state.categories);
+  const { categories } = useSelector((state) => state.categories);
 
   // Debug: Log the products when they change
   useEffect(() => {
@@ -45,7 +125,6 @@ const ProductsPage = () => {
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState(categoryData || "");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedParentCategory, setSelectedParentCategory] = useState(null);
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [sortBy, setSortBy] = useState("default");
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,38 +140,73 @@ const ProductsPage = () => {
     () => allCategoriesData.filter((cat) => !cat.parent),
     [allCategoriesData]
   );
+  
+  // Helper function to get direct children of a category
+  const getChildCategories = useCallback(
+    (parentId) => {
+      return allCategoriesData.filter(
+        (cat) => cat.parent === parentId || cat.parent?._id === parentId
+      );
+    },
+    [allCategoriesData]
+  );
+  
+  // Check if a category has children
+  const hasChildren = useCallback(
+    (categoryId) => {
+      return allCategoriesData.some(
+        (cat) => cat.parent === categoryId || cat.parent?._id === categoryId
+      );
+    },
+    [allCategoriesData]
+  );
+  
+  // Track expanded categories for tree view
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+  
+  const toggleExpanded = (categoryId) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
 
-  // Helper function to get all subcategory IDs for a given category
+  // Helper function to recursively get all subcategory IDs for a given category (unlimited depth)
   const getAllSubcategoryIds = useCallback(
     (categoryName) => {
-      console.log("Getting subcategory IDs for:", categoryName);
-      console.log("Available categories:", allCategoriesData);
+      console.log("Getting all subcategory IDs (recursive) for:", categoryName);
+      console.log("Available categories:", allCategoriesData.length);
 
       const category = allCategoriesData.find(
-        (cat) => cat.name === categoryName
+        (cat) => cat.name === categoryName || cat.title === categoryName
       );
       console.log("Found category:", category);
 
       if (!category) return [];
 
       const subcategoryIds = [category._id];
-      const subcategories = allCategoriesData.filter(
-        (cat) => cat.parent === category._id
-      );
-      console.log("Found subcategories:", subcategories);
-
-      subcategories.forEach((subcat) => {
-        subcategoryIds.push(subcat._id);
-        // Also get sub-subcategories if any
-        const subSubcategories = allCategoriesData.filter(
-          (cat) => cat.parent === subcat._id
+      
+      // Recursive function to get all descendants at any depth
+      const findAllDescendants = (parentId) => {
+        const children = allCategoriesData.filter(
+          (cat) => cat.parent === parentId || cat.parent?._id === parentId
         );
-        subSubcategories.forEach((subSubcat) => {
-          subcategoryIds.push(subSubcat._id);
+        
+        children.forEach((child) => {
+          subcategoryIds.push(child._id);
+          // Recursively find children of this child (unlimited depth)
+          findAllDescendants(child._id);
         });
-      });
+      };
+      
+      findAllDescendants(category._id);
 
-      console.log("Final subcategory IDs:", subcategoryIds);
+      console.log("Final subcategory IDs (recursive):", subcategoryIds);
       return subcategoryIds;
     },
     [allCategoriesData]
@@ -370,6 +484,7 @@ const ProductsPage = () => {
     sortBy,
     searchTerm,
     getAllSubcategoryIds,
+    categoryData,
   ]);
 
   const handleCategoryChange = (category, categoryObj = null) => {
@@ -377,12 +492,8 @@ const ProductsPage = () => {
     setSelectedSubcategory(""); // Reset subcategory when parent changes
 
     if (category && categoryObj) {
-      // Set parent category and fetch subcategories
-      setSelectedParentCategory(categoryObj);
+      // Fetch subcategories for this category
       dispatch(getSubcategoriesPublic(categoryObj._id));
-    } else {
-      // Clear parent category and subcategories
-      setSelectedParentCategory(null);
     }
 
     if (category) {
@@ -392,22 +503,9 @@ const ProductsPage = () => {
     }
   };
 
-  const handleSubcategoryChange = (subcategory) => {
-    setSelectedSubcategory(subcategory);
-    setSelectedCategory(subcategory); // Use subcategory as the main filter
-    if (subcategory) {
-      setSearchParams({ category: subcategory });
-    } else if (selectedParentCategory) {
-      setSearchParams({ category: selectedParentCategory.name });
-    } else {
-      setSearchParams({});
-    }
-  };
-
   const clearFilters = () => {
     setSelectedCategory("");
     setSelectedSubcategory("");
-    setSelectedParentCategory(null);
     setPriceRange([0, 10000]);
     setSortBy("default");
     setSearchTerm("");
@@ -486,7 +584,7 @@ const ProductsPage = () => {
                       <label className="block text-xs font-medium text-gray-700 mb-2">
                         Categories
                       </label>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                      <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
                         <label className="flex items-center py-1">
                           <input
                             type="radio"
@@ -498,7 +596,6 @@ const ProductsPage = () => {
                             onChange={() => {
                               handleCategoryChange("");
                               setSelectedSubcategory("");
-                              setSelectedParentCategory(null);
                             }}
                             className="w-3 h-3 text-blue-600"
                           />
@@ -507,102 +604,25 @@ const ProductsPage = () => {
                           </span>
                         </label>
 
-                        {/* Root Categories */}
+                        {/* Recursive Category Tree Component */}
                         {rootCategories.map((category) => (
-                          <div key={category._id || category.id}>
-                            <label className="flex items-center py-1">
-                              <input
-                                type="radio"
-                                name="category"
-                                checked={
-                                  selectedCategory ===
-                                    (category.name || category.title) &&
-                                  selectedSubcategory === ""
-                                }
-                                onChange={() =>
-                                  handleCategoryChange(
-                                    category.name || category.title,
-                                    category
-                                  )
-                                }
-                                className="w-3 h-3 text-blue-600"
-                              />
-                              <span className="ml-2 text-xs text-gray-700 font-medium">
-                                {category.name || category.title}
-                              </span>
-                            </label>
-
-                            {/* Show subcategories if this category is selected */}
-                            {selectedParentCategory &&
-                              selectedParentCategory._id === category._id && (
-                                <div className="ml-4 mt-1 space-y-1">
-                                  {subcategoriesLoading ? (
-                                    <div className="text-xs text-gray-500 py-1">
-                                      Loading subcategories...
-                                    </div>
-                                  ) : subcategories &&
-                                    subcategories.length > 0 ? (
-                                    <>
-                                      <label className="flex items-center py-1">
-                                        <input
-                                          type="radio"
-                                          name="subcategory"
-                                          checked={
-                                            selectedCategory ===
-                                              (category.name ||
-                                                category.title) &&
-                                            selectedSubcategory === ""
-                                          }
-                                          onChange={() =>
-                                            handleCategoryChange(
-                                              category.name || category.title,
-                                              category
-                                            )
-                                          }
-                                          className="w-3 h-3 text-gray-400"
-                                        />
-                                        <span className="ml-2 text-xs text-gray-500 italic">
-                                          All in{" "}
-                                          {category.name || category.title}
-                                        </span>
-                                      </label>
-                                      {subcategories.map((subcategory) => (
-                                        <label
-                                          key={subcategory._id}
-                                          className="flex items-center py-1"
-                                        >
-                                          <input
-                                            type="radio"
-                                            name="subcategory"
-                                            checked={
-                                              selectedSubcategory ===
-                                              (subcategory.name ||
-                                                subcategory.title)
-                                            }
-                                            onChange={() =>
-                                              handleSubcategoryChange(
-                                                subcategory.name ||
-                                                  subcategory.title
-                                              )
-                                            }
-                                            className="w-3 h-3 text-blue-500"
-                                          />
-                                          <span className="ml-2 text-xs text-gray-600">
-                                            {subcategory.name ||
-                                              subcategory.title}
-                                          </span>
-                                        </label>
-                                      ))}
-                                    </>
-                                  ) : selectedParentCategory._id ===
-                                    category._id ? (
-                                    <div className="text-xs text-gray-500 py-1 italic">
-                                      No subcategories found
-                                    </div>
-                                  ) : null}
-                                </div>
-                              )}
-                          </div>
+                          <CategoryTreeItem
+                            key={category._id || category.id}
+                            category={category}
+                            level={0}
+                            selectedCategory={selectedCategory}
+                            onSelect={(cat) => {
+                              handleCategoryChange(cat.name || cat.title, cat);
+                              // Auto-expand parent when selecting
+                              if (cat.parent) {
+                                setExpandedCategories((prev) => new Set([...prev, cat.parent]));
+                              }
+                            }}
+                            getChildCategories={getChildCategories}
+                            hasChildren={hasChildren}
+                            expandedCategories={expandedCategories}
+                            toggleExpanded={toggleExpanded}
+                          />
                         ))}
                       </div>
                     </div>

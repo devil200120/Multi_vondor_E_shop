@@ -116,14 +116,30 @@ const CategoryForm = ({ open, onClose, category }) => {
 
   // Filter available parents (exclude current category and its descendants)
   useEffect(() => {
-    let filtered = categories.filter((cat) => cat.level < 2); // Max 3 levels (0, 1, 2)
+    // No level restriction - allow any category as parent (unlimited depth)
+    let filtered = [...categories];
 
     if (category) {
-      // Exclude current category and its descendants
+      // Exclude current category and its descendants to prevent circular references
+      const getDescendantIds = (categoryId) => {
+        const descendants = [];
+        const findChildren = (parentId) => {
+          categories.forEach((cat) => {
+            if (cat.parent === parentId || cat.parent?._id === parentId) {
+              descendants.push(cat._id);
+              findChildren(cat._id);
+            }
+          });
+        };
+        findChildren(categoryId);
+        return descendants;
+      };
+
+      const descendantIds = getDescendantIds(category._id);
       filtered = filtered.filter((cat) => {
         if (cat._id === category._id) return false;
-        // Check if cat is a descendant of current category
-        return !cat.path?.includes(category.slug);
+        if (descendantIds.includes(cat._id)) return false;
+        return true;
       });
     }
 

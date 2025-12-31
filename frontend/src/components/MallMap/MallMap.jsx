@@ -1,52 +1,28 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { HiChevronRight, HiChevronDown } from "react-icons/hi";
-import {
-  FaStore,
-  FaTshirt,
-  FaHome,
-  FaSprayCan,
-  FaTv,
-  FaChild,
-  FaUtensils,
-  FaStar,
-  FaTree,
-  FaCogs,
-  FaBriefcase,
-  FaGem,
-} from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { HiChevronRight } from "react-icons/hi";
+import { FaStore, FaGem } from "react-icons/fa";
+import { getRootCategoriesPublic } from "../../redux/actions/category";
+import { backend_url } from "../../server";
+import { getCategoryImageUrl } from "../../utils/mediaUtils";
 
 const MallMap = () => {
-  const { categories } = useSelector((state) => state.categories);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { allProducts } = useSelector((state) => state.products);
   const { sellers } = useSelector((state) => state.seller);
+  const { categories, isLoading } = useSelector((state) => state.categories);
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [expandedCategories, setExpandedCategories] = useState([]);
   const [hoveredStore, setHoveredStore] = useState(null);
 
-  // Mall categories with icons and store counts
-  const mallCategories = [
-    {
-      id: 1,
-      name: "Fashion & Jewellery",
-      icon: FaTshirt,
-      color: "#E91E63",
-      count: 12,
-    },
-    { id: 2, name: "Home & Living", icon: FaHome, color: "#2196F3", count: 8 },
-    { id: 3, name: "Electronics", icon: FaTv, color: "#00BCD4", count: 10 },
-    {
-      id: 4,
-      name: "Food & Dining",
-      icon: FaUtensils,
-      color: "#FF9800",
-      count: 15,
-    },
-    { id: 5, name: "Kids & Toys", icon: FaChild, color: "#4CAF50", count: 3 },
-    { id: 6, name: "Services", icon: FaCogs, color: "#607D8B", count: 10 },
-  ];
+  // Fetch categories on mount
+  useEffect(() => {
+    dispatch(getRootCategoriesPublic());
+  }, [dispatch]);
+
+  // Use actual categories from database
+  const categoriesData = categories || [];
 
   // Mall store locations for the floor plan
   const mallStores = [
@@ -248,20 +224,10 @@ const MallMap = () => {
     },
   ];
 
-  const toggleCategory = (categoryId) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const toggleExpand = (categoryId) => {
-    setExpandedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
+  const toggleCategory = (category) => {
+    // Navigate to products page filtered by this category
+    const categoryName = category.name || category.title;
+    navigate(`/products?category=${encodeURIComponent(categoryName)}`);
   };
 
   return (
@@ -292,42 +258,51 @@ const MallMap = () => {
 
           {/* Category Filter List */}
           <div className="space-y-1">
-            {mallCategories.map((category) => {
-              const IconComponent = category.icon;
-              const isSelected = selectedCategories.includes(category.id);
-
-              return (
-                <div key={category.id}>
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-2.5 animate-pulse">
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                  <div className="flex-1 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-6 h-4 bg-gray-200 rounded"></div>
+                </div>
+              ))
+            ) : categoriesData.length > 0 ? (
+              categoriesData.map((category, index) => (
+                <div key={category._id || category.id || index}>
                   <div
-                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-white hover:shadow-sm ${
-                      isSelected ? "bg-white shadow-sm" : ""
-                    }`}
-                    onClick={() => toggleCategory(category.id)}
+                    className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-white hover:shadow-sm group"
+                    onClick={() => toggleCategory(category)}
                   >
-                    {/* Icon */}
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${category.color}20` }}
-                    >
-                      <IconComponent
-                        size={14}
-                        style={{ color: category.color }}
+                    {/* Category Image */}
+                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img
+                        src={getCategoryImageUrl(category.image || category.image_Url, backend_url)}
+                        alt={category.name || category.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            (category.name || category.title || "C")[0]
+                          )}&background=003DA5&color=fff&size=32`;
+                        }}
                       />
                     </div>
 
                     {/* Category Name */}
-                    <span className="flex-1 text-sm font-medium text-gray-700">
-                      {category.name}
+                    <span className="flex-1 text-sm font-medium text-gray-700 group-hover:text-primary-600 transition-colors">
+                      {category.name || category.title}
                     </span>
 
-                    {/* Count */}
-                    <span className="text-xs text-gray-400 font-medium">
-                      {category.count}
-                    </span>
+                    {/* Arrow */}
+                    <HiChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" />
                   </div>
                 </div>
-              );
-            })}
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                No categories available
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}

@@ -24,14 +24,17 @@ const AboutUsPage = () => {
 
   // Get contact info from site settings
   const contactInfo = {
-    address: siteSettings?.footerAddress?.streetAddress 
+    address: siteSettings?.footerAddress?.streetAddress
       ? `${siteSettings.footerAddress.streetAddress}, ${siteSettings.footerAddress.city} ${siteSettings.footerAddress.postalCode}`
       : "Contact address not set",
     phone: siteSettings?.footerAddress?.phone || "Phone not set",
     email: siteSettings?.footerAddress?.email || "Email not set",
   };
-  
-  const companyName = siteSettings?.companyInfo?.name || siteSettings?.branding?.siteTitle || "Our Company";
+
+  const companyName =
+    siteSettings?.companyInfo?.name ||
+    siteSettings?.branding?.siteTitle ||
+    "Our Company";
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -262,7 +265,8 @@ const AboutUsPage = () => {
             About {companyName}
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            {siteSettings?.companyInfo?.description || "Your premier destination for quality products from trusted sellers worldwide. We're revolutionizing e-commerce with innovation, trust, and exceptional service."}
+            {siteSettings?.companyInfo?.description ||
+              "Your premier destination for quality products from trusted sellers worldwide. We're revolutionizing e-commerce with innovation, trust, and exceptional service."}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
@@ -292,8 +296,8 @@ const AboutUsPage = () => {
               </h2>
               <div className="space-y-4 text-lg text-gray-600 leading-relaxed">
                 <p>
-                  Founded with a vision to democratize e-commerce, {companyName} began
-                  as a simple idea: create a platform where quality meets
+                  Founded with a vision to democratize e-commerce, {companyName}{" "}
+                  began as a simple idea: create a platform where quality meets
                   affordability, and where every seller, regardless of size, can
                   reach customers worldwide.
                 </p>

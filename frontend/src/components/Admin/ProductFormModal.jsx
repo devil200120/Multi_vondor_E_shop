@@ -8,11 +8,11 @@ import {
 import { AiOutlineCloudUpload, AiOutlineClose } from "react-icons/ai";
 import { BiImageAdd, BiVideoPlus } from "react-icons/bi";
 import { toast } from "react-toastify";
-import { useDispatch, useSelector } from "react-redux";
-import { getSubcategoriesPublic } from "../../redux/actions/category";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import { server } from "../../server";
 import ProductAttributesForm from "../Shop/ProductAttributesForm";
+import CategoryTreeSelect from "../common/CategoryTreeSelect";
 
 const ProductFormModal = ({
   open,
@@ -23,16 +23,10 @@ const ProductFormModal = ({
   loading = false,
   categories = [],
 }) => {
-  const dispatch = useDispatch();
-  const { subcategories, subcategoriesLoading } = useSelector(
-    (state) => state.categories
-  );
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     category: "",
-    subcategory: "",
     tags: "",
     originalPrice: "",
     discountPrice: "",
@@ -75,11 +69,11 @@ const ProductFormModal = ({
   useEffect(() => {
     if (isEdit && product) {
       // Pre-fill form for editing
+      const categoryId = product.category?._id || product.category || "";
       setFormData({
         name: product.name || "",
         description: product.description || "",
-        category: product.category?._id || product.category || "",
-        subcategory: product.subcategory?._id || product.subcategory || "",
+        category: categoryId,
         tags: product.tags || "",
         originalPrice: product.originalPrice || "",
         discountPrice: product.discountPrice || "",
@@ -115,7 +109,6 @@ const ProductFormModal = ({
       name: "",
       description: "",
       category: "",
-      subcategory: "",
       tags: "",
       originalPrice: "",
       discountPrice: "",
@@ -137,20 +130,26 @@ const ProductFormModal = ({
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // If category changes, fetch subcategories and reset subcategory
-    if (name === "category" && value) {
-      dispatch(getSubcategoriesPublic(value));
-      setFormData((prev) => ({
-        ...prev,
-        subcategory: "", // Reset subcategory when category changes
-      }));
-    }
-
     // If seller product is unchecked, clear seller fields
     if (name === "isSellerProduct" && !checked) {
       setFormData((prev) => ({
         ...prev,
         sellerShop: "",
+      }));
+    }
+  };
+
+  // Handle category selection from tree
+  const handleCategoryChange = (categoryObj) => {
+    if (categoryObj) {
+      setFormData((prev) => ({
+        ...prev,
+        category: categoryObj._id,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        category: "",
       }));
     }
   };
@@ -429,49 +428,17 @@ const ProductFormModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category *
             </label>
-            <select
-              name="category"
+            <CategoryTreeSelect
+              categories={categories}
               value={formData.category}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              onChange={handleCategoryChange}
+              placeholder="Select a category"
               required
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Select any category from the tree. You can choose categories at any level.
+            </p>
           </div>
-
-          {/* Subcategory */}
-          {formData.category && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subcategory
-              </label>
-              <select
-                name="subcategory"
-                value={formData.subcategory}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                disabled={subcategoriesLoading}
-              >
-                <option value="">
-                  {subcategoriesLoading
-                    ? "Loading subcategories..."
-                    : "Select Subcategory (Optional)"}
-                </option>
-                {subcategories &&
-                  subcategories.map((subcat) => (
-                    <option key={subcat._id} value={subcat._id}>
-                      {subcat.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          )}
 
           {/* Tags */}
           <div>

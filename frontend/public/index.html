@@ -56,14 +56,18 @@
                 if (faviconEl) {
                   var faviconUrl = branding.favicon;
                   // Add cache buster to force browser to reload
-                  faviconUrl = faviconUrl + (faviconUrl.includes('?') ? '&' : '?') + 'v=' + Date.now();
+                  faviconUrl =
+                    faviconUrl +
+                    (faviconUrl.includes("?") ? "&" : "?") +
+                    "v=" +
+                    Date.now();
                   faviconEl.href = faviconUrl;
                   console.log("Updated favicon to:", faviconUrl);
-                  
+
                   // Also add a new link element for better browser support
-                  var newFavicon = document.createElement('link');
-                  newFavicon.rel = 'icon';
-                  newFavicon.type = 'image/png';
+                  var newFavicon = document.createElement("link");
+                  newFavicon.rel = "icon";
+                  newFavicon.type = "image/png";
                   newFavicon.href = faviconUrl;
                   document.head.appendChild(newFavicon);
                 }
@@ -102,7 +106,10 @@
             }
           })
           .catch(function (error) {
-            console.log("Could not load branding settings, using defaults:", error);
+            console.log(
+              "Could not load branding settings, using defaults:",
+              error
+            );
           });
       })();
     </script>

@@ -7,20 +7,16 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { createProduct, clearSuccess } from "../../redux/actions/product";
-import {
-  getAllCategoriesPublic,
-  getSubcategoriesPublic,
-} from "../../redux/actions/category";
+import { getAllCategoriesPublic } from "../../redux/actions/category";
 import { toast } from "react-toastify";
 import { FiPackage, FiDollarSign, FiImage, FiVideo } from "react-icons/fi";
 import ProductAttributesForm from "./ProductAttributesForm";
+import CategoryTreeSelect from "../common/CategoryTreeSelect";
 
 const CreateProduct = () => {
   const { seller } = useSelector((state) => state.seller);
   const { success, error, isLoading } = useSelector((state) => state.products);
-  const { categories, subcategories } = useSelector(
-    (state) => state.categories
-  );
+  const { categories } = useSelector((state) => state.categories);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -29,7 +25,6 @@ const CreateProduct = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
   const [tags, setTags] = useState("");
   const [originalPrice, setOriginalPrice] = useState();
   const [discountPrice, setDiscountPrice] = useState();
@@ -41,26 +36,14 @@ const CreateProduct = () => {
     dispatch(getAllCategoriesPublic());
   }, [dispatch]);
 
-  // Handle category selection and fetch subcategories
-  const handleCategoryChange = (selectedCategoryId) => {
-    setCategory(selectedCategoryId);
-    setSubcategory(""); // Reset subcategory when category changes
-
-    if (selectedCategoryId) {
-      // Fetch subcategories for the selected category
-      dispatch(getSubcategoriesPublic(selectedCategoryId));
+  // Handle category selection from tree
+  const handleCategoryChange = (categoryObj) => {
+    if (categoryObj) {
+      setCategory(categoryObj._id);
+    } else {
+      setCategory("");
     }
   };
-
-  // Filter root categories (categories without parent)
-  const rootCategories = categories
-    ? categories.filter((cat) => !cat.parent)
-    : [];
-
-  // Get selected category object to check if it has subcategories
-  const selectedCategoryObj = categories
-    ? categories.find((cat) => cat._id === category)
-    : null;
 
   useEffect(() => {
     if (error) {
@@ -76,7 +59,6 @@ const CreateProduct = () => {
       setName("");
       setDescription("");
       setCategory("");
-      setSubcategory("");
       setTags("");
       setOriginalPrice("");
       setDiscountPrice("");
@@ -152,9 +134,7 @@ const CreateProduct = () => {
     });
     newForm.append("name", name);
     newForm.append("description", description);
-    // Use subcategory if selected, otherwise use category
-    const finalCategory = subcategory || category;
-    newForm.append("category", finalCategory);
+    newForm.append("category", category);
     newForm.append("tags", tags);
     newForm.append("originalPrice", originalPrice);
     newForm.append("discountPrice", discountPrice);
@@ -258,60 +238,27 @@ const CreateProduct = () => {
                 />
               </div>
 
-              {/* Category and Subcategory Selection */}
+              {/* Category Selection with Tree */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                {/* Category Selection */}
+                {/* Category Tree Selection */}
                 <div className="space-y-2">
                   <label className="text-sm md:text-base font-bold text-gray-700 flex items-center">
                     Category <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <select
-                    className="w-full px-4 py-3 md:py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md"
+                  <CategoryTreeSelect
+                    categories={categories || []}
                     value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    onChange={handleCategoryChange}
+                    placeholder="Choose a category"
                     required
-                  >
-                    <option value="">Choose a category</option>
-                    {rootCategories.map((cat) => (
-                      <option value={cat._id} key={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  <p className="text-xs text-gray-500">
+                    Select any category from the tree. You can choose categories at any level.
+                  </p>
                 </div>
 
-                {/* Subcategory Selection - Only show if category is selected and has subcategories */}
-                {category && subcategories && subcategories.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="text-sm md:text-base font-bold text-gray-700 flex items-center">
-                      Subcategory
-                      <span className="text-xs text-gray-500 ml-2">
-                        (Optional)
-                      </span>
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 md:py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md"
-                      value={subcategory}
-                      onChange={(e) => setSubcategory(e.target.value)}
-                    >
-                      <option value="">Choose a subcategory (optional)</option>
-                      {subcategories.map((subcat) => (
-                        <option value={subcat._id} key={subcat._id}>
-                          {subcat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Tags - Move to second column or create new row if subcategory is shown */}
-                <div
-                  className={`space-y-2 ${
-                    category && subcategories && subcategories.length > 0
-                      ? "lg:col-span-2"
-                      : ""
-                  }`}
-                >
+                {/* Tags */}
+                <div className="space-y-2">
                   <label className="text-sm md:text-base font-bold text-gray-700">
                     Tags
                   </label>

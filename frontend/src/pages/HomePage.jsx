@@ -2,7 +2,6 @@ import React from "react";
 import Header from "../components/Layout/Header";
 import Hero from "../components/Route/Hero/Hero";
 import VideoBanners from "../components/Route/VideoBanners/VideoBanners";
-import CategoriesSidebar from "../components/CategoriesSidebar/CategoriesSidebar";
 import BestDeals from "../components/Route/BestDeals/BestDeals";
 import Events from "../components/Events/Events";
 import FeaturedProduct from "../components/Route/FeaturedProduct/FeaturedProduct";
@@ -34,7 +33,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Main 3-Column Layout */}
+      {/* Main 2-Column Layout */}
       <div className="max-w-[1400px] mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
           {/* Center Content Area */}
@@ -43,7 +42,7 @@ const HomePage = () => {
             <Hero />
 
             {/* Mobile Ad Banner 1 - After Hero (Most visible position) */}
-            <div className="xl:hidden">
+            <div className="lg:hidden">
               <div className="flex justify-center">
                 <AdvertisementBanners adType="top_sidebar" />
               </div>
@@ -53,7 +52,7 @@ const HomePage = () => {
             <VideoBanners />
 
             {/* Mobile Ad Banner 2 - After Video Banners */}
-            <div className="xl:hidden">
+            <div className="lg:hidden">
               <div className="flex justify-center">
                 <AdvertisementBanners adType="right_sidebar_top" />
               </div>
@@ -69,7 +68,7 @@ const HomePage = () => {
             <FeaturedAdvertisedProducts />
 
             {/* Mobile Ad Banner 3 - After Featured Products (Mid-page visibility) */}
-            <div className="xl:hidden">
+            <div className="lg:hidden">
               <div className="flex justify-center">
                 <AdvertisementBanners adType="right_sidebar_middle" />
               </div>
@@ -115,7 +114,7 @@ const HomePage = () => {
             </div>
 
             {/* Mobile Ad Banner 4 - After Best Deals */}
-            <div className="xl:hidden">
+            <div className="lg:hidden">
               <div className="flex justify-center">
                 <AdvertisementBanners adType="right_sidebar_bottom" />
               </div>
@@ -133,7 +132,7 @@ const HomePage = () => {
           </main>
 
           {/* Right Sidebar - Ads (Desktop Only) */}
-          <aside className="hidden xl:block">
+          <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               {/* Right Sidebar Top - 300x200 */}
               <AdvertisementBanners adType="right_sidebar_top" />

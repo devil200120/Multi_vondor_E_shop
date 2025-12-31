@@ -36,11 +36,7 @@ router.post(
         if (!parentCategory) {
           return next(new ErrorHandler("Parent category not found", 404));
         }
-        
-        // Check maximum nesting level (3 levels)
-        if (parentCategory.level >= 2) {
-          return next(new ErrorHandler("Maximum category nesting level reached", 400));
-        }
+        // No level restriction - supports unlimited nesting depth
       }
 
       // Generate unique slug
@@ -396,10 +392,7 @@ router.put(
           return next(new ErrorHandler("Cannot move category under its own descendant", 400));
         }
 
-        // Check maximum nesting level
-        if (parentCategory.level >= 2) {
-          return next(new ErrorHandler("Maximum category nesting level reached", 400));
-        }
+        // No level restriction - supports unlimited nesting depth
       }
 
       // Update category fields

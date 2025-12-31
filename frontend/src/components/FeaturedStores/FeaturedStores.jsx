@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { server, backend_url } from "../../server";
@@ -8,11 +8,37 @@ import {
   HiShoppingBag,
   HiArrowRight,
   HiSparkles,
+  HiChevronLeft,
+  HiChevronRight,
 } from "react-icons/hi";
 
 const FeaturedStores = () => {
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollContainerRef = useRef(null);
+  
+  // Number of items to show at a time based on screen size
+  const getItemsPerView = () => {
+    if (typeof window === 'undefined') return 5;
+    if (window.innerWidth < 640) return 2;
+    if (window.innerWidth < 768) return 3;
+    if (window.innerWidth < 1024) return 4;
+    return 5;
+  };
+  
+  const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
+  
+  // Update items per view on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setItemsPerView(getItemsPerView());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchShops = async () => {
@@ -34,6 +60,46 @@ const FeaturedStores = () => {
 
     fetchShops();
   }, []);
+  
+  // Navigate to next set
+  const goToNext = useCallback(() => {
+    if (shops.length <= itemsPerView) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => {
+      const nextIndex = prev + itemsPerView;
+      return nextIndex >= shops.length ? 0 : nextIndex;
+    });
+    setTimeout(() => setIsTransitioning(false), 500);
+  }, [shops.length, itemsPerView]);
+  
+  // Navigate to previous set
+  const goToPrevious = useCallback(() => {
+    if (shops.length <= itemsPerView) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => {
+      const prevIndex = prev - itemsPerView;
+      return prevIndex < 0 ? Math.max(0, shops.length - itemsPerView) : prevIndex;
+    });
+    setTimeout(() => setIsTransitioning(false), 500);
+  }, [shops.length, itemsPerView]);
+  
+  // Auto-scroll every 10 seconds
+  useEffect(() => {
+    if (shops.length <= itemsPerView || isPaused) return;
+    
+    const interval = setInterval(() => {
+      goToNext();
+    }, 10000); // 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [shops.length, itemsPerView, isPaused, goToNext]);
+  
+  // Get visible shops
+  const visibleShops = shops.slice(currentIndex, currentIndex + itemsPerView);
+  // If we don't have enough shops at the end, wrap around
+  const displayShops = visibleShops.length < itemsPerView && shops.length > itemsPerView
+    ? [...visibleShops, ...shops.slice(0, itemsPerView - visibleShops.length)]
+    : visibleShops;
 
   if (loading) {
     return (
@@ -68,45 +134,97 @@ const FeaturedStores = () => {
         </Link>
       </div>
 
-      {/* Stores Grid - Responsive */}
+      {/* Stores Grid - Responsive with Auto-Scroll */}
       {shops.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {shops.map((shop, index) => (
-            <Link
-              key={shop._id || index}
-              to={`/shop/preview/${shop._id}`}
-              className="group bg-gradient-to-br from-white to-blue-50 rounded-lg shadow-sm hover:shadow-md border border-blue-200 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400"
-            >
-              {/* Store Image/Avatar */}
-              <div className="aspect-square bg-gradient-to-br from-blue-100 to-primary-100 flex items-center justify-center p-3">
-                <img
-                  src={getAvatarUrl(shop.avatar, backend_url)}
-                  alt={shop.name}
-                  className="w-full h-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      shop.name
-                    )}&background=003DA5&color=fff&size=200`;
-                  }}
-                />
-              </div>
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Navigation Arrows */}
+          {shops.length > itemsPerView && (
+            <>
+              <button
+                onClick={goToPrevious}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                aria-label="Previous stores"
+              >
+                <HiChevronLeft className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={goToNext}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                aria-label="Next stores"
+              >
+                <HiChevronRight className="w-5 h-5 text-gray-700" />
+              </button>
+            </>
+          )}
+          
+          <div 
+            ref={scrollContainerRef}
+            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 transition-opacity duration-500 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}
+          >
+            {displayShops.map((shop, index) => (
+              <Link
+                key={shop._id || index}
+                to={`/shop/preview/${shop._id}`}
+                className="group bg-gradient-to-br from-white to-blue-50 rounded-lg shadow-sm hover:shadow-md border border-blue-200 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400"
+              >
+                {/* Store Image/Avatar */}
+                <div className="aspect-square bg-gradient-to-br from-blue-100 to-primary-100 flex items-center justify-center p-3">
+                  <img
+                    src={getAvatarUrl(shop.avatar, backend_url)}
+                    alt={shop.name}
+                    className="w-full h-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        shop.name
+                      )}&background=003DA5&color=fff&size=200`;
+                    }}
+                  />
+                </div>
 
-              {/* Store Info */}
-              <div className="p-2.5 text-center">
-                <h3 className="font-semibold text-gray-800 text-xs truncate group-hover:text-primary-600 transition-colors">
-                  {shop.name}
-                </h3>
-                {shop.ratings !== undefined && (
-                  <div className="flex items-center justify-center space-x-1 mt-1">
-                    <HiStar className="w-3 h-3 text-yellow-400" />
-                    <span className="text-xs text-gray-500">
-                      {shop.ratings?.toFixed(1) || "New"}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
+                {/* Store Info */}
+                <div className="p-2.5 text-center">
+                  <h3 className="font-semibold text-gray-800 text-xs truncate group-hover:text-primary-600 transition-colors">
+                    {shop.name}
+                  </h3>
+                  {shop.ratings !== undefined && (
+                    <div className="flex items-center justify-center space-x-1 mt-1">
+                      <HiStar className="w-3 h-3 text-yellow-400" />
+                      <span className="text-xs text-gray-500">
+                        {shop.ratings?.toFixed(1) || "New"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+          
+          {/* Pagination Dots */}
+          {shops.length > itemsPerView && (
+            <div className="flex justify-center items-center mt-4 gap-2">
+              {Array.from({ length: Math.ceil(shops.length / itemsPerView) }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setIsTransitioning(true);
+                    setCurrentIndex(idx * itemsPerView);
+                    setTimeout(() => setIsTransitioning(false), 500);
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    Math.floor(currentIndex / itemsPerView) === idx 
+                      ? 'bg-red-500 w-4' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to page ${idx + 1}`}
+                />
+              ))}
+              <span className="ml-2 text-xs text-gray-400">Auto-scrolls every 10s</span>
+            </div>
+          )}
         </div>
       ) : (
         // Empty State - Placeholder Grid
