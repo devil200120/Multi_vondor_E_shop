@@ -95,7 +95,7 @@ const PendingProducts = () => {
   }
 
   return (
-    <div className="w-full p-8">
+    <div className="w-full p-8 max-w-full overflow-hidden">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Pending Products</h1>
         <p className="text-sm text-gray-600 mt-1">
@@ -108,9 +108,9 @@ const PendingProducts = () => {
           <p className="text-gray-500">No pending products to review</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+        <div className="bg-white rounded-lg shadow overflow-hidden max-w-full">
+          <div className="overflow-x-auto max-w-full">
+            <table className="min-w-full divide-y divide-gray-200 table-fixed">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

@@ -5,7 +5,7 @@ import PendingProducts from "../components/Admin/PendingProducts";
 
 const AdminDashboardPendingProducts = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <AdminHeader activeMenuItem={20} />
       <div className="flex">
         {/* Sidebar - Fixed positioning for better responsiveness */}
@@ -14,7 +14,7 @@ const AdminDashboardPendingProducts = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 800px:ml-64">
+        <div className="flex-1 800px:ml-64 overflow-x-auto">
           <PendingProducts />
         </div>
       </div>
