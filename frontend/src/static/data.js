@@ -26,7 +26,7 @@ export const navItems = [
   },
   {
     title: "Contact Us",
-    url: "/inbox",
+    url: "/contact",
   },
 ];
 

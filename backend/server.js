@@ -108,6 +108,7 @@ const subscription = require("./controller/subscription");
 const commission = require("./controller/commission");
 const advertisement = require("./routes/advertisement");
 const department = require("./routes/department");
+const contact = require("./controller/contact");
 
 // endpoints
 app.use("/api/v2/user", user);
@@ -139,6 +140,7 @@ app.use("/api/v2/subscription", subscription);
 app.use("/api/v2/commission", commission);
 app.use("/api/v2/advertisement", advertisement);
 app.use("/api/v2/department", department);
+app.use("/api/v2/contact", contact);
 
 // error handler middleware
 app.use(ErrorHandler);

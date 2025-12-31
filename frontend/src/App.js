@@ -38,6 +38,7 @@ import {
   UserInbox,
   UserForgotPasswordPage,
   UserResetPasswordPage,
+  ContactPage,
 } from "./routes/Routes";
 import {
   ShopDashboardPage,
@@ -227,6 +228,7 @@ const App = () => {
         <Route path="/best-selling" element={<BestSellingPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route
           path="/checkout"
           element={

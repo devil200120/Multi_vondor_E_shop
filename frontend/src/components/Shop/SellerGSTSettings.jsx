@@ -3,12 +3,14 @@ import { useSelector } from "react-redux";
 import { server } from "../../server";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useCurrency } from "../../context/CurrencyContext";
 import { FiSave, FiRefreshCw, FiInfo, FiPackage } from "react-icons/fi";
 import { HiOutlineCalculator } from "react-icons/hi";
 import DashboardHeader from "./Layout/DashboardHeader";
 
 const SellerGSTSettings = () => {
   const { seller } = useSelector((state) => state.seller);
+  const { formatPrice } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [products, setProducts] = useState([]);
@@ -353,7 +355,7 @@ const SellerGSTSettings = () => {
                 {bulkUpdateSettings.isGstApplicable && (
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Preview (on ₹100):
+                      Preview (on {formatPrice(100)}):
                     </h4>
                     {(() => {
                       const preview = calculateGSTPreview(
@@ -364,12 +366,12 @@ const SellerGSTSettings = () => {
                         <div className="text-xs space-y-1">
                           {bulkUpdateSettings.gstType === "separate" ? (
                             <>
-                              <div>CGST: ₹{preview.cgst.toFixed(2)}</div>
-                              <div>SGST: ₹{preview.sgst.toFixed(2)}</div>
+                              <div>CGST: {formatPrice(preview.cgst)}</div>
+                              <div>SGST: {formatPrice(preview.sgst)}</div>
                             </>
                           ) : null}
                           <div className="font-medium">
-                            Total GST: ₹{preview.total.toFixed(2)}
+                            Total GST: {formatPrice(preview.total)}
                           </div>
                         </div>
                       );
@@ -477,6 +479,7 @@ const SellerGSTSettings = () => {
                       }}
                       onUpdate={updateProductGST}
                       calculateGSTPreview={calculateGSTPreview}
+                      formatPrice={formatPrice}
                     />
                   ))
                 )}
@@ -496,6 +499,7 @@ const ProductGSTCard = ({
   onSelect,
   onUpdate,
   calculateGSTPreview,
+  formatPrice,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -572,7 +576,7 @@ const ProductGSTCard = ({
                 {product.name}
               </h3>
               <p className="text-sm text-gray-500">
-                Price: ₹{product.discountPrice}
+                Price: {formatPrice(product.discountPrice)}
               </p>
 
               {/* Current GST Status */}
@@ -740,14 +744,13 @@ const ProductGSTCard = ({
 
                     {/* Preview */}
                     <div className="bg-blue-50 p-2 rounded text-xs">
-                      <strong>Preview on ₹{product.discountPrice}:</strong>
+                      <strong>Preview on {formatPrice(product.discountPrice)}:</strong>
                       {gstSettings.gstType === "separate" ? (
                         <div>
-                          CGST: ₹{preview.cgst.toFixed(2)}, SGST: ₹
-                          {preview.sgst.toFixed(2)}
+                          CGST: {formatPrice(preview.cgst)}, SGST: {formatPrice(preview.sgst)}
                         </div>
                       ) : null}
-                      <div>Total GST: ₹{preview.total.toFixed(2)}</div>
+                      <div>Total GST: {formatPrice(preview.total)}</div>
                     </div>
                   </>
                 )}

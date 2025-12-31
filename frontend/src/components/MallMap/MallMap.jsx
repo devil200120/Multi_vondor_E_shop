@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import axios from "axios";
 import { HiChevronRight } from "react-icons/hi";
-import { FaStore, FaGem } from "react-icons/fa";
+import { FaStore, FaGem, FaCrown } from "react-icons/fa";
 import { getRootCategoriesPublic } from "../../redux/actions/category";
-import { backend_url } from "../../server";
+import { backend_url, server } from "../../server";
 import { getCategoryImageUrl } from "../../utils/mediaUtils";
 
 const MallMap = () => {
@@ -15,214 +16,76 @@ const MallMap = () => {
   const { categories, isLoading } = useSelector((state) => state.categories);
 
   const [hoveredStore, setHoveredStore] = useState(null);
+  const [goldSellers, setGoldSellers] = useState([]);
 
   // Fetch categories on mount
   useEffect(() => {
     dispatch(getRootCategoriesPublic());
   }, [dispatch]);
 
+  // Fetch Gold subscription sellers
+  useEffect(() => {
+    const fetchGoldSellers = async () => {
+      try {
+        const response = await axios.get(`${server}/shop/gold-sellers`);
+        if (response.data.success) {
+          setGoldSellers(response.data.sellers);
+        }
+      } catch (error) {
+        console.error("Error fetching gold sellers:", error);
+      }
+    };
+    fetchGoldSellers();
+  }, []);
+
   // Use actual categories from database
   const categoriesData = categories || [];
 
-  // Mall store locations for the floor plan
-  const mallStores = [
-    // Anchor stores (large, yellow)
-    {
-      id: "jcpenney",
-      name: "JCPenney",
-      x: 5,
-      y: 45,
-      width: 8,
-      height: 35,
-      color: "#FFD700",
-      type: "anchor",
-      zone: "A",
-    },
-    {
-      id: "dillards",
-      name: "Dillard's",
-      x: 60,
-      y: 30,
-      width: 15,
-      height: 55,
-      color: "#FFD700",
-      type: "anchor",
-      zone: "D",
-    },
-    {
-      id: "athome",
-      name: "At Home",
-      x: 85,
-      y: 5,
-      width: 12,
-      height: 25,
-      color: "#FFD700",
-      type: "anchor",
-      zone: "N",
-    },
-    {
-      id: "burlington",
-      name: "Burlington",
-      x: 25,
-      y: 5,
-      width: 15,
-      height: 20,
-      color: "#C71585",
-      type: "anchor",
-      zone: "J",
-    },
-
-    // Entertainment (blue)
-    {
-      id: "regal",
-      name: "Regal Theaters",
-      x: 75,
-      y: 15,
-      width: 10,
-      height: 18,
-      color: "#1E90FF",
-      type: "entertainment",
-      zone: "N",
-    },
-    {
-      id: "rink",
-      name: "MCM Rink N Roll",
-      x: 25,
-      y: 40,
-      width: 12,
-      height: 12,
-      color: "#C71585",
-      type: "entertainment",
-      zone: "L",
-    },
-
-    // Regular stores (magenta/pink corridor)
-    {
-      id: "store1",
-      name: "Fashion Store",
-      x: 15,
-      y: 30,
-      width: 6,
-      height: 8,
-      color: "#C71585",
-      type: "retail",
-      zone: "B",
-    },
-    {
-      id: "store2",
-      name: "Electronics",
-      x: 22,
-      y: 30,
-      width: 6,
-      height: 8,
-      color: "#C71585",
-      type: "retail",
-      zone: "B",
-    },
-    {
-      id: "store3",
-      name: "Home Decor",
-      x: 30,
-      y: 55,
-      width: 8,
-      height: 10,
-      color: "#C71585",
-      type: "retail",
-      zone: "C",
-    },
-    {
-      id: "store4",
-      name: "Sports Zone",
-      x: 40,
-      y: 55,
-      width: 8,
-      height: 10,
-      color: "#C71585",
-      type: "retail",
-      zone: "C",
-    },
-    {
-      id: "store5",
-      name: "Beauty Plus",
-      x: 50,
-      y: 55,
-      width: 6,
-      height: 10,
-      color: "#1E90FF",
-      type: "retail",
-      zone: "E",
-    },
-
-    // Food court area
-    {
-      id: "foodcourt",
-      name: "Food Court",
-      x: 15,
-      y: 55,
-      width: 12,
-      height: 15,
-      color: "#FFD700",
-      type: "food",
-      zone: "B",
-    },
-
-    // More inline stores
-    {
-      id: "store6",
-      name: "Kids Zone",
-      x: 35,
-      y: 25,
-      width: 5,
-      height: 6,
-      color: "#C71585",
-      type: "retail",
-      zone: "H",
-    },
-    {
-      id: "store7",
-      name: "Jewelry",
-      x: 42,
-      y: 25,
-      width: 5,
-      height: 6,
-      color: "#C71585",
-      type: "retail",
-      zone: "H",
-    },
-    {
-      id: "store8",
-      name: "Shoes",
-      x: 49,
-      y: 25,
-      width: 5,
-      height: 6,
-      color: "#C71585",
-      type: "retail",
-      zone: "H",
-    },
-    {
-      id: "store9",
-      name: "Accessories",
-      x: 35,
-      y: 35,
-      width: 5,
-      height: 6,
-      color: "#1E90FF",
-      type: "retail",
-      zone: "I",
-    },
-    {
-      id: "store10",
-      name: "Mobile",
-      x: 42,
-      y: 35,
-      width: 5,
-      height: 6,
-      color: "#1E90FF",
-      type: "retail",
-      zone: "I",
-    },
+  // Store positions for gold sellers - predefined layout positions
+  const storePositions = [
+    // Anchor stores (large, yellow) - for first 4 gold sellers
+    { x: 5, y: 45, width: 8, height: 35, color: "#FFD700", type: "anchor", zone: "A" },
+    { x: 60, y: 30, width: 15, height: 55, color: "#FFD700", type: "anchor", zone: "D" },
+    { x: 85, y: 5, width: 12, height: 25, color: "#FFD700", type: "anchor", zone: "N" },
+    { x: 25, y: 5, width: 15, height: 20, color: "#FFD700", type: "anchor", zone: "J" },
+    // Regular stores (magenta/pink) - for remaining gold sellers
+    { x: 15, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
+    { x: 22, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
+    { x: 30, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
+    { x: 40, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
+    { x: 50, y: 55, width: 6, height: 10, color: "#1E90FF", type: "retail", zone: "E" },
+    { x: 35, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
+    { x: 42, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
+    { x: 49, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
+    { x: 35, y: 35, width: 5, height: 6, color: "#1E90FF", type: "retail", zone: "I" },
+    { x: 42, y: 35, width: 5, height: 6, color: "#1E90FF", type: "retail", zone: "I" },
+    { x: 75, y: 15, width: 10, height: 18, color: "#1E90FF", type: "retail", zone: "N" },
+    { x: 25, y: 40, width: 12, height: 12, color: "#C71585", type: "retail", zone: "L" },
   ];
+
+  // Map gold sellers to store positions
+  const mallStores = goldSellers.length > 0
+    ? goldSellers.map((seller, index) => ({
+        id: seller._id,
+        name: seller.name,
+        sellerId: seller._id,
+        avatar: seller.avatar?.url,
+        isGoldSeller: true,
+        ...storePositions[index % storePositions.length],
+      }))
+    : [
+        // Default placeholder stores when no gold sellers
+        { id: "store1", name: "Premium Store 1", x: 5, y: 45, width: 8, height: 35, color: "#FFD700", type: "anchor", zone: "A" },
+        { id: "store2", name: "Premium Store 2", x: 60, y: 30, width: 15, height: 55, color: "#FFD700", type: "anchor", zone: "D" },
+        { id: "store3", name: "Premium Store 3", x: 85, y: 5, width: 12, height: 25, color: "#FFD700", type: "anchor", zone: "N" },
+        { id: "store4", name: "Premium Store 4", x: 25, y: 5, width: 15, height: 20, color: "#C71585", type: "anchor", zone: "J" },
+        { id: "store5", name: "Store 5", x: 15, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
+        { id: "store6", name: "Store 6", x: 22, y: 30, width: 6, height: 8, color: "#C71585", type: "retail", zone: "B" },
+        { id: "store7", name: "Store 7", x: 30, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
+        { id: "store8", name: "Store 8", x: 40, y: 55, width: 8, height: 10, color: "#C71585", type: "retail", zone: "C" },
+        { id: "store9", name: "Store 9", x: 50, y: 55, width: 6, height: 10, color: "#1E90FF", type: "retail", zone: "E" },
+        { id: "store10", name: "Store 10", x: 35, y: 25, width: 5, height: 6, color: "#C71585", type: "retail", zone: "H" },
+      ];
 
   const toggleCategory = (category) => {
     // Navigate to products page filtered by this category
@@ -416,18 +279,22 @@ const MallMap = () => {
                     y={store.y}
                     width={store.width}
                     height={store.height}
-                    fill={store.color}
-                    stroke="#333"
-                    strokeWidth="0.3"
+                    fill={store.isGoldSeller ? "#FFD700" : store.color}
+                    stroke={store.isGoldSeller ? "#DAA520" : "#333"}
+                    strokeWidth={store.isGoldSeller ? "0.5" : "0.3"}
                     className="cursor-pointer transition-all duration-200 hover:opacity-80"
                     onMouseEnter={() => setHoveredStore(store.id)}
                     onMouseLeave={() => setHoveredStore(null)}
-                    onClick={() =>
-                      (window.location.href = `/products?store=${store.id}`)
-                    }
+                    onClick={() => {
+                      if (store.isGoldSeller && store.sellerId) {
+                        navigate(`/shop/preview/${store.sellerId}`);
+                      } else {
+                        navigate(`/products`);
+                      }
+                    }}
                   />
-                  {/* Store label for anchor stores */}
-                  {store.type === "anchor" && (
+                  {/* Store label for anchor stores or gold sellers */}
+                  {(store.type === "anchor" || store.isGoldSeller) && (
                     <text
                       x={store.x + store.width / 2}
                       y={store.y + store.height / 2}
@@ -442,25 +309,38 @@ const MallMap = () => {
                         textOrientation: "mixed",
                       }}
                     >
-                      {store.name}
+                      {store.name.length > 12 ? store.name.substring(0, 12) + '...' : store.name}
                     </text>
                   )}
-                  {/* Zone markers */}
-                  <text
-                    x={store.x + store.width / 2}
-                    y={
-                      store.y +
-                      store.height / 2 +
-                      (store.type === "anchor" ? 4 : 0)
-                    }
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="text-[2.5px] font-semibold fill-gray-700 pointer-events-none"
-                  >
-                    {store.zone}
-                  </text>
+                  {/* Gold crown indicator for gold sellers */}
+                  {store.isGoldSeller && (
+                    <text
+                      x={store.x + store.width / 2}
+                      y={store.y + 2}
+                      textAnchor="middle"
+                      className="text-[3px] pointer-events-none"
+                    >
+                      👑
+                    </text>
+                  )}
+                  {/* Zone markers - only for non-gold sellers */}
+                  {!store.isGoldSeller && (
+                    <text
+                      x={store.x + store.width / 2}
+                      y={
+                        store.y +
+                        store.height / 2 +
+                        (store.type === "anchor" ? 4 : 0)
+                      }
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-[2.5px] font-semibold fill-gray-700 pointer-events-none"
+                    >
+                      {store.zone}
+                    </text>
+                  )}
                   {/* Small store indicators */}
-                  {store.type === "retail" && (
+                  {store.type === "retail" && !store.isGoldSeller && (
                     <circle
                       cx={store.x + store.width / 2}
                       cy={store.y + store.height / 2 - 1}
@@ -486,16 +366,43 @@ const MallMap = () => {
 
             {/* Tooltip for hovered store */}
             {hoveredStore && (
-              <div className="absolute top-4 left-4 bg-white rounded-lg shadow-xl p-3 z-10 border border-gray-200">
-                <div className="text-sm font-bold text-gray-800">
-                  {mallStores.find((s) => s.id === hoveredStore)?.name}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Zone {mallStores.find((s) => s.id === hoveredStore)?.zone}
-                </div>
-                <div className="text-xs text-blue-600 mt-1 font-medium">
-                  Click to view products →
-                </div>
+              <div className="absolute top-4 left-4 bg-white rounded-lg shadow-xl p-3 z-10 border border-gray-200 max-w-[200px]">
+                {(() => {
+                  const store = mallStores.find((s) => s.id === hoveredStore);
+                  return store ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        {store.isGoldSeller && store.avatar && (
+                          <img 
+                            src={store.avatar} 
+                            alt={store.name}
+                            className="w-8 h-8 rounded-full object-cover border-2 border-yellow-400"
+                          />
+                        )}
+                        <div>
+                          <div className="text-sm font-bold text-gray-800 flex items-center gap-1">
+                            {store.name}
+                            {store.isGoldSeller && (
+                              <FaCrown className="w-3 h-3 text-yellow-500" />
+                            )}
+                          </div>
+                          {store.isGoldSeller ? (
+                            <div className="text-xs text-yellow-600 font-medium">
+                              Gold Member
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">
+                              Zone {store.zone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-blue-600 mt-2 font-medium">
+                        {store.isGoldSeller ? "Click to visit shop →" : "Click to view products →"}
+                      </div>
+                    </>
+                  ) : null;
+                })()}
               </div>
             )}
 
@@ -527,10 +434,12 @@ const MallMap = () => {
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 text-xs">
                 <div
-                  className="w-4 h-3 rounded"
+                  className="w-4 h-3 rounded border border-yellow-500"
                   style={{ backgroundColor: "#FFD700" }}
                 ></div>
-                <span className="text-gray-600">Anchor Stores</span>
+                <span className="text-gray-600 flex items-center gap-1">
+                  <FaCrown className="w-3 h-3 text-yellow-500" /> Gold Members
+                </span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <div
@@ -547,6 +456,11 @@ const MallMap = () => {
                 <span className="text-gray-600">Entertainment</span>
               </div>
             </div>
+            {goldSellers.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-yellow-600 font-medium">
+                👑 {goldSellers.length} Premium Gold Seller{goldSellers.length !== 1 ? 's' : ''} on map
+              </div>
+            )}
           </div>
 
           {/* Bottom Quick Actions */}

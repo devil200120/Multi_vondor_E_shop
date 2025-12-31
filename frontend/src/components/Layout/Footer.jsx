@@ -139,14 +139,11 @@ const Footer = () => {
             <div className="lg:col-span-2">
               <div className="flex items-center mb-4">
                 <Link to="/" className="group">
-                  <div className="bg-white p-3 rounded-lg shadow-moc">
-                    <img
-                      src="/logo (10).png"
-                      alt="Mall of Cayman"
-                      className="h-20 w-auto object-contain transition-all duration-300 group-hover:scale-105"
-                      style={{ borderRadius: "8px" }}
-                    />
-                  </div>
+                  <img
+                    src="/logo (10).png"
+                    alt="Mall of Cayman"
+                    className="h-24 w-auto object-contain transition-all duration-300 group-hover:scale-105 brightness-0 invert"
+                  />
                 </Link>
               </div>
 

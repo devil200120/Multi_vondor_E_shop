@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { server } from "../../server";
 import axios from "axios";
+import { useCurrency } from "../../context/CurrencyContext";
 import {
   FiPackage,
   FiTruck,
@@ -32,6 +33,7 @@ const safeParseFloat = (value, fallback = 0) => {
 
 const ProductShippingManager = () => {
   const { seller } = useSelector((state) => state.seller);
+  const { formatPrice, currency } = useCurrency();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -438,11 +440,11 @@ const ProductShippingManager = () => {
       renderCell: (params) => (
         <div>
           <p className="font-medium">
-            ₹{params.row.discountPrice || params.row.originalPrice}
+            {formatPrice(params.row.discountPrice || params.row.originalPrice)}
           </p>
           {params.row.discountPrice && (
             <p className="text-xs text-gray-500 line-through">
-              ₹{params.row.originalPrice}
+              {formatPrice(params.row.originalPrice)}
             </p>
           )}
         </div>
@@ -474,7 +476,7 @@ const ProductShippingManager = () => {
       renderCell: (params) => (
         <span className="font-medium">
           {params.row.shipping?.baseShippingRate > 0
-            ? `₹${params.row.shipping.baseShippingRate}`
+            ? formatPrice(params.row.shipping.baseShippingRate)
             : "Default"}
         </span>
       ),
@@ -647,7 +649,7 @@ const ProductShippingManager = () => {
               {/* Basic Shipping Rate */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Base Shipping Rate (₹)
+                  Base Shipping Rate ({currency?.symbol || '$'})
                 </label>
                 <input
                   type="number"
@@ -671,7 +673,7 @@ const ProductShippingManager = () => {
               {/* Free Shipping Threshold */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Free Shipping Threshold (₹)
+                  Free Shipping Threshold ({currency?.symbol || '$'})
                 </label>
                 <input
                   type="number"

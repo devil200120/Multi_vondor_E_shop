@@ -1314,4 +1314,42 @@ router.get(
   })
 );
 
+// Get Gold subscription sellers for Mall Map (public)
+router.get(
+  "/gold-sellers",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const Subscription = require("../model/subscription");
+      
+      // Find all active gold subscriptions
+      const activeGoldSubscriptions = await Subscription.find({
+        plan: 'gold',
+        status: 'active',
+        endDate: { $gt: new Date() }
+      }).select('shop');
+
+      // Get the shop IDs
+      const goldShopIds = activeGoldSubscriptions.map(sub => sub.shop);
+
+      // Find shops with active gold subscriptions
+      const goldSellers = await Shop.find({
+        _id: { $in: goldShopIds },
+        approvalStatus: 'approved',
+        isBanned: false,
+      })
+        .select('name avatar address description _id')
+        .sort({ createdAt: -1 })
+        .limit(20); // Limit to 20 for the map
+
+      res.status(200).json({
+        success: true,
+        sellers: goldSellers,
+        count: goldSellers.length,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 module.exports = router;
